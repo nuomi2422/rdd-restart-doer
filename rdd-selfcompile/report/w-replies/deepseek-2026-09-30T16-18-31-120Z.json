@@ -1,0 +1,10 @@
+{
+  "tag": "deepseek",
+  "meta": {
+    "q": "第一行：编译成功但游戏里没生效，最可能是什么？\n第二行：带 special chars: \\ \backtick \"quote\" 'single' 100%\n第三行：表格 |a|b|c|",
+    "url": "https://chat.deepseek.com/a/chat/s/fe2b1db8-7b83-4d56-bdcc-99e1d530cf86"
+  },
+  "text": "表格 |a|b|c|\n单独一行 |a|b|c| 在 Markdown 中通常不会渲染成表格，需要表头 + 分隔行，例如：",
+  "chars": 60,
+  "ts": "2026-09-30T16:18:31.120Z"
+}

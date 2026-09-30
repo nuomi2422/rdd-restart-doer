@@ -7,6 +7,8 @@
 //   node w-brain-drive.js open glm                    → 打开某平台页面（供人工首次登录）
 //   node w-brain-drive.js ask glm "问题文本"           → 向某平台发问并取回全文
 //   node w-brain-drive.js askall "问题文本"            → 依次问 GLM/Qwen/Kimi 三家并汇总
+//   node w-brain-drive.js askall --file q.txt          → ★ 问题从文件读（长文本/代码块用这个）
+//   node w-brain-drive.js ask glm --file q.txt         → ★ 单家 + 文件
 //   node w-brain-drive.js synth "汇总指令"             → 把最近三家回复交给 GLM 综合（O↔GLM 轮）
 //   node w-brain-drive.js reset-profile               → 清 W 专用 profile 缓存
 //
@@ -352,7 +354,31 @@ async function uploadFile(page, filePath) {
 }
 
 (async () => {
-  const [,, cmd, a1, a2] = process.argv;
+  const argvRest = process.argv.slice(2);
+const cmd = argvRest[0];
+// ★ 2026-09-30 修「问题传不全」：原来只取 argv[3]/argv[4]，
+//   问题里有空格没加引号 → 只剩前半截；含换行的代码块 → 只剩第一行。
+//   现在：(a) 支持 --file <路径> 从文件读；(b) 其余参数用空格拼回，不丢。
+const rest = argvRest.slice(1);
+// 先把 --file <路径> 从参数里摘出来（位置随意：ask <平台> --file q.txt / askall --file q.txt）
+let fileQ = null;
+for (let i = 0; i < rest.length; i++) {
+  if (rest[i] === '--file' || rest[i] === '-f') { fileQ = rest[i + 1]; rest.splice(i, 2); break; }
+}
+if (fileQ !== null && !fs.existsSync(fileQ)) {
+  console.log(JSON.stringify({ ok: false, why: 'file not found: ' + fileQ }));
+  process.exit(1);
+}
+const fileBody = fileQ !== null ? fs.readFileSync(fileQ, 'utf8').trim() : null;
+
+let a1, a2;
+if (cmd === 'ask') {
+  a1 = rest[0];                                   // 平台
+  a2 = fileBody !== null ? fileBody : rest.slice(1).join(' ');   // 问题
+} else {
+  a1 = fileBody !== null ? fileBody : rest.join(' ');            // askall 的问题
+  a2 = '';
+}
   const ctx = await makeContext();
   let out;
   if (cmd === 'probe') out = await probe(ctx);

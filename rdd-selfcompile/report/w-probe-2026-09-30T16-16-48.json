@@ -1,0 +1,51 @@
+{
+ "at": "2026-09-30T16:16:48.900Z",
+ "good": 4,
+ "total": 4,
+ "rows": [
+  {
+   "platform": "glm",
+   "nonce": "8406",
+   "ok": true,
+   "hasNonce": true,
+   "secs": 22,
+   "chars": 4,
+   "text": "8406",
+   "file": "E:\\restart developing doer\\rdd-selfcompile\\report\\w-replies\\glm-2026-09-30T16-15-38-390Z.json",
+   "err": ""
+  },
+  {
+   "platform": "deepseek",
+   "nonce": "3537",
+   "ok": true,
+   "hasNonce": true,
+   "secs": 16.5,
+   "chars": 4,
+   "text": "3537",
+   "file": "E:\\restart developing doer\\rdd-selfcompile\\report\\w-replies\\deepseek-2026-09-30T16-15-55-061Z.json",
+   "err": ""
+  },
+  {
+   "platform": "kimi",
+   "nonce": "6428",
+   "ok": true,
+   "hasNonce": true,
+   "secs": 24.1,
+   "chars": 4,
+   "text": "6428",
+   "file": "E:\\restart developing doer\\rdd-selfcompile\\report\\w-replies\\kimi-2026-09-30T16-16-19-059Z.json",
+   "err": ""
+  },
+  {
+   "platform": "qwen",
+   "nonce": "1383",
+   "ok": true,
+   "hasNonce": true,
+   "secs": 29.4,
+   "chars": 15,
+   "text": "已经完成思考\n1383\n1/2",
+   "file": "E:\\restart developing doer\\rdd-selfcompile\\report\\w-replies\\qwen-2026-09-30T16-16-48-491Z.json",
+   "err": ""
+  }
+ ]
+}

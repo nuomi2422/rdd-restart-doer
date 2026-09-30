@@ -1,0 +1,55 @@
+fix(w池传参+起游戏规矩+图谱搬家): w-brain-drive 问题传不全 / 起游戏四条硬规矩收进12号文件 / memory.json 挪出_废弃_
+
+## w-brain-drive.js：问题传不全（用户报「传都传不明白，就传不全」）
+- 根因: :355 `const [,, cmd, a1, a2] = process.argv` 只取固定位置
+    askall "完整问题"      → argv[3] 完整 ✔
+    askall 完整问题 有空格  → argv[3] 只剩前半截，argv[4] 被丢弃 ★
+    含换行的代码块          → 只剩第一行 ★
+  再叠加 PS 单双引号/反引号/$ 的传参展开（AGENTS.md 第6条已记的那两条坑）
+- 修法（向后兼容，老用法不变）:
+    ① 新增 --file <路径>：问题从文件读，绕开一切 shell 引号规则
+       node w-brain-drive.js askall --file q.txt
+       node w-brain-drive.js ask deepseek --file q.txt
+    ② ask <平台> <问题…>  问题 = argv[3..] 用空格全拼
+    ③ askall <问题…>       问题 = argv[3..] 用空格全拼
+- 实测: --file 送 3 行含反引号/单双引号/表格管道符 → meta.q 92 字全达；
+        不加引号的空格句 → 26 字全达（原来只剩 4 字「一句话回答」）
+- 踩坑: 我第一版把 --file 的位置参数顺序搞反（设计成 `ask --file q.txt glm`，
+  实际调用是 `ask deepseek --file q.txt`）→ meta.q 为 0 字；
+  另外我一开始读 $j.q 判空，其实 q 在 $j.meta.q 里，**是我的校验写错不是代码错**
+
+## 起游戏规矩：收进 12-进游戏验证工具集.md（不再塞 stages.json）
+- 用户明确纠正: ③阶段 read[] 已经指向 12 号文件，规矩该写在那里面，不是写进索引
+  （塞进 ai[] 就是把索引写胖 = 稀释注意力）。已从 stages.json 完全撤回
+- 12 号 §2.0 重排为四小节:
+    2.0.0 动手前先问「游戏是不是已经开着」← 最高频翻车点，已发生三次
+    2.0.1 要起只准 Start-Process 脱离，禁止前台等超过 10 秒
+    2.0.2 ⚠ 两种假象: 「java 一直是 0」≠OOM（是参数绑定失败）
+                        「屏幕黑了」≠mod 崩（是内存 <1200MB）
+           含 mc-instance.ps1:65-83 的 $args + @(...) 按位置传参的完整错例
+    2.0.3 四步判据轮询（原有，保留）
+- 顺带修原文一处会误导的: 第 84 行原本写 `& launch-mc.ps1 ... -AutoStopMinutes 120`
+  —— 直接 & 就是会挂死的写法，且 120 违反「用户在场 ≤10 分钟」铁律（默认 10）
+
+## memory.json 挪出 _废弃-（用户同意，防「哪天全被清掉就炸裂」）
+- 旧: rdd架构\_废弃-特殊模式-20260930\_memory\memory.json
+- 新: rdd架构\_memory\memory.json  120.5 KB
+- opencode.json 的 mcp.memory.environment.MEMORY_FILE_PATH 同步改
+- 校验: 解析通过；model/small_model/mcp(3个)/plugin/permission 全未变
+  备份 %TEMP%\opencode-json.bak
+- ⚠ opencode 配置不热重载，重启后生效
+
+## 今天我在图谱里抓到的三个真缺陷（都写进 memory 了）
+- issue/sync-wait-on-mc-launch-hangs-shell: 又同步等 launch-mc，被用户手动杀掉
+  —— 同一条教训当天已犯第三次（AI 自己写过 observation：「写进文档≠改掉习惯」）
+  这回改成放在阶段指令里而不是「要查的文档」里
+- issue/task-efficiency-watch-tdz-crash: :302 用 plannerGap、:305 才 let → TDZ，
+  任务效率监察从来没跑起来过（另一个 AI 修的，闭环真源已获用户批准）
+- issue/loop-gate-inspection-path-dead: 我今天移 特殊模式 目录，
+  把它改废了 → ④-4 巡检项永远 block（另一个 AI 修的）
+
+## 本轮实测数据
+- w-probe.js 4/4 通过（glm 22s / deepseek 16.5s / kimi 24.1s / qwen 29.4s）
+- stager self-test 39/39
+- 门禁仍能拦: flow-gate exit 1 / loop-gate exit 1
+- check-index-agents.js: 0 真问题
