@@ -1,0 +1,12 @@
+// 读档提示（不拦门禁，只点名哪些 read[] 还没记要点）
+  try {
+    if (s.read && s.read.length) {
+      const _rs = readRecaps(st);
+      const _miss = s.read.filter((r) => !_rs.some((x) => readBaseName(x.file) === readBaseName(r)));
+      if (_miss.length) {
+        ok('  ⚠ read[] 有未记读档 ' + _miss.length + ' 份（不拦，但你最好真读了）：');
+        _miss.forEach((r) => ok('     ' + readBaseName(r)));
+      }
+    }
+  } catch (e) {}
+  process.exitCode = g.ok ? 0 : 2;

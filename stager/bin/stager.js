@@ -259,6 +259,31 @@ function loadManifest(id) {
 }
 
 /** 算当前阶段还差什么。返回 {ok, need:[], have:[]} */
+// ── 豁免账本（waiver ledger）─────────────────────────────────
+//   红项可带病放行，但必须记账：原因 / 责任 / 到期轮次。
+//   到期轮次过了还在账上 → 下一轮开局提示清账，不自动清（自动清=赖账）。
+function waiversPath(id) { return path.join(taskDir(id), "waivers.json"); }
+function loadWaivers(id) {
+  try { const j = JSON.parse(fs.readFileSync(waiversPath(id), "utf8"));
+        return Array.isArray(j.items) ? j : { items: [] }; }
+  catch (e) { return { items: [] }; }
+}
+function saveWaivers(id, w) {
+  fs.writeFileSync(waiversPath(id), JSON.stringify(w, null, 1), "utf8");
+}
+function activeWaivers(st) {
+  const w = loadWaivers(st.id);
+  const out = {};
+  w.items.forEach((it) => {
+    if (it.untilRound && it.untilRound < st.round) return;
+    out[it.item] = it;
+  });
+  return out;
+}
+function expiredWaivers(st) {
+  const w = loadWaivers(st.id);
+  return w.items.filter((it) => it.untilRound && it.untilRound < st.round);
+}
 function evaluateGate(st) {
   const stage = stageById(st.stage);
   const need = [];
@@ -280,7 +305,13 @@ function evaluateGate(st) {
     if (marks.indexOf(cmd) >= 0) have.push('cmd:' + cmd); else need.push('cmd:' + cmd);
   });
 
-  return { ok: need.length === 0, need: need, have: have };
+  // ★ 豁免：已记账且未到期的项，从「还差」挪到「已豁免」，不再拦人。
+  const wv = activeWaivers(st);
+  const waived = [];
+  for (let i = need.length - 1; i >= 0; i--) {
+    if (wv[need[i]]) { waived.unshift(need.splice(i, 1)[0]); }
+  }
+  return { ok: need.length === 0, need: need, have: have, waived: waived };
 }
 
 function addMark(st, cmd) {
@@ -407,6 +438,30 @@ function ctxMd(st, full) {
       s.read.forEach((r) => out.push('- `' + r + '`　（`E:\\新建文件夹\\rdd架构\\` 下）'));
       out.push('');
     }
+// 读档记录（GLM「读后一行复述」）—— 让「读没读」从黑箱变可观测
+  if (s.read && s.read.length) {
+    try {
+      const _rs = readRecaps(st);
+      const _F = String.fromCharCode(96).repeat(3);
+      out.push('**读完每份后跑一句**（几十 token，把「读没读」变成可观测的）：');
+      out.push('');
+      out.push(_F + 'powershell');
+      out.push('stager read "<上面某个路径>" --note "这份讲了什么、我该注意什么"');
+      out.push(_F);
+      out.push('');
+      s.read.forEach((r) => {
+        const _bn = readBaseName(r);
+        const _hit = _rs.filter((x) => readBaseName(x.file) === _bn)[0];
+        out.push(_hit ? '- ✔ 已读 `' + _bn + '` —— ' + _hit.note : '- ✘ 未记读档 `' + _bn + '`');
+      });
+      if (_rs.length) {
+        out.push('');
+        out.push('> 已记 ' + _rs.length + ' 份。要点写错会被下游引用打脸，所以别编。');
+      }
+      out.push('');
+    } catch (e) { /* 记录坏了别拖垮 ctx */ }
+  }
+
     if (s.ai && s.ai.length) {
       out.push('**必做：**');
       out.push('');
@@ -428,6 +483,24 @@ function ctxMd(st, full) {
     out.push('');
   }
 
+  // 豁免账本：点名，让 AI 和人都看得见「门禁不是全绿，是记账放行的」
+  try {
+    const _w = loadWaivers(st.id);
+    const _exp = expiredWaivers(st);
+    const _act = activeWaivers(st);
+    if (_w.items.length) {
+      out.push('### ⚠ 本任务带着豁免（门禁不是全绿，是记账放行的）');
+      out.push('');
+      Object.keys(_act).forEach((k) => {
+        const it = _act[k];
+        out.push('- `' + k + '`　到期第 ' + (it.untilRound || '不限') + ' 轮　责任: ' + (it.owner || '?') + '　原因: ' + it.reason);
+      });
+      if (_exp.length) out.push('- **已过期未清 ' + _exp.length + ' 条** → 本轮优先清账（`stager waive list`）');
+      out.push('');
+      out.push('> 这不是免债：本轮能真修就修掉，然后 `stager waive drop <item> --reason "已修"`。');
+      out.push('');
+    }
+  } catch (e) { /* 账本坏了别拖垮 ctx */ }
   // 每 3 轮回流提醒
   if (st.round > 1 && st.round % 3 === 0) {
     out.push('### ⏰ 每 3 轮回流提醒');
@@ -879,6 +952,19 @@ CMD.check = function (a) {
       }
     });
   }
+// ★ 豁免显示（2026-09-30 加，GLM「豁免记账制」）
+  //   门禁不是全绿，是记账放行的 —— 必须让人和 AI 都看得见。
+  if (g.waived && g.waived.length) {
+    const _w = loadWaivers(st.id);
+    ok(`  ⚠ 已豁免 ${g.waived.length} 项（带着病过门，账在 waivers.json）：`);
+    g.waived.forEach((it) => {
+      const rec = (_w.items || []).filter((x) => x.item === it).pop();
+      ok(`     ${it}　原因: ${rec ? rec.reason : '?'}　到期: 第${rec && rec.untilRound ? rec.untilRound : '不限'}轮　责任: ${rec ? rec.owner : '?'}`);
+    });
+    ok('     ★ 豁免不是免账：到期轮次过了还在，会在下一轮开局提醒清。');
+    ok(`     撤销： stager waive drop <item> --reason "已修"`);
+  }
+
   // 性质标注（不改判定）：doc:xxx 要看正文文件在不在 → 📝 痕迹；cmd:xxx 是人打的标记 → 👤 人工
   if (g.need.length || g.have.length) {
     const kindOf = (n) => (n.slice(0, 4) === 'doc:' ? '📝 痕迹' : '👤 人工标记');
@@ -914,7 +1000,134 @@ CMD.check = function (a) {
       ok(`  · 附注：${_thin.length} 份带签名但偏短（<${MIN_DOC_BYTES}B），可能只是写得简洁`);
     }
   }
+// 读档提示（不拦门禁，只点名哪些 read[] 还没记要点）
+  try {
+    if (s.read && s.read.length) {
+      const _rs = readRecaps(st);
+      const _miss = s.read.filter((r) => !_rs.some((x) => readBaseName(x.file) === readBaseName(r)));
+      if (_miss.length) {
+        ok('  ⚠ read[] 有未记读档 ' + _miss.length + ' 份（不拦，但你最好真读了）：');
+        _miss.forEach((r) => ok('     ' + readBaseName(r)));
+      }
+    }
+  } catch (e) {}
   process.exitCode = g.ok ? 0 : 2;
+  return st;
+};
+
+// ── CMD.waive 的实现（模板文件，避免在生成脚本里套引号）──
+CMD.waive = function (a) {
+  const st = requireState(null, { allowClosed: true });
+  const sub = a.pos[0];
+  const w = loadWaivers(st.id);
+
+  if (sub === 'list' || !sub) {
+    const exp = expiredWaivers(st);
+    ok(`豁免账本（第 ${st.round} 轮，当前阶段 ${st.stage}）`);
+    if (!w.items.length) {
+      ok('  （空 —— 没有豁免记录）');
+    }
+    w.items.forEach((it) => {
+      const dead = it.untilRound && it.untilRound < st.round;
+      const tag = dead ? '✘ 已过期' : '● 生效中';
+      ok(`  ${tag}  ${it.item}   到期轮次=${it.untilRound || '不限'}   责任=${it.owner || '(未指定)'}`);
+      ok(`      原因：${it.reason || '(未填)'}   登记于第 ${it.round} 轮 ${it.at || ''}`);
+    });
+    if (exp.length) ok(`  ⚠ ${exp.length} 条已过期未清 —— 下一轮该优先清账`);
+    if (w.items.length) ok('  撤销某条： stager waive drop <item> --reason "已修"');
+    return st;
+  }
+
+  if (sub === 'drop') {
+    const item = a.pos[1];
+    if (!item) die('给门禁项名，如 stager waive drop doc:experience');
+    const before = w.items.length;
+    w.items = w.items.filter((x) => x.item !== item);
+    if (w.items.length === before) die(`账上没有 ${item} 这条豁免`);
+    saveWaivers(st.id, w);
+    ok(`✔ 已撤销 ${item}` + (a.f.reason ? `（原因：${a.f.reason}）` : ''));
+    return st;
+  }
+
+  const reason = a.f.reason || a.f.why;
+  if (!reason) die('豁免必须写原因：--reason "为什么这次可以带病过"');
+  const until = a.f['until-round'] || a.f.until || 0;
+  const rec = {
+    item: sub,
+    reason: String(reason),
+    owner: a.f.owner || st.actor || '(未指定)',
+    untilRound: parseInt(until, 10) || 0,
+    round: st.round,
+    at: new Date().toISOString(),
+  };
+  w.items = w.items.filter((x) => x.item !== sub);   // 同名只留最新
+  w.items.push(rec);
+  saveWaivers(st.id, w);
+  ok(`✔ 已登记豁免 ${sub}`);
+  ok(`   原因 = ${rec.reason}`);
+  ok(`   责任 = ${rec.owner}    到期轮次 = ${rec.untilRound || '不限'}`);
+  if (!rec.untilRound) ok('   ⚠ 没填到期轮次 = 永久豁免。建议加 --until-round N，到期会被提醒清账。');
+  ok(`   查看 stager waive list   撤销 stager waive drop ${sub}`);
+  return st;
+};
+// ── 读档记录（read recap · GLM「读后一行复述」）────────────────
+//   为什么：薄索引把失败模式从「读了但被稀释」换成了「根本没读 / 读了没吸收」，
+//   而后者【不可观测】。读完写一行「已读 X，要点：…」，把读没读从黑箱变白箱。
+//   AI 可能编复述，但编复述比不读成本高，且复述错会污染下游引用从而被暴露。
+function readRecaps(st) {
+  let lines = [];
+  try { lines = fs.readFileSync(path.join(taskDir(st.id), 'reads.jsonl'), 'utf8').split(/\r?\n/).filter(Boolean); }
+  catch (e) { return []; }
+  const out = [];
+  for (const l of lines) {
+    try {
+      const j = JSON.parse(l);
+      if (j.round === st.round && j.stage === st.stage) out.push(j);
+    } catch (e) {}
+  }
+  return out;
+}
+
+// read[] 里的路径归一成 basename（去掉括号注释），用来和读档记录比对
+function readBaseName(r) {
+  return path.basename(String(r).replace(/（[^）]*）/g, '').trim());
+}
+
+CMD.read = function (a) {
+  const st = requireState(null, { allowClosed: true });
+  const file = a.pos[0];
+
+  if (file === 'list' || !file) {
+    const rs = readRecaps(st);
+    ok('读档记录（第 ' + st.round + ' 轮 · ' + st.stage + '）');
+    if (!rs.length) { ok('  （空 —— 本阶段还没记过读完的要点）'); return st; }
+    rs.forEach((r) => {
+      ok('  ✔ ' + r.file);
+      ok('      要点: ' + r.note + '　（' + r.actor + ' ' + String(r.at || '').slice(11, 19) + '）');
+    });
+    return st;
+  }
+
+  const note = a.f.note || '';
+  if (!note) die('读完必须写要点： --note "这份讲了什么、我该注意什么"');
+
+  const p = path.join(taskDir(st.id), 'reads.jsonl');
+  let lines = [];
+  try { lines = fs.readFileSync(p, 'utf8').split(/\r?\n/).filter(Boolean); } catch (e) {}
+  // 同一文件本轮重复读 → 覆盖（保留最后一次），不刷屏
+  const kept = lines.filter((l) => {
+    try { const j = JSON.parse(l); return !(j.file === file && j.round === st.round && j.stage === st.stage); }
+    catch (e) { return true; }
+  });
+  kept.push(JSON.stringify({
+    file: String(file), note: String(note), round: st.round, stage: st.stage,
+    actor: st.actor || '(未指定)', at: new Date().toISOString(),
+  }));
+  fs.writeFileSync(p, kept.join('\n') + '\n', 'utf8');
+
+  ok('✔ 已记读档：' + file);
+  ok('   要点 = ' + note);
+  ok('   本阶段已记 ' + readRecaps(st).length + ' 份（看全部： stager read list）');
   return st;
 };
 
