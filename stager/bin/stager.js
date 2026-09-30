@@ -883,28 +883,35 @@ CMD.check = function (a) {
   if (g.need.length || g.have.length) {
     const kindOf = (n) => (n.slice(0, 4) === 'doc:' ? '📝 痕迹' : '👤 人工标记');
     ok('');
-    ok('  性质：📝 痕迹类 = 查文件在不在 ｜ 👤 人工标记 = 人自己打的');
-    ok('  ★ 观察点：若某阶段门禁永远秒过 = 它只是在走过场，可以降级；反复卡 = 真在拦。');
+    if (a.f.human) ok('  性质：📝 痕迹类 = 查文件在不在 ｜ 👤 人工标记 = 人自己打的');
+    if (a.f.human) ok('  ★ 观察点：若某阶段门禁永远秒过 = 它只是在走过场，可以降级；反复卡 = 真在拦。');
   }
   // ★ 空壳文档检测（2026-09-30 加）
   //   evaluateGate 只判「文件在不在」→ 空 md 就能过 ④，AI 不用真思考。
   //   这里只【提示】不改变判定（判定仍归 evaluateGate，避免两处逻辑打架），
   //   但把空壳点名出来，让它知道这份等于没交。
   {
-    const _man = loadManifest(st.id);
-    const _thin = (_man.docs || [])
-      .filter((d) => d.stage === st.stage && d.round === st.round)
-      .map((d) => {
-        try { return { file: d.file, size: fs.statSync(path.join(docsDir(st.id), d.file)).size }; }
-        catch (e) { return null; }
-      })
-      .filter((d) => d && d.size < MIN_DOC_BYTES);
+    const _man2 = loadManifest(st.id);
+    // 本轮签名 = 当前 HEAD 短 hash。正文里出现它 = 这份确实是这一轮写的。
+    const _sig = "0b7ced0";
+    const _docs = (_man2.docs || []).filter((d) => d.stage === st.stage && d.round === st.round);
+    const _noSig = [], _thin = [];
+    for (const d of _docs) {
+      const _p = path.join(docsDir(st.id), d.file);
+      let _body = "", _size = 0;
+      try { _body = fs.readFileSync(_p, "utf8"); _size = fs.statSync(_p).size; } catch (err) { continue; }
+      // ★ 正交判据：有没有本轮签名。与长度无关 —— 2000 字空话也判不出签名。
+      if (_body.indexOf(_sig) < 0) _noSig.push({ file: d.file, size: _size });
+      else if (_size < MIN_DOC_BYTES) _thin.push({ file: d.file, size: _size });
+    }
+    if (_noSig.length) {
+      ok("");
+      ok(`  ⚠ 无本轮签名 ${_noSig.length} 份（正文里找不到 ${_sig}）：`);
+      _noSig.forEach((d) => ok(`     ${d.file}　${d.size}B　← 不确定是不是这一轮写的`));
+      ok("  ★ 真判据是签名不是长度：写多长都不算，得能指出对应哪个 commit。");
+    }
     if (_thin.length) {
-      ok('');
-      ok('  ⚠ 空壳文档 ' + _thin.length + ' 份（正文 < ' + MIN_DOC_BYTES + ' 字节）：');
-      _thin.forEach((d) => ok('     ' + d.file + '　' + d.size + 'B　← 建了但没写内容'));
-      ok('  ★ 门禁按「文件在」算过了，但这种文档等于没交。');
-      ok('    至少写清：改了哪 / 为什么 / 怎么调的 / 入口出口 —— 别只留标题。');
+      ok(`  · 附注：${_thin.length} 份带签名但偏短（<${MIN_DOC_BYTES}B），可能只是写得简洁`);
     }
   }
   process.exitCode = g.ok ? 0 : 2;
@@ -1047,7 +1054,7 @@ CMD.close = function (a) {
 /** doc:xxx 门禁的正文下限（字节）。空壳文档不算数 —— 2026-09-30 加。
  *  只查"文件在不在"的话，AI 写个空 md 就能过 ④；加内容下限逼它真写。
  *  不设太高：一份合格的经验记录 1KB 起步，500 足够把空壳和敷衍挡在外面。 */
-const MIN_DOC_BYTES = 500;
+const MIN_DOC_BYTES = 500;   // 仅附注用，不参与判定（GLM Goodhart 批评后降级）
 
 const USER_OUT = path.join(ROOT, '..', 'rdd-selfcompile', '给用户');
 const USER_KINDS = { report: '报告', tool: '工具', shot: '截图', doc: '文档' };

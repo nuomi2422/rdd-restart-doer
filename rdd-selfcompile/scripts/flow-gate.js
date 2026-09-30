@@ -33,6 +33,10 @@ const tagIdx = argv.indexOf('--tag');
 const TAG = tagIdx >= 0 && argv[tagIdx + 1] ? argv[tagIdx + 1] : 'pre-autofix-20260928';
 
 const rows = [];
+// ★ 2026-09-30：门禁性质标签（🔒查实物/📝查痕迹）默认【不输出】——
+//   AI 读得到门禁输出，标签等于给它一张「哪些检查能糊弄」的地图。
+//   要看标签请加 --human（那是给人看的）。判定级别不受影响。
+const HUMAN_FLAG = process.argv.includes('--human');
 function chk(sev, name, ok, detail, kind) { rows.push({ sev, name, ok, detail: detail || '', kind: kind || guessKind(name) }); }
 // 性质判定：查实物 / 查痕迹 / 人工
 function guessKind(name) {
@@ -203,15 +207,17 @@ console.log('===== 自编译闭环门禁 flow-gate =====');
 console.log('基准: since=' + SINCE + '  tag=' + TAG);
 for (const r of rows) {
   const KI = { '查实物': '🔒', '查痕迹': '📝', '人工': '👤' };
-  console.log((r.ok ? '[PASS] ' : (r.sev === 'warn' ? '[WARN] ' : '[BLOCK] ')) + (KI[r.kind] || '  ') + ' ' + r.name + (r.detail ? '  -- ' + r.detail : ''));
+  console.log((r.ok ? '[PASS] ' : (r.sev === 'warn' ? '[WARN] ' : '[BLOCK] ')) + (HUMAN_FLAG ? (KI[r.kind] + ' ') : '') + r.name + (r.detail ? '  -- ' + r.detail : ''));
 }
 console.log('--------------------------------------');
 const gateReal = rows.filter(r => r.kind === '查实物'), gateTrace = rows.filter(r => r.kind === '查痕迹');
 console.log('PASS=' + rows.filter(r => r.ok).length + ' WARN=' + warns.length + ' BLOCK=' + blockers.length);
-console.log('性质：🔒 查实物 ' + gateReal.length + ' 项（AI 编不出来） ｜ 📝 查痕迹 ' + gateTrace.length + ' 项（写得出来就过 → 观察对象）');
-console.log('  🔒 查实物: ' + gateReal.map(r => r.name.replace(/^[①-⑨\s]+/, '').slice(0, 24)).join(' / '));
-console.log('  📝 查痕迹: ' + gateTrace.map(r => r.name.replace(/^[①-⑨\s]+/, '').slice(0, 24)).join(' / '));
-console.log('  ★ 观察点：查痕迹那几项若每轮都秒过 = 只在走过场，可降级；反复卡住 = 真在拦，别削。');
+if (HUMAN_FLAG) {
+  console.log('性质：🔒 查实物 ' + gateReal.length + ' 项（AI 编不出来） ｜ 📝 查痕迹 ' + gateTrace.length + ' 项（写得出来就过 → 观察对象）');
+  console.log('  🔒 查实物: ' + gateReal.map(r => r.name.replace(/^[①-⑨\s]+/, '').slice(0, 24)).join(' / '));
+  console.log('  📝 查痕迹: ' + gateTrace.map(r => r.name.replace(/^[①-⑨\s]+/, '').slice(0, 24)).join(' / '));
+  console.log('  ★ 观察点：查痕迹那几项若每轮都秒过 = 只在走过场，可降级；反复卡住 = 真在拦，别削。');
+}
 console.log(blockers.length
   ? 'VERDICT=NOT_DONE —— 有 BLOCKER，**不许收工**，不许对外说「走完流程了」'
   : 'VERDICT=FLOW_COMPLETE —— 闭环各步都有盘上证据');
