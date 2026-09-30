@@ -62,8 +62,22 @@ function Ensure-RddMcRunning {
         Write-Output "LAUNCH_SKIP_ALREADY_RUNNING ($Instance)"
         return $false
     }
-    $args = @('-Instance', $Instance, '-AutoStopMinutes', [string]$AutoStopMinutes)
-    if ($MutationId) { $args = @('-MutationId', $MutationId) + $args }
-    & (Join-Path $PSScriptRoot 'launch-mc.ps1') @args
+    # 2026-09-30 修（连坑三次「游戏起不来」的真根因）：
+    # 原来是 `$args = @('-Instance', $Instance, '-AutoStopMinutes', [string]$AutoStopMinutes)`
+    # 然后 `& launch-mc.ps1 @args`。
+    #
+    # 两个错叠在一起：
+    #  ① `$args` 是 PowerShell 函数内的**保留自动变量**，赋值不会让它变成普通变量；
+    #  ② 更要命的是 **数组 splat（`@(...)`）是按位置传参的，不是按名字**。
+    #     于是 `('-Instance','gpt','-AutoStopMinutes','40')` 被当成 4 个位置实参，
+    #     绑定成 Instance='-Instance'、AutoStopMinutes='gpt'
+    #     → ParameterArgumentTransformationError: 无法将"gpt"转换为 System.Int32。
+    # 结果 launch-mc.ps1 收不到参数、**游戏从来没被启动过**，
+    # 外面看只是"java 进程一直是 0"，极易误判成内存不足 / OOM（本轮就被这样带偏过）。
+    #
+    # 正确写法：**哈希表 splat** 才是按名字传参。
+    $launchParams = @{ Instance = $Instance; AutoStopMinutes = $AutoStopMinutes }
+    if ($MutationId) { $launchParams['MutationId'] = $MutationId }
+    & (Join-Path $PSScriptRoot 'launch-mc.ps1') @launchParams
     return $true
 }
