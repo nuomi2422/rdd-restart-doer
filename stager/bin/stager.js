@@ -886,6 +886,27 @@ CMD.check = function (a) {
     ok('  性质：📝 痕迹类 = 查文件在不在 ｜ 👤 人工标记 = 人自己打的');
     ok('  ★ 观察点：若某阶段门禁永远秒过 = 它只是在走过场，可以降级；反复卡 = 真在拦。');
   }
+  // ★ 空壳文档检测（2026-09-30 加）
+  //   evaluateGate 只判「文件在不在」→ 空 md 就能过 ④，AI 不用真思考。
+  //   这里只【提示】不改变判定（判定仍归 evaluateGate，避免两处逻辑打架），
+  //   但把空壳点名出来，让它知道这份等于没交。
+  {
+    const _man = loadManifest(st.id);
+    const _thin = (_man.docs || [])
+      .filter((d) => d.stage === st.stage && d.round === st.round)
+      .map((d) => {
+        try { return { file: d.file, size: fs.statSync(path.join(docsDir(st.id), d.file)).size }; }
+        catch (e) { return null; }
+      })
+      .filter((d) => d && d.size < MIN_DOC_BYTES);
+    if (_thin.length) {
+      ok('');
+      ok('  ⚠ 空壳文档 ' + _thin.length + ' 份（正文 < ' + MIN_DOC_BYTES + ' 字节）：');
+      _thin.forEach((d) => ok('     ' + d.file + '　' + d.size + 'B　← 建了但没写内容'));
+      ok('  ★ 门禁按「文件在」算过了，但这种文档等于没交。');
+      ok('    至少写清：改了哪 / 为什么 / 怎么调的 / 入口出口 —— 别只留标题。');
+    }
+  }
   process.exitCode = g.ok ? 0 : 2;
   return st;
 };
@@ -1023,6 +1044,11 @@ CMD.close = function (a) {
 
 // ---------------------------------------------------------------- publish
 // 「用户要看/要用的东西」统一进 rdd-selfcompile\给用户\，并自动登记 INDEX.md
+/** doc:xxx 门禁的正文下限（字节）。空壳文档不算数 —— 2026-09-30 加。
+ *  只查"文件在不在"的话，AI 写个空 md 就能过 ④；加内容下限逼它真写。
+ *  不设太高：一份合格的经验记录 1KB 起步，500 足够把空壳和敷衍挡在外面。 */
+const MIN_DOC_BYTES = 500;
+
 const USER_OUT = path.join(ROOT, '..', 'rdd-selfcompile', '给用户');
 const USER_KINDS = { report: '报告', tool: '工具', shot: '截图', doc: '文档' };
 

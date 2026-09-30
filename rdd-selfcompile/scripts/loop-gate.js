@@ -43,7 +43,15 @@ const ARCH = 'E:/新建文件夹/rdd架构';
 const UNIFIED = path.join(ARCH, '自编译统一版');
 const LOGS = path.join(ARCH, '测试日志.md');
 const UPDATELOG = path.join(UNIFIED, '09-更新日志.md');
-const INSPECTION = path.join(ARCH, '特殊模式', '进游戏巡检规范与异常记录.md');
+// 巡检文档落点（2026-09-30 修正）。
+//   原来指向 ARCH/特殊模式/进游戏巡检规范与异常记录.md —— 该目录当天已整体移到
+//   ARCH/_废弃-特殊模式-20260930/（AGENTS §10 记的"已废弃"），所以这一项**永远查不到**，
+//   属于门禁自己指向了死路径，不是 AI 没写巡检。
+//   现行落点：自编译统一版/_stage/ 下按批次命名的巡检记录。
+const INSPECTION_GLOB_DIRS = [
+  path.join(UNIFIED, '_stage'),
+  path.join(ARCH, '_废弃-特殊模式-20260930'),
+];
 const BRAIN_REPLIES = path.join(ARCH, 'brain-replies');
 const REPORT_DIR = path.join(SCRIPTS, '..', 'report');
 const INSTANCE_ROOT = 'E:/restart developing doer/rdd-selfcompile/instances';
@@ -334,10 +342,20 @@ function listFilesUnder(root, depthLimit) {
     eff.length > 0,
     eff.length > 0 ? eff.map(f => path.basename(f)).join(', ') : '未跑 task-efficiency-watch.js（subtask_flat/assets_flat/inv_flat 三个独立信号）');
 
-  const insp = exists(INSPECTION) && isFresh(INSPECTION) && hasSignature(safe(() => fs.readFileSync(INSPECTION, 'utf8'), ''));
+  // 4.4 巡检异常实时写入巡检文档（04 铁律「进游戏不得直接停」）
+  //     2026-09-30：在多个候选目录里找「本轮新鲜 + 含签名」的巡检记录
+  //     （单一硬编码路径已改成 INSPECTION_GLOB_DIRS，见上面注释）。
+  const inspCandidates = INSPECTION_GLOB_DIRS
+    .filter(d => exists(d))
+    .flatMap(d => listFilesUnder(d, 1))
+    .filter(f => /巡检|进游戏巡检|inspect/i.test(path.basename(f)))
+    .filter(f => isFresh(f) && hasSignature(safe(() => fs.readFileSync(f, 'utf8'), '')));
+  const insp = inspCandidates.length > 0;
   chk(insp ? 'ok' : 'block',
     '④-4 巡检异常实时写入巡检文档（04 铁律「进游戏不得直接停」）',
-    insp, exists(INSPECTION) ? (insp ? '本轮已更新' : '文件存在但本轮未更新/无签名') : '巡检文档不存在: ' + INSPECTION);
+    insp,
+    insp ? inspCandidates.map(f => path.basename(f)).join(', ')
+         : '候选目录均无本轮新鲜且带签名的巡检记录: ' + INSPECTION_GLOB_DIRS.join(' | '));
 
   // 4.5 先确认 LLM 有脑（06 进游戏：HTTP 401/402/5xx）
   //     只认「本轮实测」记法 —— 不能靠正文里引用旧记录里的 "402" 字样蒙混过关。
