@@ -1,0 +1,274 @@
+
+## 第 0 条 · 硬门（**只在用户说「stage」时才走 stage 路线**）
+
+**用户明确说了要开 stage，才走下面这套流程。** 用户没说 → 按普通任务直接做，不要自己套 stage。
+
+```powershell
+node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
+```
+
+开完档后 `stager ctx` 会把下面这些自动注入到你的上下文里（opencode 插件已装）。
+没被注入就手动跑一次：
+
+```powershell
+node "E:\restart developing doer\stager\bin\stager.js" ctx
+```
+
+`ctx` 里有三样东西，**每次动手前都要看**：
+1. **当前阶段 + 该阶段必读的 md 清单**（不读不许动手）
+2. **★ 最终架构文档**（所有 AI 的锚，防跑偏）
+3. **门禁还差什么**（不达标 `next` 会直接拒你）
+
+> 顺序不许换：**先报 → 再开 stage → 再读必读 → 再动手**。
+
+```
+🔀 自报｜模式: 人工(1)/自动(2) ｜ 本轮｜<一句话要做什么>
+```
+
+- **人工(1)** = 用户在场 ｜ **自动(2)** = 用户不说话（默认）
+
+---
+
+## 第 1 条 · 四阶段流水线（走完一轮自动 +1，直到任务真正完成）
+
+```
+  ① 计划统筹 plan ──→ ② 编码实现 implement ──→ ③ 游戏验证 verify ──→ ④ 记录收口 close
+        ↑                                                                       │
+        └───────────── 有洞 / 没验完：stager next 自动回①并 +1 轮 ────────────────┘
+                      全过：stager close --status done → 关档结束
+```
+
+**每阶段必须跑一次。** 每阶段跑完打标记推进，门禁不达标 `next` 会拒。
+轮次上限默认 5 轮（`start --rounds N` 改），到顶了要 `--force --note "为什么超"`。
+
+| # | 阶段 | id | 门禁（不达标不许走） | 表情 |
+|---|---|---|---|---|
+| ① | 🗺️ 计划统筹 | `plan` | `plan` 文档 + **`arch` 最终架构文档** | 疑惑 |
+| ② | ⚙️ 编码实现 | `implement` | `implement` 标记 | 平静 |
+| ③ | 🧪 游戏验证 | `verify` | `evidence` 文档 | 惊讶 |
+| ④ | 🎉 记录收口 | `close` | `experience` 文档 + `check` 标记 | 大笑 |
+
+
+### ① 计划统筹 · 必读
+
+```
+E:\新建文件夹\rdd架构\自编译统一版\10-计划阶段.md
+E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+```
+### ② 编码实现 · 必读
+
+```
+E:\新建文件夹\rdd架构\自编译统一版\01-工程规范.md   （八项全表）
+E:\新建文件夹\rdd架构\自编译统一版\11-模块化回滚.md
+E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+固化红线时改清单
+```
+
+**入口只有一个（手写 gradle / 手动拷 jar 已被 permission deny，绕不过去）：**
+
+```powershell
+& "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
+```
+
+- `-Module`：`plugins:rdd` / `plugins:learner` / `plugins:ac` / `plugins:experience` / `core:neoforge`
+- **改执行层（`core/common` 的类）必须 `-Module core:neoforge`**，默认模块盖不到
+- `-MaxAttempts N` 止损循环 ｜ `-SkipLaunch -SkipMcp` 只编译+部署
+- 改接口**先查消费者**：`FailureClassifier` 那种 switch 穷举，加枚举值不同步补 case 就编译不过
+
+写完：`stager implement --note "改了什么 / 为什么 / 怎么调的 / 入口出口"`
+
+### ③ 游戏验证 · 必读（**这一阶段规范最多**）
+
+```
+E:\新建文件夹\rdd架构\自编译统一版\12-进游戏验证工具集.md    ← 工具/脚本全在这
+E:\新建文件夹\rdd架构\自编译统一版\04-进游戏巡检规范.md    ← 四层监察
+E:\新建文件夹\rdd架构\自编译统一版\13-埋点与监测台链路.md
+```
+
+### ④ 记录收口 · 必读
+
+```
+E:\新建文件夹\rdd架构\自编译统一版\06-检查清单.md   
+E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+E:\新建文件夹\rdd架构\自编译统一版\05-记忆库与经验注入.md
+```
+
+**① 记录经验 → 灌进 memory MCP**
+
+```powershell
+# memory_create_entities / memory_add_observations
+```
+
+**别只写文档不进图谱。** 空库 → 查了没用 → 更不查，这是踩过的正反馈坑。
+
+**② 写工程规范第 8 条要求的四件**：改了哪 / 为什么 / 怎么调的 / 入口出口
+**③** `stager put --kind experience --title "工程经验-<批次>"`
+**④ 机器门（三个都要过）**
+
+```powershell
+# ① 阶段门禁（stager 管：当前阶段该交的东西交了没）
+node "E:\restart developing doer\stager\bin\stager.js" check
+# ② 九步流硬门禁（20 项：六步 + 记忆/外脑/巡检/清单）
+node "E:\restart developing doer\rdd-selfcompile\scripts\loop-gate.js" --since <今天> --keyword <模块> --head <本轮HEAD>
+# ③ 自编译闭环门
+node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
+```
+
+`flow-gate` 输出 `VERDICT=NOT_DONE` → **不许收工、不许上报完成**。
+
+**⑤ 判定：走回炉，还是走完成**
+
+```
+有洞 / 没验完  →  stager next          （自动回① +1轮，上轮标记全部作废）
+全过          →  走下面的「完成动作」
+```
+
+**★ 完成动作（顺序别乱）**
+
+```powershell
+stager close --status done --note "<一句话结论>"   # ① 关 stage
+```
+
+1. `stager close --status done` —— **关 stage**（本轮必须有 `arch` + `evidence`，否则会被拦）
+2. **关游戏** —— 带 `-AutoStopMinutes` 起的会自动关；手动起的**自己关，别占内存**
+3. **代码推到远端** —— `git push`（commit message 用 `-F msg.txt`，含空格会被 shell 拆）
+4. **报告各项验证证据 + 成果清单**
+5. **汇总给用户**
+6. 用户说**没问题** → 真正结束；用户说**有问题** → `stager start` 新一轮，或 `stager round --force` 接着修
+
+---
+### 唯一例外
+
+**用户明说「这次就走九步流，不走互审」** → 跳过 W 池，`stager next --force --note "用户要求不走互审"`。
+这是唯一允许 `--force` 走计划阶段的场景。
+
+---
+
+## 第 3 条 · 每三轮 · GLM 源码审
+
+```
+第 3 / 6 / 9 … 轮 → stager ctx 会自动在注入包里提醒你
+```
+
+**动作**：把本轮**所有源码改动**粘给 GLM 审一遍。
+
+- **直接粘文本**，不要只给摘要或链接（GLM 看不到你的文件）
+- 走完 3 轮再发，不是每轮都发
+- 审稿落 `rdd-selfcompile\report\`
+- 审出 P0/P1 → 记进待办，下一轮计划阶段必须处理
+
+---
+
+
+## 第 6 条 · 常见坑（别重踩）
+
+| 坑 | 症状 | 对策 |
+|---|---|---|
+| **PS 5.1 按 ANSI 读无 BOM 的 UTF-8** | `.ps1` 中文乱码 + 一串语法错 | `.ps1` **必须写 UTF-8 BOM** |
+| **`node -e "…"` 内联被 PS 引号拆坏** | 各种诡异报错 | **一律写 `.js` 文件再 `node file.js`** |
+| **PS `:` 插值** | `":$mod:jar"` 整串变成 `:`，gradle 报找不到 task `:` | 用 `":$($mod):jar"` |
+| **MCP 端口** | 文档里写过 test=8765，**是错的** | **test=8766 ／ gpt=8765**（真源：各实例 `config\numen\mcp_server.json`） |
+| **监测台端口** | 记混 | **gpt=8776 ／ test=8777**（真源：`config.ps1` 的 `MONITOR_URL`） |
+| **游戏日志中文是 GBK** | 用中文 grep 假阴性 | 判中文功能查**监测台 `rdd.jsonl`**（干净 UTF-8） |
+| **`get_self_status` 等 MCP 工具** | 直接派活会被门禁拒 | 关 MCP 止投，只读 |
+| **test 实例 `api_key` 是 EMPTY** | 验 LLM 链路失败 | **用 gpt 实例**（`[openai]` 段） |
+| **Bash 工具 120s 超时** | 杀掉等待循环（**但 MC 照样在跑**） | 起了就查状态，**别重发** |
+| **W 池调用别用默认 120s** | 大部分模型 2~3 分钟才说完，**GLM 可能要 4~5 分钟**，超时会被砍，**白等一场** | `bash(timeout=60000)` 起步（暂定 1 分钟，后面按实测调）；**超时就查落盘文件**（`report\w-replies\*.json`），别重发 |
+| ⚠️ **GLM 抓回复会抓到上一轮旧答案** | 2026-09-30 实测：GLM 浏览器里答对了，但落盘文件里存的是上一轮「1+1等于2」。**是脚本抓错元素，不是 GLM 答错**（Qwen/Kimi/DeepSeek 同时同题抓取正确）。**时序偶发，非必现** | **互审前先跑探针** `node rdd-selfcompile\scripts\w-probe.js`（发随机数问题核对答案）；探针不过就别问 |
+| **provider 先排再判代码** | 「它不动」被误判成执行层慢 | 第 0 步查日志有**无 401/402/5xx**（2026-09-28 实测 DeepSeek 402×49、0 成功 = 没钱） |
+
+---
+
+## 第 7 条 · 本工作区地图
+
+| 路径 | 是什么 | 关键入口 |
+|---|---|---|
+| `stager\` | **★ 流程状态机**（4 阶段 / 轮次 / 人次 / 文档 / 门禁 / 桌宠）。第 0 条那条就是它 | `bin\stager.js ctx`（AI 开工第一条）、`core\stages.json`（阶段定义）、`pet\start-pet.ps1`（桌宠） |
+| `minecraft-numen\` | **Numen 源码**（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1） | `gradlew.bat :plugins:rdd:test`、`plugins/selfcompile/.../generated/` |
+| `rdd-selfcompile\` | **自编译运行时真源**。`scripts\`（闭环/看门狗/巡检/外脑/回滚/清理）、`templates\`、`mutations\`、`ai-bridge\` | `scripts\run-mutation.ps1`（**唯一改码入口**）、`scripts\config.ps1`（真源） |
+| `rdd-monitor-publish-20260913\` | **监测台 live 副本**（只读观测） | `monitoring-station\server.mjs` → `http://127.0.0.1:8776/` |
+| `mc-openclaw-controller\` | OpenClaw **客户端玩家控制器**（8080，键鼠/感知/截图）。**不经 Numen MCP → 同伴 AI 照常跑** | `scripts\server.js` + `oc-drive.js` |
+| `gradle-9.2.0\` | 离线 Gradle 发行版 | `gradle-9.2.0\bin\gradle.bat` |
+
+**真正的规则正文在** `E:\新建文件夹\rdd架构\自编译统一版\`。
+**本文件就是唯一索引** —— 每个阶段该读哪几份，上面第 1 条已经写死，不用再找别的索引页。
+（原来的 `自编译统一版\INDEX.md` 已并入本文件并退役，备份在 `_INDEX-已并入AGENTS-20260930.md.bak`）
+本文件是**可执行的那一份**：阶段 + 门禁 + 必读 + 判据。正文细节去那 39 份里查。
+
+---
+
+## 第 8 条 · 东西放哪（用户随时要看/要用的东西）
+
+**stager 的阶段是数据驱动的** —— 改 `stager\core\stages.json`，改完立刻生效，不用改代码。
+
+```jsonc
+{
+  "loopTo": "plan",              // 轮回回到哪
+  "goalTypes": { "module": "...", "exploit": "...", "free": "...", "tidy": "..." },
+  "docKinds": { "goal": "...", "plan": "...", "arch": "...", "evidence": "...", ... },
+  "stages": [{
+    "id": "plan", "name": "计划统筹", "icon": "🗺️", "expr": "confused",
+    "next": "implement",
+    "read":  ["...必读 md..."],   // ← 改这里就改「本阶段必读」
+    "gate": { "docs": ["plan", "arch"] },   // ← 改这里就改门禁
+    "brief": "...", "ai": ["...必做..."]
+  }]
+}
+```
+
+加阶段 / 改门禁 / 改必读 / ，全在这一份 JSON 里。
+
+---
+
+## 第 9 条 · 改流程怎么改
+
+**stager 的阶段是数据驱动的** —— 改 `stager\core\stages.json`，改完立刻生效，不用改代码。
+
+```jsonc
+{
+  "loopTo": "plan",              // 轮回回到哪
+  "goalTypes": { "module": "...", "exploit": "...", "free": "...", "tidy": "..." },
+  "docKinds": { "goal": "...", "plan": "...", "arch": "...", "evidence": "...", ... },
+  "stages": [{
+    "id": "plan", "name": "计划统筹", "icon": "🗺️", "expr": "confused",
+    "next": "implement",
+    "read":  ["...必读 md..."],   // ← 改这里就改「本阶段必读」
+    "gate": { "docs": ["plan", "arch"] },   // ← 改这里就改门禁
+    "brief": "...", "ai": ["...必做..."]
+  }]
+}
+```
+
+加阶段 / 改门禁 / 改必读 / 改文档类型，全在这一份 JSON 里。
+
+---
+
+## 第 10 条 · 交接与资产
+
+- **接手先看**：`E:\新建文件夹\rdd架构\self-compile-handoff.md`
+- **stager 自己的交接**：`stager\STAGER.md`（给 AI）+ `stager\README.md`（给人）
+- **换人接手**：`stager swap "<你的名字>"` → `stager ctx --full`（把历史文档全文注入给你）
+- **桌宠**：`stager\启动桌宠.bat` 或 `stager pet`；点一下报「阶段 (n/4) / 第几轮 / 轮回几次 / 人次 / 门禁」
+
+---
+
+**★ 用户只看这一个地方：**
+
+```text
+E:\新建文件夹\rdd存放\
+```
+
+### 全目录分工（别搞混）
+
+| 目录 | 谁用 |
+|---|---|
+| `E:\新建文件夹\rdd存放\` | **用户** —— 要看、要用、要点的，**全部放这里** |
+| `rdd-selfcompile\report\` | AI —— 外脑审稿原文（W 池回复也归档到这） |
+| `rdd-selfcompile\scripts\` | AI —— 闭环真源，**改动要用户批准** |
+| `rdd-selfcompile\scripts\verify-tools\` | AI —— 我自己写的验证工具 |
+| `rdd-selfcompile\mutations\` | AI —— 每次变异的临时工作区（**用户别翻**） |
+| `stager\` | AI —— 阶段状态机 |
+
+> `rdd-selfcompile\给用户\` 已废弃（内容已归到 `rdd存放`）。
+> `rdd架构\特殊模式\` 已废弃：原目录移到 `_废弃-特殊模式-20260930\`（68 个文件都在，没删），
+> 审稿原文已拷到 `rdd-selfcompile\report\w-replies\`（`w-brain-drive.js` 的 `W_REPLY_DIR` 也已改指向这里）。

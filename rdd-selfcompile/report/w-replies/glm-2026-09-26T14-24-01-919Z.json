@@ -1,0 +1,10 @@
+{
+  "tag": "glm",
+  "meta": {
+    "q": "请审核我们给 Minecraft AI 同伴(RDD任务链)新写的4点架构代码(纯Java,已写骨架+2点接线)，指出问题：①支线任务 LocalRepairTask: 死亡/物品丢失时生成不分整链重规划的临时任务, 有 parentLin",
+    "url": "https://chatglm.cn/main/alltoolsdetail?t=1790401823773&cid=6ab5dbdc48e40d0bca1047d6&lang=zh"
+  },
+  "text": "骨架审核：3 个致命缺口 + 4 个隐患 + 2 处接线松动\n(a) 遗漏的关键设计\nSupervisor 没了——②说“detect 只产事实不决策”，但没提谁裁决“标记 vs 重规划”。九分支决策层（MARK/PARTIAL/INSERT_RECON/INSERT_IMMEDIATE/REPLAN_*/WAIT…）缺失，事实发出去断在中间没人消费——这是“检测≠重规划”解耦的另一半，不是可选项。\navailable 谓词缺失：满足≠可用（enough_count && reachable && tool_satisfied && safe && inventory_space）。没有它，检测到 3 个木头就标 SATISFIED，执行必失败；且此谓词必须与执行前置校验共用一份实现，防两套判定漂移。\n观测没有 ttl/confidence/state_version：20-30s 扫描间隔内世界会变（被挖走/区块卸载）；无 state_version 就无幂等键，重复/乱序事件无法去重。\nDeliberation 缺第三出口：只剩“执行/发重规划”二元——信息不足时应插侦察任务，否则所有信息缺口都升级成整链重规划，抖动回潮。且没提硬预算（≤3s/≤1 次 LLM）和超时降级，这是反空转命根子。\nLocalRepairTask 缺 timeout + checkpoint 断点恢复——被打断后从头做，重复浪费。\nOutcomeRecorder/埋点没提——第一批不写记忆本体没错，但落盘和埋点必须第一批有，否则第二批没数据可校准。\n(b) 护栏/快路径隐患\ncritical 绕过冷却 = 绕过一切：持续型 critical 源（持续掉血/岩浆边）会连发事件无限抢占。critical 通道自己要按 scope 幂等，且明确“是否计入每分钟上限”——这两条护栏规则打架了，没定义优先级。\n连续失败升级的计数键：必须按 (causationId, failure_class) 归类，全局计数会误伤无关任务；且升级前先判失败是否可修（工具坏 vs 瞬时怪挡路），否则瞬时问题被升级成重规划。\n快路径的前提没锁死：剩 1 个候选直接执行，依赖“硬过滤谓词 = 执行前置校验”。若硬过滤漏一个条件（如 reachable），快路径执行必败且无 fallback。快路径任务必须自带 timeout + failure→发事件。\n评分卡没有最低分数线：全负分时（夜里全是怪）是选“最不烂的”还是重规划？缺 min_acceptable 阈值，现在会硬选负分方案。\ncooldown 的 scope 粒度没落到 schema（asset_key 级？task 级？goal 级？）——太粗互相压制吞真故障，太细形同虚设。\n© 接线稳定性\n死亡→nudge 是旁路，绕过了正规链路：nudge 在事件回调里同步调执行体——执行体忙时长动作（挖矿中）会静默忽略，且若执行体阻塞，事件处理也被拖死。应改为：死亡事件只写迷你快照+发 critical 事件，nudge 由 command 通道下发、带抢占语义+ack 确认；nudge 生成的 LocalRepairTask 必须走同一 store 入版本管理，否则旁路任务逃逸。\n绑定→publish 是 fire-and-forget：两个时序坑——subtasks 未展开完就 publish 会发半截 Manifest；订阅者晚于 publish 启动就永久错过。修法：Manifest 落 store + 扫描器启动时主动拉取活跃 Manifest（push+pull 双保险），publish 前置条件是 subtasks ready。\n两条接线都只验证了 happy path——补三条冒烟：二次死亡（nudge 执行中又死）、扫描器晚启动（publish 早于订阅）、事件乱序重复（无去重会怎样）。\n\n一句话：骨架方向对，但①②③各缺一块灵魂——①缺恢复点、②缺裁决者、③缺侦察出口；接线两处都是 fire-and-forget，先把 ack 和 pull 兜底补上再谈第④点。",
+  "chars": 1724,
+  "ts": "2026-09-26T14:24:01.928Z"
+}

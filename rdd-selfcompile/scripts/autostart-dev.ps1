@@ -79,6 +79,28 @@ try {
     }
 } catch { Say "[browser] 启动失败: $($_.Exception.Message)" }
 
+# --- 3b. W 层浏览器（带 CDP 9223 的 Edge，GLM/Kimi 网页外脑的载体） ---
+# 【2026-09-28 补】此前这里只起 AI Bridge 的 Chrome，唯独没起 W 层这个带调试端口的 Edge。
+# 后果:w-brain-drive.js 连不上 9223 → GLM/Kimi 全部不可用 → 自动模式"没有多模型"。
+# 但 [agents] 文档一直写着"自动模式用 W 层(GLM/Kimi)"，工具都在，只是载体从没被拉起。
+# 幂等:按 9223 是否监听判断。
+try {
+    if ($NoBrowser) {
+        Say "[w-layer] 按参数跳过"
+    } elseif (Port-InUse 9223) {
+        Say "[w-layer] CDP Edge(9223) 已在跑，跳过"
+    } else {
+        $wOpen = Join-Path $PSScriptRoot 'w-open-browser.ps1'
+        if (-not (Test-Path -LiteralPath $wOpen)) {
+            Say "[w-layer] 未找到 w-open-browser.ps1"
+        } else {
+            Start-Process -WindowStyle Hidden powershell -ArgumentList @(
+                '-NoProfile','-ExecutionPolicy','Bypass','-File',"`"$wOpen`"",'-Port','9223')
+            Say "[w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用"
+        }
+    }
+} catch { Say "[w-layer] 启动失败: $($_.Exception.Message)" }
+
 # --- 4. opencode 窗口（新控制台窗口，工作目录=仓库） ---
 try {
     if (-not (Test-Path -LiteralPath $OpencodeExe)) {

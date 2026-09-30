@@ -1,0 +1,69 @@
+﻿2026-09-25 16:24:10 === autostart 开始 ===
+2026-09-25 16:24:15 [monitor] 8776 已在监听，跳过
+2026-09-25 16:24:16 [watchdog] 已在跑 (pid 32752)，跳过
+2026-09-25 16:24:17 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-25 16:24:17 [opencode] 已在新窗口启动 opencode (dir=E:\restart developing doer\minecraft-numen)
+2026-09-25 16:24:17 === autostart 完成 ===
+2026-09-25 16:30:26 === autostart 开始 ===
+2026-09-25 16:30:32 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-25 16:30:33 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-25 16:30:34 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-25 16:30:34 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-25 16:30:34 === autostart 完成 ===
+2026-09-26 12:49:08 === autostart 开始 ===
+2026-09-26 12:49:11 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-26 12:49:12 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-26 12:49:12 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-26 12:49:12 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-26 12:49:12 === autostart 完成 ===
+2026-09-26 23:41:14 === autostart 开始 ===
+2026-09-26 23:41:18 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-26 23:41:18 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-26 23:41:19 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-26 23:41:19 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-26 23:41:19 === autostart 完成 ===
+2026-09-27 06:20:23 === autostart 开始 ===
+2026-09-27 06:20:26 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-27 06:20:27 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-27 06:20:27 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-27 06:20:27 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-27 06:20:27 === autostart 完成 ===
+2026-09-27 14:08:21 === autostart 开始 ===
+2026-09-27 14:08:25 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-27 14:08:25 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-27 14:08:26 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-27 14:08:26 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-27 14:08:26 === autostart 完成 ===
+2026-09-27 23:08:16 === autostart 开始 ===
+2026-09-27 23:08:22 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-27 23:08:24 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-27 23:08:24 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-27 23:08:24 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-27 23:08:24 === autostart 完成 ===
+2026-09-28 10:30:05 === autostart 开始 ===
+2026-09-28 10:30:08 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-28 10:30:09 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-28 10:30:09 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-28 10:30:10 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-28 10:30:10 === autostart 完成 ===
+2026-09-29 00:23:57 === autostart 开始 ===
+2026-09-29 00:24:01 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-29 00:24:02 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-29 00:24:02 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-29 00:24:02 [w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用
+2026-09-29 00:24:03 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-29 00:24:03 === autostart 完成 ===
+2026-09-29 15:21:55 === autostart 开始 ===
+2026-09-29 15:21:58 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-29 15:21:59 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-29 15:21:59 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-29 15:22:00 [w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用
+2026-09-29 15:22:00 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-29 15:22:00 === autostart 完成 ===
+2026-09-30 12:35:14 === autostart 开始 ===
+2026-09-30 12:35:20 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-09-30 12:35:21 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-09-30 12:35:21 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-09-30 12:35:23 [w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用
+2026-09-30 12:35:23 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
+2026-09-30 12:35:23 === autostart 完成 ===

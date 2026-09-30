@@ -1,0 +1,10 @@
+{
+  "tag": "glm",
+  "meta": {
+    "q": "请联网搜索并总结：2025-2026 年让大语言模型（LLM/AI Agent）玩《我的世界》(Minecraft) 通关或生存的公开研究与实测经验。重点要具体、可复用的踩坑经验，不要泛泛而谈的『AI很强大』。请覆盖：1) GPT-5/GP",
+    "url": "https://chatglm.cn/main/alltoolsdetail?t=1790676534652&cid=6abb156aaed53d5a7c5f0f2b&lang=zh"
+  },
+  "text": "用户想要一份关于2025-2026年大语言模型（LLM/AI Agent）在《我的世界》中通关或生存的全面综述，包括具体可复用的失败教训。我需要搜索：\n\nGPT-5/GPT-5.5/GPT-6在Minecraft上的表现\n失败模式（抖动、循环、饥饿、怪物、岩浆、洞穴迷路、赤手空拳打末影龙、规划断层、上下文/记忆、token成本）\n有效的解决方案（分层规划、进度写回、目标分解、回滚、感知/记忆裁剪、护甲与安全点、任务前置检查、评测指标）\n基准：MINEDojo、Voyager、MC-Bench\n附带来源链接\n\n我来规划搜索。今天是2026-09-29，因此“2025-2026”大致指过去18个月。\n\n搜索关键词（分批，每批最多4个）：\n\n第一批：\n\n“GPT-5 Minecraft agent 2025”\n“Voyager Minecraft LLM agent 2025 update”\n“MC-Bench Minecraft benchmark LLM”\n“Minecraft agent survival LLM 2025 failure”\n\n第二批：\n\n“MINEDojo benchmark results 2025”\n“Minecraft agent open source 2025 github”\n“GPT-6 Minecraft” （可能没有结果，需核实）\n“AI plays Minecraft 2025 experiment”\n\n第三批（根据前两批的发现）：\n\n具体的失败模式\n具体的项目名称\n\n开始吧。",
+  "chars": 667,
+  "ts": "2026-09-29T15:48:14.048Z"
+}

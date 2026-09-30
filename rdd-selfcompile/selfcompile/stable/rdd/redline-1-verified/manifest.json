@@ -1,0 +1,9 @@
+{
+  "module": "rdd",
+  "version": "redline-1-verified",
+  "state": "VERIFIED",
+  "jar": "numen-plugin-rdd-1.21.1-0.1.3-dev.jar",
+  "parent_commit": "03012d2c",
+  "note": "baseline red line (verified 2026-09-27)",
+  "registeredAt": "2026-09-27T09:20:46.001Z"
+}

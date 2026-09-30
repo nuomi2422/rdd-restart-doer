@@ -1,0 +1,38 @@
+# ── 密钥/凭证：PCL 等启动器生成物内含 accessToken + uuid ──
+rdd-selfcompile/instances/
+*.cmd
+
+# ── 离线 Gradle 发行版（307 个 lib 文件）──
+gradle-9.2.0/
+gradle-extract/
+
+# ── 验证用浏览器 profile（含缓存/cookie/扩展）──
+_verify/
+
+# ── 构建产物 ──
+build/
+.gradle/
+node_modules/
+
+# ── 变异临时工作区（每次任务的临时改动，已进 git 的源码才是真源）──
+rdd-selfcompile/mutations/
+
+# ── stager 运行态（任务/文档/锁）──
+.stager/
+
+# ── 敏感配置（本机密钥，改码本地的 config 不入库）──
+config/*.json
+rdd-selfcompile/instances/
+
+# ── 套娃仓库（各自有 .git，提交只会存成一个「gitlink」指针，
+#    克隆外层仓库时拿不到内容，反而误导）──
+minecraft-numen/
+rdd-monitor-publish-20260913/
+mc-openclaw-controller/
+voyager/
+rdd-selfcompile/ai-bridge/
+*.zip
+
+# ── 本机启动脚本（含绝对路径/端口，按需留）──
+# autostart-dev.ps1 已在库；下面这几个只给本机用
+# Startup/

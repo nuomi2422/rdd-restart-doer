@@ -1,0 +1,10 @@
+{
+  "tag": "glm",
+  "meta": {
+    "q": "我们设计一个 Minecraft AI 同伴（Numen）的任务系统升级，请评估并给工程建议。背景：RDD 任务链已有'一级目标->二级任务->资产检测'。用户新增4点：(1)直线任务/即时分任务——死亡或环境突变时生成小任务，不整链重规划",
+    "url": "https://chatglm.cn/main/alltoolsdetail?t=1790401823773&cid=6ab5dbdc48e40d0bca1047d6&lang=zh"
+  },
+  "text": "四条纪律：\n\n单向：检测器只发事件+写快照，永不调用重规划器；重规划器只订阅事件+读快照句柄，永不自己扫世界。\nSupervisor 独占\"标记 vs 重规划\"决策权：拿目标前置条件集对照最新快照——SATISFIED → 只标记（更新元数据，不动 AC）；VIOLATED → 才发 replan_request。这个判定放 Supervisor 放检测器，因为前置条件集只有目标层知道。\n幂等 + 合流：重规划按 (chain_id, state_version) 键控，版本 ≤ 已处理的事件直接丢弃；Supervisor 侧 500ms~2s 窗口合并同 scope 事件。**去抖/冷却放策略层，检测器",
+  "chars": 306,
+  "ts": "2026-09-26T10:14:24.059Z"
+}

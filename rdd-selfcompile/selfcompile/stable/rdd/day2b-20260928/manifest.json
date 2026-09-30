@@ -1,0 +1,9 @@
+{
+  "module": "rdd",
+  "version": "day2b-20260928",
+  "state": "VERIFIED",
+  "jar": "numen-plugin-rdd-1.21.1-0.1.3-dev.jar",
+  "parent_commit": "f5b89b1f",
+  "note": "day2b: oscillation circuit-breaker (OscillationPolicy + MoveToCompanionTask; net<3blk & travel>=10blk & reversals>=4 -> NO_PATH + teaching msg) + soldier COUNTER suggestion now reaches planner (requestReplan soldierHint). Regression: core/common 337 + rdd-core 191 + plugins/rdd 99 = 627 green / 0 fail",
+  "registeredAt": "2026-09-28T06:39:16.357Z"
+}

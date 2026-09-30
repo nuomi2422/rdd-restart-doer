@@ -1,0 +1,48 @@
+﻿diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
+index b657bb5b..880ffa28 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
+@@ -92,15 +92,49 @@ public final class RiskGate {
+                 int from = Math.max(0, idx - 4);
+                 int to = Math.min(text.length(), idx + target.length() + 4);
+                 String window = text.substring(from, to);
++                // 2026-09-28锛氬姩璇嶈**鍚﹀畾**鏃朵笉鏄鍔ㄣ€傜湡鏈哄師鏂囪俯杩団€斺€?+                // 銆屸€﹀師鍦板緟鍛斤紝涓嶅啀鍚戝鎺ㄨ繘锛屼篃缁濅笉杩涘叆涓嬬晫銆傘€嶉噷鐨勩€岃繘鍏ヤ笅鐣屻€嶆槸**绂佹椤?*锛?+                // 鏃у疄鐜扮収鏍峰垽 NETHER 鈫?缁?鍘熷湴寰呭懡"闃舵鎸備笂涓嬬晫纭棬 鈫?姘镐箙 primary_waiting銆?+                boolean acted = false;
+                 for (String v : verbs) {
+-                    if (window.contains(v)) return true;
++                    int vi = window.indexOf(v);
++                    while (vi >= 0) {
++                        if (!verbNegated(window, vi)) {
++                            acted = true;
++                            break;
++                        }
++                        vi = window.indexOf(v, vi + 1);
++                    }
++                    if (acted) break;
+                 }
++                if (acted) return true;
+                 idx = text.indexOf(target, idx + 1);
+             }
+         }
+         return false;
+     }
+ 
++    /**
++     * 鍔ㄨ瘝鏈韩鏄惁琚惁瀹氾紙2026-09-28锛夛細鐪嬪姩璇?*鍓嶉潰鏈€澶?2 涓瓧**鏈夋病鏈夊惁瀹氬瓧銆?+     *
++     * <p>瑕嗙洊瀹炴祴韪╁埌鐨勫啓娉曪細銆屼笉杩涘叆涓嬬晫銆嶃€屼笉鍐嶈繘鍏ャ€嶃€屼笉瑕佽繘鍏ャ€嶃€屽埆杩涘叆銆嶃€岀姝㈣繘鍏ャ€?+     * 銆岄伩鍏嶈繘鍏ャ€嶃€屾棤闇€杩涘叆銆嶃€屽嬁杩涘叆銆嶃€岀粷涓嶈繘鍏ャ€嶏紱鍚屾椂涓嶆妸鏅€氬彞瀛愰噷鐨勩€屼笉銆嶈褰撳惁瀹?+     * 锛堟墍浠ュ彧鍦ㄧ揣璐村姩璇嶆椂鎵嶅垽锛夈€?+     */
++    private static boolean verbNegated(String window, int verbIndex) {
++        int from = Math.max(0, verbIndex - 2);
++        String prefix = window.substring(from, verbIndex);
++        for (int i = 0; i < prefix.length(); i++) {
++            if (NEGATION_CHARS.indexOf(prefix.charAt(i)) >= 0) {
++                return true;
++            }
++        }
++        return false;
++    }
++
++    /** 鍚﹀畾瀛楋紙璐村湪鍔ㄨ瘝鍓嶆墠鐢熸晥锛岄伩鍏嶈浼ゆ櫘閫氭枃鏈級銆?*/
++    private static final String NEGATION_CHARS = "涓嶅埆鍕跨鍏嶆棤鑾敪鏈潪";
++
+     /**
+      * 鎶婄己鍙ｈ浆鎴愬噯澶囦换鍔℃弿杩般€傛牳蹇冪瓥鐣ワ細缂?N 浠?鈫?鈥滆幏鍙?鍒朵綔鑷?N鈥濓紱鎶楃伀/娌荤枟褰掆€滈吙閫犫€濓紱
+      * 涓嬬晫棰濆鎻愰啋绗簩濂楃敳涓庝复鏃舵嵁鐐广€傚彧缁欐柟鍚戯紝鍏蜂綋鎷嗚В浠嶄氦 Planner銆?

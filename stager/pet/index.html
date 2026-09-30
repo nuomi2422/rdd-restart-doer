@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>STAGER 看板</title>
+<style>
+  :root{ --bg:#14121c; --card:#1e1b2b; --line:#332e47; --fg:#eae6f7; --dim:#9a92b5; --ok:#5fd08a; --bad:#ff7a7a; --acc:#a98bff; }
+  *{box-sizing:border-box}
+  body{margin:0;background:radial-gradient(1200px 800px at 70% -10%,#241d3d,var(--bg));color:var(--fg);
+       font:14px/1.6 "Segoe UI","Microsoft YaHei UI",system-ui,sans-serif;min-height:100vh;padding:24px}
+  .wrap{max-width:1000px;margin:0 auto}
+  h1{font-size:20px;margin:0 0 4px}
+  .sub{color:var(--dim);font-size:12px;margin-bottom:20px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px 20px;margin-bottom:16px}
+  .top{display:flex;gap:22px;align-items:center}
+  .pet{width:180px;height:180px;flex:0 0 auto;display:flex;align-items:center;justify-content:center;
+       background:rgba(169,139,255,.08);border-radius:20px;overflow:hidden}
+  .pet img{max-width:100%;max-height:100%;image-rendering:auto}
+  .pet .none{color:var(--dim);font-size:13px;text-align:center;padding:10px}
+  h2{font-size:26px;margin:0 0 6px}
+  .kv{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-size:13px}
+  .kv b{color:var(--dim);font-weight:500}
+  .pill{display:inline-block;padding:2px 10px;border-radius:999px;font-size:12px;border:1px solid var(--line)}
+  .pill.ok{color:var(--ok);border-color:#2c5a41}
+  .pill.bad{color:var(--bad);border-color:#5a2c2c}
+  .bar{height:10px;background:#120f1b;border-radius:999px;overflow:hidden;border:1px solid var(--line)}
+  .bar>i{display:block;height:100%;background:linear-gradient(90deg,#7a5cff,#c9a6ff)}
+  .steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:14px}
+  .step{border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:12.5px;background:#191627}
+  .step.cur{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset;background:#221c38}
+  .step .n{color:var(--dim);font-size:11px}
+  .step .t{font-weight:600;margin:2px 0 4px}
+  .step .g{font-size:11px;color:var(--dim)}
+  table{width:100%;border-collapse:collapse;font-size:12.5px}
+  th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--line)}
+  th{color:var(--dim);font-weight:500;font-size:11.5px}
+  code{background:#100d19;padding:1px 6px;border-radius:6px;font-size:12px}
+  .empty{color:var(--dim);font-size:12.5px}
+  .hint{color:var(--dim);font-size:12px;margin-top:10px}
+  .acts{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .acts button{background:#241d3d;color:var(--fg);border:1px solid var(--line);border-radius:9px;
+               padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
+  .acts button:hover{border-color:var(--acc)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>STAGER 阶段看板</h1>
+  <div class="sub" id="sub">读取中…</div>
+
+  <div class="card" id="main">
+    <div class="top">
+      <div class="pet" id="pet"><span class="none">（pet\images 里还没图）<br>放 PNG 进去就显示</span></div>
+      <div style="flex:1;min-width:260px">
+        <h2 id="stage">—</h2>
+        <div class="kv">
+          <b>任务</b><span id="title">—</span>
+          <b>轮次</b><span id="round">—</span>
+          <b>人次</b><span id="actor">—</span>
+          <b>门禁</b><span id="gate">—</span>
+        </div>
+        <div class="acts">
+          <button onclick="location.reload()">刷新</button>
+          <button onclick="next()">stager next</button>
+          <button onclick="cyc()">换图</button>
+        </div>
+      </div>
+    </div>
+    <div class="bar" style="margin-top:16px"><i id="bar" style="width:0%"></i></div>
+    <div class="steps" id="steps"></div>
+    <div class="hint" id="brief"></div>
+  </div>
+
+  <div class="card">
+    <h2 style="font-size:15px;margin:0 0 10px">文档清单</h2>
+    <div id="docs"></div>
+  </div>
+</div>
+
+<script>
+let S = null, imgIdx = 0;
+const $ = (id) => document.getElementById(id);
+
+function exprOf(){
+  if(!S || !S.state) return 'shy';
+  const s = S.stages.find(x=>x.id===S.state.stage);
+  return (s && s.expr) ? s.expr : 'calm';
+}
+function petSrc(){
+  if(!S) return '';
+  const f = S.exprMap[exprOf()];
+  return f ? ('/img/'+encodeURIComponent(f)) : '';
+}
+async function next(){ /* 看板是只读的，改状态请用 stager CLI */ alert('看板只读。请在终端跑：stager next'); }
+function cyc(){ imgIdx++; render(); }
+
+function render(){
+  if(!S) return;
+  $('sub').textContent = '最后刷新 ' + new Date().toLocaleTimeString() + ' · 1.5s 自动刷新 · 看板只读，改状态用 stager CLI';
+  const st = S.state;
+  const pet = $('pet');
+  const src = petSrc();
+  if(src){
+    let url = src;
+    if(imgIdx){ const all = S.order; const e = all[(all.indexOf(exprOf())+imgIdx)%all.length];
+                url = '/img/'+encodeURIComponent(S.exprMap[e]||''); }
+    pet.innerHTML = '<img src="'+url+'" alt="pet">';
+  } else {
+    pet.innerHTML = '<span class="none">（pet\\images 里还没图）<br>放 PNG 进去就显示</span>';
+  }
+
+  if(!st){
+    $('stage').textContent = '💤 休息中 · 没有进行中的 stage';
+    $('title').textContent='—'; $('round').textContent='—'; $('actor').textContent='—';
+    $('gate').innerHTML='<span class="pill">stager start "&lt;标题&gt;" 开活</span>';
+    $('bar').style.width='0%'; $('brief').textContent='';
+    $('steps').innerHTML=''; $('docs').innerHTML='<div class="empty">（空）</div>';
+    return;
+  }
+  const s = S.stages.find(x=>x.id===st.stage) || {};
+  $('stage').textContent = (s.icon||'•')+' '+(s.name||st.stage)+'  ('+((s._i||0)+1)+'/'+S.stages.length+')';
+  $('title').textContent = st.title||st.id;
+  $('round').textContent = '第 '+st.round+'/'+st.maxRounds+' 轮 · 轮回 '+(st.wrap||0)+' 次';
+  $('actor').textContent = st.actor;
+  $('gate').innerHTML = S.gate.ok
+    ? '<span class="pill ok">✔ 达标，可以 stager next</span>'
+    : '<span class="pill bad">✘ 还差 '+S.gate.need.join(' ')+'</span>';
+  $('bar').style.width = Math.round((((s._i||0)+1)/S.stages.length)*100)+'%';
+  $('brief').textContent = s.brief||'';
+
+  $('steps').innerHTML = S.stages.map((x,i)=>{
+    const d = S.docs.filter(d=>d.stage===x.id && d.round===st.round);
+    const cur = x.id===st.stage;
+    const g = (x.gate&&x.gate.docs||[]).map(k=>d.some(y=>y.kind===k)?'✔'+k:'·'+k).join(' ');    return '<div class="step'+(cur?' cur':'')+'"><div class="n">'+(i+1)+' / '+S.stages.length+' → <code>'+x.next+'</code></div>'
+         + '<div class="t">'+(x.icon||'')+' '+(x.name||x.id)+'</div><div class="g">'+(g||'无文档门禁')+(x.loop?' · 轮回点':'')+'</div></div>';
+  }).join('');
+
+  if(!S.docs.length){ $('docs').innerHTML='<div class="empty">（还没有文档）</div>'; }
+  else $('docs').innerHTML = '<table><tr><th>文档</th><th>类型</th><th>阶段</th><th>轮</th><th>人次</th><th>时间</th></tr>'
+    + S.docs.map(d=>'<tr><td>'+esc(d.title)+'<br><code>'+esc(d.file)+'</code></td><td>'+esc(d.kind)+'</td><td>'+esc(d.stage)
+      +'</td><td>'+d.round+'</td><td>'+esc(d.actor)+'</td><td>'+esc(String(d.createdAt).slice(0,19).replace('T',' '))+'</td></tr>').join('')
+    + '</table>';
+}
+function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+async function tick(){
+  try{
+    const r = await fetch('/api/state',{cache:'no-store'});
+    S = await r.json();
+    render();
+  }catch(e){ $('sub').textContent='连接断开：'+e; }
+}
+tick(); setInterval(tick, 1500);
+</script>
+</body>
+</html>

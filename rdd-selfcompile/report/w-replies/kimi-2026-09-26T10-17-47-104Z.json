@@ -1,0 +1,10 @@
+{
+  "tag": "kimi",
+  "meta": {
+    "q": "我们设计一个 Minecraft AI 同伴（Numen）的任务系统升级，请评估并给工程建议。背景：RDD 任务链已有'一级目标->二级任务->资产检测'。用户新增4点：(1)直线任务/即时分任务——死亡或环境突变时生成小任务，不整链重规划",
+    "url": "https://www.kimi.com/chat/1a0dc5bf-7462-84a1-8000-0985c93a2769?chat_enter_method=change_model"
+  },
+  "text": "表格\n复制\n优先级\t内容\t理由\t依赖\nP0\t检测/重规划解耦：DetectionFinding 只发事实，Supervisor 唯一裁决，Replan 只收命令\t这是你新增 4 点的地基；不解耦，后面全会互相踩踏\t任务/目标 ID、state_version/epoch、世界快照、事件总线、审计日志\nP0\t一级目标生成时同步产出 RequirementManifest：所需资产、环境条件、可替代物、硬约束、deadline\t“全物品+环境检测”必须扫“需求”，不是扫世界然后猜要干嘛\t物品/方块/工具/维度/生物群系/光照/天气/可达性 schema；可替代规则，如 any_log -> planks\nP1\t20–30s 粗粒度扫描 + 增量 dirty scan\t先证明“标记已有 or 触发重规划”闭环稳定，再做智能\tManifest、快照隔离、扫描结果 TTL、状态版本失效\nP1\t直线任务/即时分任务：改名 Local Repair Task，作为当前二级任务的有限补丁\t死亡/突变不该整链重规划，但也不能无约束插队\t资源锁、预算上限、失败计数、冷却、与原任务链的 causation_id\nP2\t执行层“小规划”：bounded deliberation，先规则/模板/本地资料，不依赖记忆库\t很有价值，但必须时间盒，否则在 tick loop 里空转\t任务上下文 schema、候选方案生成器、评分器、安全 veto、decision trace\nP2\t记忆接口先定义，实现先 NullMemory + OutcomeRecorder\t没有记忆库也要把每次成败写下来，否则永远没有记忆\t事件总线 OutcomeRecorded、方案 trace、最小回放集\nP3\t多目标效用优化与学习化排序\t等数据足够再升级\t记忆/统计、成本模型校准、失败分类器",
+  "chars": 782,
+  "ts": "2026-09-26T10:17:47.104Z"
+}

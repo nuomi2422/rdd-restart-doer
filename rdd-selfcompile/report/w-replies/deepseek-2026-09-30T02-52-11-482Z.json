@@ -1,0 +1,10 @@
+{
+  "tag": "deepseek",
+  "meta": {
+    "q": "请联网搜索并给独立判断，不要客气，不要泛泛而谈 We're building an open-world Minecraft LLM agent whose stated goal is 自主学习（让 AI 在 MC 里自主学习训练），no",
+    "url": "https://chat.deepseek.com/a/chat/s/c91b3c03-065f-493c-9de6-f7d21770f1e8"
+  },
+  "text": "如果必须保留“单驾驶员”红线，那么至少需要设计一条“执行结果→学习者”的只读反馈通道，让学习者能够接触到身体执行的成功/失败信号（哪怕是二元的），而不接触动作提交权限。没有这条通道，“自主学习”在架构上就名不副实——它学到的是规划层自己想象出来的世界，而非 Minecraft 的世界。",
+  "chars": 143,
+  "ts": "2026-09-30T02:52:11.513Z"
+}

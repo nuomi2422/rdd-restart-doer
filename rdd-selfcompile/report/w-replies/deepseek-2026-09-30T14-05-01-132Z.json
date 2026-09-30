@@ -1,0 +1,10 @@
+{
+  "tag": "deepseek",
+  "meta": {
+    "q": "用一句话回答：1+1等于几？",
+    "url": "https://chat.deepseek.com/a/chat/s/c91b3c03-065f-493c-9de6-f7d21770f1e8"
+  },
+  "text": "1+1等于2。",
+  "chars": 7,
+  "ts": "2026-09-30T14:05:01.141Z"
+}

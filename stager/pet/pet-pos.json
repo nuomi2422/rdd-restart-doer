@@ -1,0 +1,9 @@
+﻿{
+    "x":  1445.92,
+    "y":  751.84000000000015,
+    "size":  200,
+    "overrides":  {
+                      "laugh":  "08-laugh.png",
+                      "wave":  "07-happy-wave.png"
+                  }
+}

@@ -1,0 +1,89 @@
+我是做 Minecraft LLM 智能体的（Java/Gradle，项目叫 Numen）。刚做完一批缺陷修复，代码+单测+实机都过了，但我想让外脑挑刺。下面是三个**实机抓出来的真缺陷**，请只针对它们评审，不要泛泛夸。
+
+## 缺陷 1 · 判据自匹配（纯逻辑单测全绿，实机才暴露）
+
+背景：AI 控制的同伴死亡后要「回收掉落物」。我给它加了「同一点短时间内又死一次就先撤离补给」的判据。
+
+```java
+// Death 记录每次死亡：seq / gameTime / deathAt("x, y, z") / lostItems
+public static Death repeatDeathWithin(UUID id, long nowGameTime,
+                                      int atX, int atY, int atZ,
+                                      long windowTicks, double radiusBlocks) {
+    for (Death d : all(id)) {                    // all() 已按时间倒序
+        if (nowGameTime - d.gameTime() > windowTicks) continue;
+        if (isNear(d.deathAt(), atX, atY, atZ, radiusBlocks)) return d;
+    }
+    return null;
+}
+```
+
+宿主是**先 `record()` 写下本次死亡，再问这个判据**。结果：刚写下的那条就在台账里，
+它与自己的距离是 0、时间差是 0 → **每一次死亡都被判成「重复死亡」**。
+实机事件原文：`previousDeathSeq=1, previousDeathAt="620, 71, 704", nowAt="620, 71, 704", secondsSincePrevious=0`。
+
+我的修法：加一个 `excludeSeq` 参数排除本次死亡自己的 seq。
+
+**想问**：
+1. 「排除自身」这个修法够不够？有没有更本质的做法（比如判据不该读"含本次写入"的集合）？
+2. `deathAt` 是文本 `"x, y, z"`，判据要 `parseDouble` 再算欧氏距离。这样做有什么坑？要不要在 record 时就存结构化坐标？
+3. 连死三次（A→B→C）时，"上一次"该取最近的那条还是"最近的那次不同地点"？我现在的实现是取时间窗内最近的一条，哪怕地点相同。
+
+## 缺陷 2 · 判据依赖的宿主数据是空的（单测完全测不到）
+
+我把回收判据改成「按 deathSeq 逐项核对这次死亡丢了哪些、各多少」，需要死亡瞬间的真实背包：
+
+```java
+private static Map<String,Integer> deathInstantCounts(NumenPlayer body) {
+    try {
+        Map<String,Integer> live = RddDetector.countInventory(body);   // 读实体
+        if (live != null && !live.isEmpty()) return Map.copyOf(live);
+    } catch (RuntimeException ex) { /* log */ }
+    Map<String,Integer> cached = lastInventory(companionId);            // 回落：Detector 每 tick 写的缓存
+    return cached.isEmpty() ? Map.of() : cached;
+}
+```
+
+实机只读实体时拿到的是**空表**（死亡事件触发时物品栏已被引擎处理掉了），
+于是批次里没有任何物品可核对，判据退化成「永不完成」。
+加了缓存回落后实机拿到 `trackedItemKinds: 18`，判据正常工作。
+
+**想问**：
+1. "读实时失败就回落缓存" 这种兜底，在**判据**场景下危险吗？我的担心是：缓存可能比现实旧（她已经捡了一部分回来），
+   那会不会把「已经捡回」算成「没捡到」或反过来？有没有更可靠的取值时点/来源？
+2. 这种"数据源拿不到就降级"的兜底，一般应该降级成什么？我现在降级成"判据不满足"（保守），
+   但这会不会导致任务永远完不成、变成另一种卡死？
+3. 有没有办法在**架构上**让这种时序依赖不可能出错，而不是靠我每次记得写兜底？
+
+## 缺陷 3 · 编译诊断的字符集（自编译闭环的失败侧整个失效）
+
+自编译系统：AI 生成 Java 源码 → 编译 → 失败时把结构化错误写盘给外部 AI 改码。
+编译用进程内 `javax.tools.ToolProvider.getSystemJavaCompiler()`：
+
+```java
+var byteOut = new ByteArrayOutputStream();
+int exit = compiler.run(null, byteOut, byteOut, args);
+String output = byteOut.toString(StandardCharsets.UTF_8);   // ← 这里是错的
+// output 再喂给一个中英文兼容的解析器，产出 file:line:col 写进 errors.json
+```
+
+实机（JDK 21.0.11，中文 Windows）：
+```
+file.encoding=UTF-8    native.encoding=GBK    defaultCharset=UTF-8
+javac 实际吐的字节按 UTF-8 解 → "错误:" 变成乱码 → 解析器一条都认不出 → errors.json 写 0 字节
+同一段字节按 GBK 解 → "错误: 进行语法分析时已到达文件结尾"（正常）
+```
+后果不是日志难看，是**外部 AI 拿不到任何定位信息，"自动改码"退化成整段盲目重写**。
+
+我的修法：按 `System.getProperty("native.encoding")` 解码（拿不到才回落 defaultCharset），
+`compile.log` 直接存原始字节不转码。
+另外：我原本想用 `JavaCompiler.getCharset()`，**它在 JDK 21 里不存在**（编译报错才发现）。
+
+**想问**：
+1. `native.encoding` 是正确的权威来源吗？它稳定吗（跨 JDK 版本、JDK 21 的 release note 里它算 stable 吗）？
+   有没有更正规的 API 拿到 javac 的输出编码？
+2. 强制 `javac -J-Duser.language=en -J-Duser.country=US` 让诊断输出纯 ASCII，是不是更稳？
+   代价是丢掉中文错误原文（人还要读日志）。这两条你怎么权衡？
+3. 更根本的修法：干脆不要解析 javac 的**人类可读输出**，
+   改用 `DiagnosticCollector` / `JavaFileManager` 拿结构化诊断？这样是不是就彻底没有字符集问题了？
+
+请直接说哪个方案更好、有什么我没想到的坑。如果我上面某个判断是错的，直接指出来。

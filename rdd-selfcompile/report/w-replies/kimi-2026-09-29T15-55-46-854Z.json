@@ -1,0 +1,10 @@
+{
+  "tag": "kimi",
+  "meta": {
+    "q": "请联网搜索并总结：2025-2026 年让大语言模型（LLM/AI Agent）玩《我的世界》(Minecraft) 通关或生存的公开研究与实测经验。重点要具体、可复用的踩坑经验，不要泛泛而谈的『AI很强大』。请覆盖：1) GPT-5/GP",
+    "url": "https://www.kimi.com/chat/1a0ec248-eb02-8dfd-8000-098555ce046e?chat_enter_method=history"
+  },
+  "text": "表格\n复制\n基准\t核心结论\nMineDojo\t提供 3142 个任务（Programmatic/Creative/Playthrough）。关键发现：领域专属预训练至关重要——未经 Minecraft 微调的 OpenAI CLIP 完全失败，MineCLIP 在程序化任务上最高提升 73%。Playthrough 任务（击杀末影龙）是最终挑战，死亡即失败，步数限制 12k–36k。\nVoyager\t160 次 prompting iteration 发现 63 种独特物品（3.3x SOTA）；解锁木器快 15.3 倍，石器 8.5 倍，铁器 6.4 倍；唯一解锁钻石工具的 agent。局限：无视觉感知、成本高、自验证不可靠。\nMCU (Minecraft Capability Understanding)\t评估 Task Progress / Action Control / Error Recognition 等六维。Hard mode 下所有维度一致下降；即使是「在床上睡觉」这种简单任务，在复杂环境中 agent 也会误点箱子或走出房子。\nMC-Bench / MineBench\t人类偏好投票制的 3D 建筑基准，测空间推理。截至 2025 年 3 月，Claude 3.7 Sonnet 以 86% 胜率居首。该基准能有效识别「bench-maxed」模型（纸面分数高、实际空间推理差）。\nBugCraft-Bench\t86 个 Minecraft 崩溃 bug 复现任务。LLM agent 端到端成功率仅 30–35%；主要瓶颈是 Action Model 陷入循环，以及 Step Synthesizer 命令精度不足。\nMAST / MINDCraft\t多 agent 协作基准。当前 SOTA agent 协作的主要瓶颈是自然语言通信效率——当要求 agent 传递详细任务完成计划时，性能下降高达 15%。",
+  "chars": 822,
+  "ts": "2026-09-29T15:55:46.865Z"
+}

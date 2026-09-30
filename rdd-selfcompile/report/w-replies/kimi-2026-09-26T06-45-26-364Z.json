@@ -1,0 +1,10 @@
+{
+  "tag": "kimi",
+  "meta": {
+    "q": "冒烟测试：RDD 的检测层与重规划层应如何解耦？",
+    "url": "https://www.kimi.com/chat/1a0dc5bf-7462-84a1-8000-0985c93a2769?chat_enter_method=change_model"
+  },
+  "text": "把解耦做在“事实/诊断”与“动作/计划”之间：检测层只产出 health/failure_class/confidence/scope/state_version/reason_code，不生成路径或动作；重规划层只接收 replan_request(reason, scope, constraints, deadline, priority, state_version)，返回 plan_handle/feasible/cost/error，不直接读传感器或检测规则；中间由策略层做迟滞、去抖、冷却、预算和熔断，避免抖动引发反复重规划。\n冒烟测试最小集：\n无故障稳态：检测不报、重规划零触发。\n注入一次真实故障：链路 detect → policy → replan → execute 恰好触发一次。\n瞬态扰动低于阈值/迟滞：只记录事件，不重规划。\n重规划超时/失败：检测层不崩，系统降级并保持旧计划或安全停车。\n重复/乱序事件：按 state_version/epoch 幂等去重，过期事件丢弃。\n契约兼容：检测事件与重规划请求 schema 变更时 CI 契约测试失败。\n关键指标：误报触发率、漏报率、MTTD、重规划延迟、单位时间重规划次数/震荡次数、恢复成功率。",
+  "chars": 539,
+  "ts": "2026-09-26T06:45:26.365Z"
+}

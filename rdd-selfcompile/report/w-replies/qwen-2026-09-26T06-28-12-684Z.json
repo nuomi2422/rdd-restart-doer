@@ -1,0 +1,10 @@
+{
+  "tag": "qwen",
+  "meta": {
+    "q": "测试：只回复'ok'",
+    "url": "https://chat.qwen.ai/c/a6e25452-34d6-443c-8af6-7f4fe0b18d2c"
+  },
+  "text": "测试：只回复'ok'",
+  "chars": 10,
+  "ts": "2026-09-26T06:28:12.685Z"
+}

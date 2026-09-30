@@ -1,0 +1,10 @@
+{
+  "tag": "deepseek",
+  "meta": {
+    "q": "只回复这串数字，不要任何其他内容：3689",
+    "url": "https://chat.deepseek.com/a/chat/s/c91b3c03-065f-493c-9de6-f7d21770f1e8"
+  },
+  "text": "3689",
+  "chars": 4,
+  "ts": "2026-09-30T14:36:35.223Z"
+}
