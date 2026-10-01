@@ -177,7 +177,8 @@ stager close --status done --note "<一句话结论>"   # ① 关 stage
 | ⚠️ **GLM 抓回复会抓到上一轮旧答案** | 2026-09-30 实测：GLM 浏览器里答对了，但落盘文件里存的是上一轮「1+1等于2」。**是脚本抓错元素，不是 GLM 答错**（Qwen/Kimi/DeepSeek 同时同题抓取正确）。**时序偶发，非必现** | **互审前先跑探针** `node rdd-selfcompile\scripts\w-probe.js`（发随机数问题核对答案）；探针不过就别问 |
 | **provider 先排再判代码** | 「它不动」被误判成执行层慢 | 第 0 步查日志有**无 401/402/5xx**（2026-09-28 实测 DeepSeek 402×49、0 成功 = 没钱） |
 | ⚠️ **`git add -A` 会卷进别人的改动** | 本工作区**常有两个会话并行改同一个仓库**。`-A` 会把对方未完成的改动一起提交，甚至把故意注入的变异（测试用）写进 commit | **精确 add 指定文件**：`git add <路径1> <路径2>…`。提交前必跑 `git status --short` 逐行确认，每一行都是你改的。2026-10-01 实测已出过一次事故（`MAX_QUEUE=63` 的变异被卷进 commit，HEAD 一度是坏的） |
-| ⚠️ **源码改了 ≠ 运行时生效** | 只改源码就写「已改完」= 把中间态当完成态 | 中间隔着 **编译 → 部署 jar → 重启游戏** 三步。判据：**jar 的 `LastWriteTime` ≥ 提交时间**。2026-10-01 RL-19 就是这么被判出来的（源码 10:37 改的，jar 还是 09-29 的） |
+| ⚠️ **源码改了 ≠ 运行时生效** | 只改源码就写「已改完」= 把中间态当完成态 | 中间隔着 **编译 → 部署 jar → 重启游戏** 三步。**判据有工具，别靠记性**：<br>`node rdd-selfcompile\scripts\verify-tools\check-runtime-deployment.js`（退出码 2 = 有源码领先于 jar）<br>★ 它比的是「**最后一次改 `src/main/java`** 的提交」vs jar 的 `LastWriteTime`，**不是**「最后一次提交」—— 只改 `*Test.java` 时 jar 本来就不用重部署（这个区分不做会满屏假警报）。<br>2026-10-01 实测 RL-19 落后 **56 小时**：源码对了、测试绿了、文档写「已改」，但游戏里跑的还是旧版 |
+| ⚠️ **写「怎么修」之前先实测** | 照着症状猜出来的修法可能是错的 | 2026-10-01 我把 `plugins/rdd` 单测加载不了诊断成「缺 `numen_api`、加一行 `testImplementation` 就行」—— 并行会话实测发现**真正缺的是整个 Minecraft 测试运行期**（`NoClassDefFoundError: net/minecraft/...Property`），是 moddev 配置改造不是一行的事。**症状 ≠ 病因** |
 
 ---
 

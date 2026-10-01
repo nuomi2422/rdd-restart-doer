@@ -27,6 +27,7 @@
 | 工具 | 干什么 | 调法 |
 |---|---|---|
 | `check-doc-anchor-drift.js` + `.md` | 扫文档里的 `Foo.java:123` 行号锚点和「N 行」体量锚点，跟真实源码比对，**给出新行号** | `node check-doc-anchor-drift.js --docs <md目录> --src <源码根>` 退出码 0/2/3 |
+| `check-runtime-deployment.js` + `.md` | 查「源码改了但没编译部署」—— 该模块最后一次改 `src/main/java` 的提交时间 vs 部署 jar 的 `LastWriteTime`。**查的是事实（时间戳），不是声明（文档写了什么）** | `node check-runtime-deployment.js` 退出码 0/2/3 |
 
 ---
 
