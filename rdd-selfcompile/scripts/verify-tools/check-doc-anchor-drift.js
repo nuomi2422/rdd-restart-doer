@@ -254,39 +254,94 @@ function main() {
           continue;
         }
 
-        const syms = extractSymbols(text, stem);
-        let best = null; // {verdict, actualLine, detail}
+        // ⚠️ 多符号同行必须「逐锚点独立判定」，不能合并成一个符号集。
+        // 踩过的坑（2026-10-01）：`InteractAtTool.java:16 InteractEntityTool.java:16`
+        // 这一行，旧版把两个锚点的符号混起来搜，串到另一个文件 → 报 DEAD+DRIFT，
+        // 我据此把本来**完全正确**的 :25 改成了错的 :16。
+        // 教训：判定必须逐锚点隔离，否则会制造出「修出来的错」。
+        const allAnchors = [...text.matchAll(/([A-Za-z0-9_]+\.java)\s*[:：]\s*(\d{2,5})/g)]
+          .map(x => ({ file: x[1], claimed: parseInt(x[2], 10), stem: x[1].replace(/\.java$/, '') }));
+const anchorSyms = [];
+        // 反引号标识符按**位置**归属：离哪个锚点最近就归谁。
+        // 踩过的坑（2026-10-01）：`InteractAtTool.java:25 InteractEntityTool.java:25 GuiOps`
+        //   GuiOps 离两个锚点都远，旧版把它塞给了所有锚点 → 误报 DEAD，
+        //   而文档本来完全正确（我据此把对的 :25 改成了错的 :16）。
+        // 修法：裸类名（有自己的 .java 文件）→ 只做「文件存在性 + 行数」检查，
+        //   **不参与行号判定**，因为它本来就没有行号锚点。
+        const backtick = [...text.matchAll(/`([A-Za-z_][A-Za-z0-9_]*)`/g)]
+          .filter(m => !JAVA_KEYWORDS.has(m[1]) && m[1] !== stem)
+          .map(m => m[1]);
 
-        if (syms.length === 0) {
-          // 认不出符号：只能报「该行实测内容」让人判
+        for (const a of allAnchors) {
+          // 该锚点后面紧跟的标识符属于它（`Foo.java:25 name`）
+          const key = a.file + ':' + a.claimed;
+          const at0 = text.indexOf(key);
+          const after = at0 >= 0 ? text.slice(at0 + key.length) : '';
+          const mTail = after.match(/^\s*[:：]?\s*([A-Za-z_][A-Za-z0-9_]*)/);
+          if (mTail && !JAVA_KEYWORDS.has(mTail[1])) {
+            anchorSyms.push({ sym: mTail[1], ...a });
+          } else {
+            // 没有紧跟标识符 → 这个锚点靠反引号里的**裸类名**来认。
+            // ★ 严格按位置配对：取「出现在本锚点之后、下一个锚点之前」的那一个，
+            //   否则多锚点行（两个 .java:N 挨着）会让每个锚点都拿到同一个裸类名 →
+            //   串到别的文件里 → 误报 DEAD。
+            const myEnd = at0 + key.length;
+            const nextAt = allAnchors
+              .map(x => text.indexOf(x.file + ':' + x.claimed))
+              .filter(p => p > myEnd)
+              .sort((x, y) => x - y)[0];
+            const window = nextAt ? text.slice(myEnd, nextAt) : text.slice(myEnd, myEnd + 60);
+            const mBare = window.match(/`([A-Za-z_][A-Za-z0-9_]*)`/);
+            if (mBare && !allAnchors.some(x => x.stem === mBare[1])) {
+              anchorSyms.push({ sym: mBare[1], ...a });
+            }
+          }
+        }
+        // ★ 裸类名（只有名字、没有自己的 `.java:N` 锚点）**不参与行号判定**。
+        //   踩过的坑（2026-10-01）：`InteractAtTool.java:25 InteractEntityTool.java:25 GuiOps`
+        //   里的 GuiOps 没有锚点，被归给了前两个 → 误报 DEAD，而文档本来完全正确，
+        //   我据此把对的 :25 改成了错的 :16。教训：**判定必须逐锚点隔离，
+        //   而「修出来的错」比「不修」更贵。**
+        const bareRefs = [...new Set(backtick.filter(sym =>
+          !allAnchors.some(x => x.stem === sym)
+          && !anchorSyms.some(x => x.sym === sym)
+          && javaIdx.has(sym + '.java')))];
+        const syms = anchorSyms.map(x => x.sym);
+        const uniqSyms = [...new Set(syms)];
+
+        if (uniqSyms.length === 0) {
           const at = cands.map(c => readLines(c)[claimed - 1]);
+          const what = bareRefs.length
+            ? `只有裸引用（${bareRefs.join('/')}）没有独立锚点`
+            : '认不出符号';
           findings.push({
             kind: 'UNVERIFIABLE', md, docLine, file, claimed,
-            msg: `认不出符号，无法自动判定；${file}:${claimed} 实测是: ${at.map(s => (s || '').trim().slice(0, 70)).filter(Boolean).join(' | ') || '(空行或越界)'}`,
+            msg: `${what}，无法自动判定；${file}:${claimed} 实测是: ${at.map(s => (s || '').trim().slice(0, 70)).filter(Boolean).join(' | ') || '(空行或越界)'}`,
           });
           tally.UNVERIFIABLE++;
           continue;
         }
 
-        // 逐个符号找，取最贴近 claimed 的那个
-        for (const sym of syms) {
-          for (const c of cands) {
+        // 逐符号独立判：每个符号必须在「它自己那个锚点」指定的文件里找
+        let best = null;
+        for (const a of anchorSyms) {
+          const aCands = javaIdx.get(a.file) || cands;
+          for (const c of aCands) {
             const jl = readLines(c);
-            const hits = findSymbolLines(jl, sym);
+            const hits = findSymbolLines(jl, a.sym);
             if (!hits.length) continue;
-            const nearest = hits.reduce((a, b) =>
-              Math.abs(b - claimed) < Math.abs(a - claimed) ? b : a);
-            const dist = Math.abs(nearest - claimed);
-            const cand = { sym, nearest, dist, all: hits };
-            if (!best || cand.dist < best.dist) best = cand;
+            const nearest = hits.reduce((x, y) =>
+              Math.abs(y - a.claimed) < Math.abs(x - a.claimed) ? y : x);
+            const dist = Math.abs(nearest - a.claimed);
+            if (!best || dist < best.dist) best = { sym: a.sym, nearest, dist, file: a.file };
           }
-          if (best && best.dist <= args.slack) break; // 够近了，不必再看别的符号
+          if (best && best.dist === 0) break; // 有一个精确命中就够了
         }
 
         if (!best) {
           findings.push({
             kind: 'DEAD', md, docLine, file, claimed,
-            msg: `文档提到的符号 ${syms.join(' / ')} 在 ${file} 里彻底找不到（不是漂，是没了）`,
+            msg: `文档提到的符号 ${uniqSyms.join(' / ')} 在 ${file} 里彻底找不到（不是漂，是没了）`,
           });
         } else if (best.dist === 0) {
           tally.CLEAN++;
