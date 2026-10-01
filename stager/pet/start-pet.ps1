@@ -231,6 +231,7 @@ $script:FP          = ''
 $script:BubbleOn    = $false
 $script:DownAt       = $null
 $script:PetScale     = $null
+$script:ExprNow      = $null
 $script:Override    = $null
 $script:PtDown      = $null
 $script:Moved       = $false
@@ -311,6 +312,9 @@ function Get-ImagePath($expr) {
 function Set-Pet($expr) {
     $path = Get-ImagePath $expr
     $bmp  = Get-Bmp $path
+    # ★ 2026-10-01：记下当前表情。缺这行的话定时轮询不知道用户刚手动点成哪张，
+    #   下一次轮询会把它顶回阶段表情 —— 表现为「点了没反应，过一会儿自己变回去」。
+    $script:ExprNow = $expr
     if ($bmp) {
         $PetImage.Source = $bmp
         $PetImage.Visibility = 'Visible'
@@ -419,13 +423,23 @@ function Invoke-PetBounce {
 }
 
 # ---- 点击换图：按 expressionOrder 循环 ----
+# ★ 2026-10-01 修两次才对：
+#   ① 原来调的是不存在的 Set-Expression（真名 Set-Pet）→ 点一下直接报错
+#   ② 改成只调 Set-Pet 还是不行 —— Refresh-All 每 1.2s 会用阶段表情把它顶回去，
+#      表现为「闪一下又变回去 / 看着像没反应」。
+#   正解：走 $script:Override 通道。Get-ImagePath:302 会优先返回它，
+#   所以 Refresh-All 也会尊重用户的选择，直到用户点「回到本阶段默认图」。
 function Next-PetExpression {
     if ($ExprOrder.Count -eq 0) { return $false }
     $cur = $script:ExprNow
     if ([string]::IsNullOrEmpty($cur) -or -not ($ExprOrder -contains $cur)) { $cur = $ExprOrder[0] }
     $i = [Array]::IndexOf($ExprOrder, $cur)
     $next = $ExprOrder[($i + 1) % $ExprOrder.Count]
-    Set-Expression $next
+    # Override 存的是【图片路径】不是表情名 —— 传错类型会取不到图。
+    # ★ $ExprMap 是 [ordered]@{}（OrderedDictionary），要用 .Contains() 不是 .ContainsKey()
+    if ($ExprMap.Contains($next)) { $script:Override = $ExprMap[$next] }
+    Set-Pet $next
+    $script:ExprNow = $next
     return $true
 }
 # ---------------------------------------------------------------- 拖动 / 点击
@@ -459,8 +473,12 @@ $RootGrid.Add_MouseMove({
 $RootGrid.Add_MouseLeftButtonUp({
     param($sender, $e)
     if ($script:Moved) { $script:Moved = $false; return }
-    # 消抖：250ms 内的第二次抬起不认（防止双击抖动 / 误触）
-    if ($script:DownAt -and ((Get-Date) - $script:DownAt).TotalMilliseconds -lt 250) { return }
+    # 消抖：拦的是「连点两次」，量的是【距上一次点击】不是「按下到抬起」。
+    # ★ 2026-10-01 修：原来写成 (按下→抬起) < 250ms 就 return，
+    #   而正常点击按下到抬起只有 50~150ms → 所有正常点击全被挡掉，表现为「点了没反应」。
+    $now = Get-Date
+    if ($script:LastClickAt -and ($now - $script:LastClickAt).TotalMilliseconds -lt 300) { return }
+    $script:LastClickAt = $now
     # ★ 先 Q 弹，动画跑完再切图 —— 这样是「弹一下然后变」，
     #   而不是「突然变 + 抖一下」（后者就是你说的漂移感）
     Invoke-PetBounce
