@@ -166,20 +166,32 @@ function findSymbolLines(javaLines, sym) {
 }
 
 /**
- * 这份文档是不是「带日期的历史快照」？
+ * 这份文档是不是「历史快照」？
  *
- * 为什么要分这一档：像 `23-A组架构四件套合入-20260928.md`、`测试日志.md` 这种，
- * 它记的是**当时**的代码长什么样 —— 那时候 81 行确实是 MAX_REPLAN。
- * 把它当漂移去"修"就是**篡改历史记录**，是错的。
+ * ★ 2026-10-01 重做。第一版靠**文件名**猜（是否含日期/日志字样）——
+ *   漏了 19 份（`RDD-红线健康度-20260927.md`、`ac-module-verification.md`、
+ *   `进游戏巡检规范与异常记录.md`、`路径finding`类文档…），它们明明是历史快照
+ *   却被当成活文档的真债。**拿文件名当判据 = 拿猜测当事实。**
  *
- * 判定依据（保守，宁可漏判也不误判）：
- *   1. 文件名带日期后缀 -YYYYMMDD 或 YYYYMMDD
- *   2. 文件名含快照性质的词：测试日志 / 更新日志 / 纪要 / 记录 / 检测报告 / handoff / HANDOFF
- * 只有这些才归 HISTORICAL；活文档（README / 30 红线 / 24 运维 / 50 / 51）不算。
+ * 现在的判据（按可靠性排序，任一命中即算历史快照）：
+ *   1. 文档**内容里**出现 YYYYMMDD 日期，且文档头几行提到「快照/当时/实测/2026-…」
+ *   2. 文件名带 -YYYYMMDD
+ *   3. 文件名含快照性质的词：测试日志/更新日志/纪要/记录/检测报告/交接/HANDOFF
+ *
+ * 为什么重要：历史文档里的行号偏移是**正常的**（它记录的是当时状况），
+ * 当成债去"修"就是篡改历史记录。
  */
-const SNAPSHOT_NAME = /-\d{8}\.md$|^\d{8}-|(测试日志|更新日志|纪要|记录|检测报告|快照)/;
-function isSnapshotDoc(mdPath) {
-  return SNAPSHOT_NAME.test(path.basename(mdPath));
+const SNAPSHOT_NAME = /-\d{8}\.md$|^\d{8}-|(测试日志|更新日志|纪要|记录|检测报告|快照|交接|HANDOFF)/;
+const SNAPSHOT_HINT = /(快照|当时|实测(基线|状态)?|截至|20\d\d-\d\d-\d\d)/;
+
+function isSnapshotDoc(mdPath, headText) {
+  if (SNAPSHOT_NAME.test(path.basename(mdPath))) return true;
+  // 内容判据：看前 12 行（标题区），有日期 + 快照/当时类措辞
+  if (headText) {
+    const head = headText.split(/\r?\n/).slice(0, 12).join('\n');
+    if (/\b20\d\d-\d\d-\d\d\b|\b20\d{6}\b/.test(head) && SNAPSHOT_HINT.test(head)) return true;
+  }
+  return false;
 }
 
 function main() {
@@ -229,8 +241,12 @@ function main() {
   const findings = [];
   const tally = { CLEAN: 0, UNVERIFIABLE: 0 };
 
+  const snapshotOf = new Map();   // md 绝对路径 -> 是否历史快照（按内容判定，不只靠文件名）
   for (const md of mdFiles) {
     const mdLines = readLines(md);
+    // 历史快照判定要看内容 → 先算一次
+    const snapshotDoc = isSnapshotDoc(md, mdLines.slice(0, 12).join('\n'));
+    snapshotOf.set(path.resolve(md), snapshotDoc);
     mdLines.forEach((raw, idx) => {
       const docLine = idx + 1;
       const text = stripMd(raw);
@@ -393,7 +409,7 @@ const anchorSyms = [];
 
   // 分档：历史快照里的漂移不是今天的债，单独归类（见 isSnapshotDoc 的理由）
   for (const f of findings) {
-    if (f.kind !== 'CLEAN' && isSnapshotDoc(f.md)) f.historical = true;
+    if (f.kind !== 'CLEAN' && snapshotOf.has(f.md)) f.historical = true;
   }
   const live = findings.filter(f => !f.historical);
   const snap = findings.filter(f => f.historical);
