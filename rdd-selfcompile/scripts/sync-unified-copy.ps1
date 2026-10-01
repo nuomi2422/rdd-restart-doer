@@ -1,4 +1,4 @@
-﻿# sync-unified-copy.ps1
+# sync-unified-copy.ps1
 # ============================================================================
 # 作用：把「自编译统一版」真源，镜像同步到 rdd存放 的**打包副本**，并按需重建 zip。
 #
@@ -18,8 +18,8 @@
 # ============================================================================
 [CmdletBinding()]
 param(
-    [string]$Source = "E:\新建文件夹\rdd架构\自编译统一版",
-    [string]$DestRoot = "E:\新建文件夹\rdd存放",
+    [string]$Source = "E:\新建文件夹\rdd-docs\rdd架构\自编译统一版",
+    [string]$DestRoot = "E:\新建文件夹\rdd-docs\rdd存放",
     [string]$CopyName = "自编译统一版_20260927",
     [string]$ZipName = "自编译统一版_20260927.zip",
     [switch]$NoZip,

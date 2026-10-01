@@ -14,6 +14,15 @@ $global:RDD_SC = [pscustomobject]@{
     GRADLE          = "E:\restart developing doer\gradle-9.2.0\bin\gradle.bat"
     JAVA_HOME       = "E:\jdk21\jdk-21.0.11+10"
     GRADLE_OPTS     = "-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=7897 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7897"
+
+    # ── 知识库位置（2026-10-01 新增）────────────────────────────────
+    # 为什么放这里：文档原先散在 6+ 处硬编码，知识库一搬家（rdd架构 → rdd-docs\rdd架构）
+    # 全部失配 —— loop-gate 读不到测试日志、stager ctx 指向不存在的目录。
+    # 现在 PowerShell 侧一律从这里取；node 侧读 stager/core/stages.json 的 docsRoot。
+    # 两边同源，改位置只改这两行。
+    DOCS_ROOT    = "E:\新建文件夹\rdd-docs\rdd架构"
+    DOCS_UNIFIED = "E:\新建文件夹\rdd-docs\rdd架构\自编译统一版"
+    DOCS_OUT     = "E:\新建文件夹\rdd-docs\rdd存放"
 }
 
 function Select-RddSelfCompileInstance {

@@ -39,7 +39,7 @@ const { execFileSync } = require('child_process');
 
 const SCRIPTS = __dirname;
 const REPO = 'E:/restart developing doer/minecraft-numen';
-const ARCH = 'E:/新建文件夹/rdd架构';
+const ARCH = 'E:/新建文件夹/rdd-docs/rdd架构';
 const UNIFIED = path.join(ARCH, '自编译统一版');
 const LOGS = path.join(ARCH, '测试日志.md');
 const UPDATELOG = path.join(UNIFIED, '09-更新日志.md');

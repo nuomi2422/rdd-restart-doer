@@ -31,7 +31,7 @@ $SC_ROOT = 'E:\restart developing doer\rdd-selfcompile'
 # NOTE: PS5.1 reads this BOM-less UTF-8 script with the ANSI code page, so a
 # literal Chinese path here would be mis-decoded (modules created under a
 # mojibake dir). Keep the default root ASCII-only by decoding it from Base64
-# at runtime. Root = 'E:\新建文件夹\rdd架构\特殊模式'. Override with -Root or
+# at runtime. Root = 'E:\新建文件夹\rdd-docs\rdd架构\特殊模式'. Override with -Root or
 # env SPECIAL_MODE_ROOT (ASCII writable path) when needed.
 if (-not $Root) {
   if ($env:SPECIAL_MODE_ROOT) { $Root = $env:SPECIAL_MODE_ROOT }

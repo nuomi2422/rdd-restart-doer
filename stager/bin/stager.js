@@ -51,6 +51,7 @@ function readLabel(rel) {
 }
 
 const DOC_ROOT = (STAGES_RAW && STAGES_RAW.docsRoot) || 'E:\\新建文件夹\\rdd-docs\\rdd架构';
+const DOCS_OUT = (STAGES_RAW && STAGES_RAW.docsOut) || 'E:\\新建文件夹\\rdd-docs\\rdd存放';
 
 // 运行时目录用 let：self-test 要临时重定向到 tmp
 let RUNTIME = path.join(ROOT, '.stager');
@@ -806,7 +807,7 @@ CMD.help = function () {
     '        stager progress                                         刷一份 progress.md 看板',
     '',
     '  其他  stager publish <文件> --as report|tool|shot|doc --title "标题"',
-    '                                                        放到 rdd-selfcompile\\给用户\\ 并自动登记 INDEX.md',
+    '                                                        放到 rdd存放\\ 并自动登记 INDEX.md',
     '        stager pet [--size 200]                                起桌面宠物（点它报阶段/轮次）',
     '        stager web [--port 8899]                                起网页看板',
     '        stager install                                          注册 opencode 自动注入插件 + 工作区 AGENTS.md 指针',
@@ -1604,13 +1605,16 @@ CMD.close = function (a) {
 };
 
 // ---------------------------------------------------------------- publish
-// 「用户要看/要用的东西」统一进 rdd-selfcompile\给用户\，并自动登记 INDEX.md
+// 「用户要看/要用的东西」统一进 rdd存放\（用户面收件夹），并自动登记 INDEX.md
 /** doc:xxx 门禁的正文下限（字节）。空壳文档不算数 —— 2026-09-30 加。
  *  只查"文件在不在"的话，AI 写个空 md 就能过 ④；加内容下限逼它真写。
  *  不设太高：一份合格的经验记录 1KB 起步，500 足够把空壳和敷衍挡在外面。 */
 const MIN_DOC_BYTES = 500;   // 仅附注用，不参与判定（GLM Goodhart 批评后降级）
 
-const USER_OUT = path.join(ROOT, '..', 'rdd-selfcompile', '给用户');
+// ★ 2026-10-01 改指向：原来指向 `rdd-selfcompile\给用户\`，那目录 2026-09-30 已废弃
+//   （内容归到 rdd存放），所以 publish 会往一个没人看的地方投 —— 用户永远收不到。
+//   现在指向用户面收件夹 DOCS_OUT，与 AGENTS.md「用户只看这一个地方」一致。
+const USER_OUT = DOCS_OUT;
 const USER_KINDS = { report: '报告', tool: '工具', shot: '截图', doc: '文档' };
 
 CMD.publish = function (a) {

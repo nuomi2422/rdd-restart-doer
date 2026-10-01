@@ -4,11 +4,13 @@
   "loopTo": "plan",
 
   "docsRoot": "E:\\新建文件夹\\rdd-docs\\rdd架构",
+  "docsOut": "E:\\新建文件夹\\rdd-docs\\rdd存放",
   "$docsRoot说明": [
-    "★ read[] 里那些相对路径（自编译统一版/xx.md）都是相对本目录的。",
+    "★ read[] 里那些相对路径（自编译统一版/xx.md）都是相对 docsRoot 的。",
     "stager.js 读本字段拼出全路径，每条必读后面直接打全路径 —— AI 不需要猜。",
     "2026-10-01 之前这里是 6 处散落的硬编码，知识库一搬家全失配，ctx 会指向不存在的目录。",
-    "改文档位置 = 只改这一行。`stager self-check` 会验本目录和每个 read[] 真的存在。"
+    "改文档位置 = 只改这两行。`stager self-check` 会验本目录和每个 read[] 真的存在。",
+    "docsOut = 用户面收件夹，stager publish 投这里（原来指向已废弃的 rdd-selfcompile\\给用户）。"
   ],
 
   "$writeTo说明": [

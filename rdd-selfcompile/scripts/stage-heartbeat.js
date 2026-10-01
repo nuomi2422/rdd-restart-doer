@@ -24,7 +24,7 @@ const { execFileSync, spawn } = require('child_process');
 
 const ROOT = 'E:/restart developing doer';
 const STAGER = path.join(ROOT, 'stager/bin/stager.js');
-const ARCH = 'E:/新建文件夹/rdd架构';
+const ARCH = 'E:/新建文件夹/rdd-docs/rdd架构';
 const LOG = path.join(ROOT, 'rdd-selfcompile/selfcompile/heartbeat.log');
 const HB_STATE = path.join(ROOT, 'stager/.stager/heartbeat.json');
 

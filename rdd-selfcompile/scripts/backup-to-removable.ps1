@@ -1,4 +1,4 @@
-﻿# backup-to-removable.ps1 -- 离线备份到 F:（可移动盘）
+# backup-to-removable.ps1 -- 离线备份到 F:（可移动盘）
 # 2026-10-01 · 目的：电脑坏了/进水后能复刻
 #
 # 设计要点
@@ -34,7 +34,7 @@ Write-Output "==================== 开始备份 $stamp ===================="
 New-Item -ItemType Directory -Force -Path $Dest | Out-Null
 
 # ① 架构文档（最重要，纯 md，已验证无密钥）
-Copy-Tree 'E:\新建文件夹\rdd架构'            (Join-Path $Dest '01-架构文档')
+Copy-Tree 'E:\新建文件夹\rdd-docs\rdd架构'            (Join-Path $Dest '01-架构文档')
 # ② Numen 源码（minecraft-numen 自己的仓）
 Copy-Tree 'E:\restart developing doer\minecraft-numen' (Join-Path $Dest '02-源码-numen')
 # ③ 自编译闭环（脚本/门禁/模板/报告）
