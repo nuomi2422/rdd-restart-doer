@@ -202,6 +202,25 @@ stager close --status done --note "<一句话结论>"   # ① 关 stage
 **动子仓库前后跑一次** `node stager\bin\repo-status.js`（只读，一次看清 6 个仓库的
 HEAD / 脏项 / 推没推 / 有没有远程 / 是不是浅克隆）。**跨仓库对账时看它，不要只看外层 `git log`。**
 
+### ⚠ `plugins/selfcompile` ≠ 改码通道（2026-10-01 核实，容易搞错）
+
+游戏里那个 `selfcompile` 插件**不是改码通道**，它现在只是
+**工程流 stager 里「进游戏监督 AI」那个小流程的落地面**：
+
+| | 干什么 | 谁在用 |
+|---|---|---|
+| 游戏内 `selfcompile_request` | 把游戏内 AI 的需求写进审计目录 | 游戏里的 AI |
+| 游戏内 `selfcompile_status` | 查状态（idle/controlled） | 游戏里的 AI |
+| 游戏内 `RddWhereamiTool` / `RddGetInventoryTool` | `generated/` 下，**它自己产的**，每轮变异要手工改入口注册 | 游戏里的 AI |
+| 外层 `run-mutation.ps1` | **★ 唯一的改码通道**（编译/部署/起游戏/MCP/取证） | 本工程流 |
+
+`selfcompile_request` 的工具描述原话：**「只创建审计目录，不生成代码、不执行命令、不编译、不部署」**
+
+`plugins/selfcompile/MutationPipeline.java` 那条 11 态变异流水线
+（编译 / 验证 / 预算止损 / Harness 写锁）**在生产代码里 0 处引用，只有单测能调到**——
+**它已经关着了，不是"在跑但有风险"，是根本没接上线**。代码里已加停用注释。
+⚠️ **别去接线它** —— 外层已有一套 MutationId 与门禁，两套并存必然漂移。
+
 **真正的规则正文在** `E:\新建文件夹\rdd架构\自编译统一版\`。
 **本文件就是唯一索引** —— 每个阶段该读哪几份，上面第 1 条已经写死，不用再找别的索引页。
 （原来的 `自编译统一版\INDEX.md` 已并入本文件并退役，备份在 `_INDEX-已并入AGENTS-20260930.md.bak`）
