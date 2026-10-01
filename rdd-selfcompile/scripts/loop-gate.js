@@ -49,7 +49,7 @@ const UPDATELOG = path.join(UNIFIED, '09-更新日志.md');
 //   属于门禁自己指向了死路径，不是 AI 没写巡检。
 //   现行落点：自编译统一版/_stage/ 下按批次命名的巡检记录。
 const INSPECTION_GLOB_DIRS = [
-  path.join(UNIFIED, '_stage'),
+  path.join(ARCH, '_stage'),   // 2026-10-01 整理后 _stage 上移到 rdd架构 这一层（原先挂在 自编译统一版 下面）
   path.join(ARCH, '_废弃-特殊模式-20260930'),
 ];
 // W 层回稿的落点。

@@ -20,8 +20,8 @@ const cp = require('child_process');
 const SCRIPTS = __dirname;
 const MUTATIONS = path.join(SCRIPTS, '..', 'mutations');
 const NUMEN = 'E:\\restart developing doer\\minecraft-numen';
-const LOG = 'E:\\新建文件夹\\rdd架构\\测试日志.md';
-const UPDLOG = 'E:\\新建文件夹\\rdd架构\\自编译统一版\\09-更新日志.md';
+const LOG = 'E:\\新建文件夹\\rdd-docs\\rdd架构\\测试日志.md';
+const UPDLOG = 'E:\\新建文件夹\\rdd-docs\\rdd架构\\自编译统一版\\09-更新日志.md';
 const MC_GAME_DIR = 'E:\\.minecraft\\versions\\The Best of Twilight Forest';
 const MODS = path.join(MC_GAME_DIR, 'mods');
 
@@ -131,7 +131,7 @@ if (fs.existsSync(LOG)) {
 chk(logOk ? 'ok' : 'block', '④ 写了测试日志（档位/目标/改动/测试/证据/未完成/下一步）', logOk, logDetail, '查痕迹');
 let docOk = false, docDetail = '';
 try {
-  const docs = fs.readdirSync('E:\\新建文件夹\\rdd架构\\自编译统一版').filter(f => f.endsWith('.md') && /维护说明|自修复/.test(f));
+  const docs = fs.readdirSync('E:\\新建文件夹\\rdd-docs\\rdd架构\\自编译统一版').filter(f => f.endsWith('.md') && /维护说明|自修复/.test(f));
   docOk = docs.length > 0; docDetail = docs.join(', ');
 } catch (e) { docDetail = '读不到统一版目录'; }
 chk(docOk ? 'warn' : 'block', '⑤ 写了解释性维护说明（改了哪/为什么/怎么调/入口出口）', docOk, docDetail, '查痕迹');
