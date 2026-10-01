@@ -7,7 +7,7 @@ const ALT = ['不要只回话', '白干', 'WATCHDOG/self-drive'];
 
 const ROOTS = [
   'E:/restart developing doer',
-  'E:/新建文件夹/rdd架构',
+  'E:/新建文件夹/rdd-docs/rdd架构',
   'C:/Users/lenovo/.config/opencode',
 ];
 const SKIP = /\\(node_modules|\.git|\.gradle|build|\.stager|_废弃|给用户|文档|报告)\\?/;

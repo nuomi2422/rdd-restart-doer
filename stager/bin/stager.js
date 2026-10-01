@@ -30,6 +30,28 @@ const IMAGES_DIR = path.join(PET_DIR, 'images');
 const PLUGIN_SRC = path.join(ROOT, 'opencode-plugin', 'stager-plugin.mjs');
 const STAGER_MARKER = '## ▶ STAGER 阶段管理器（自动）';
 
+// ── 文档根目录：唯一真源 = stages.json 的 docsRoot ────────────────
+// 为什么提成配置而不是散在各脚本里：2026-10-01 知识库搬家时，
+// 6 个脚本各写一份「E:\新建文件夹\rdd架构」硬编码，全部失配 ——
+// ctx 会把 AI 指向一个不存在的目录。
+// 现在：改一处 → 全链路跟着变；self-check 会验路径真的存在。
+function readStagesRaw() {
+  try { return JSON.parse(fs.readFileSync(STAGES_FILE, 'utf8').replace(/^\uFEFF/, '')); }
+  catch (e) { return null; }
+}
+const STAGES_RAW = readStagesRaw();
+// read[] 条目常带「（必看…）」这类括号注释 → 取括号前那段当路径，再统一斜杠。
+function readPath(rel) {
+  const clean = String(rel).split('（')[0].split('(')[0].trim().replace(/\//g, '\\');
+  return DOC_ROOT + '\\' + clean;
+}
+function readLabel(rel) {
+  const m = String(rel).match(/[（(]([^）)]*)[）)]/);
+  return m ? m[1] : '';
+}
+
+const DOC_ROOT = (STAGES_RAW && STAGES_RAW.docsRoot) || 'E:\\新建文件夹\\rdd-docs\\rdd架构';
+
 // 运行时目录用 let：self-test 要临时重定向到 tmp
 let RUNTIME = path.join(ROOT, '.stager');
 let TASKS = '';
@@ -494,7 +516,12 @@ function ctxMd(st, full) {
     if (s.read && s.read.length) {
       out.push('**📖 本阶段开工必读（不读不许动手）：**');
       out.push('');
-      s.read.forEach((r) => out.push('- `' + r + '`　（`E:\\新建文件夹\\rdd架构\\` 下）'));
+      // ★ 打在每一行后面，不靠「读者知道根在哪」—— 之前只在标题后写一句根路径，
+      //   AI 读完第一行就去别处找了。现在每条自带全路径，零推断空间。
+      s.read.forEach((r) => {
+        const lab = readLabel(r);
+        out.push('- `' + readPath(r) + '`' + (lab ? '　← ' + lab : ''));
+      });
       out.push('');
     }
 // 读档记录（GLM「读后一行复述」）—— 让「读没读」从黑箱变可观测
@@ -556,6 +583,11 @@ function ctxMd(st, full) {
       s.ai.forEach((x) => out.push(x));
       out.push('');
     }
+
+    // 写到哪 —— 每阶段都重申一次。散落的「写到一半就不写了」的目录，
+    // 根因就是从没明确说过该写哪。这段每次 ctx 都出现，位置在「必做」之后。
+    out.push(...writeToLines());
+    out.push('');
   }
 
   // 最终架构文档 = 防跑偏的锚，每个阶段都要回头读
@@ -780,6 +812,7 @@ CMD.help = function () {
     '        stager install                                          注册 opencode 自动注入插件 + 工作区 AGENTS.md 指针',
     '        stager uninstall                                        注销',
     '        stager self-test                                        状态机自测（临时目录，跑完即删）',
+'        stager self-check                                       路径自检：文档根 + 每个 read[] 真的存在吗（改了文档位置必跑）',
     '        stager conc-test                                        并发压测（8 进程抢锁，验丢更新/残锁）',
     '',
     '  状态真身：.stager/tasks/<id>/state.json　　阶段定义：core/stages.json（可改）',
@@ -1437,6 +1470,66 @@ CMD.docs = function (a) {
 };
 
 CMD.check2 = null;
+// ── 写到哪：明确三条铁律，避免「想到哪里写哪里」─────────────────
+// 问题背景：知识库里有大量「写到一半就不写了」的目录、_stage/、
+//   各处随手起的名字。根因是**从没告诉 AI 该写哪**。
+// 现在每次 ctx 都带这三行，且 stager self-check 会机器校验路径真的存在。
+function writeToLines() {
+  const L = [];
+  L.push('### ✍️ 新东西写到哪（三条，别自己找地方）');
+  L.push('');
+  L.push('| 东西 | 写到哪 |');
+  L.push('|---|---|');
+  L.push('| 本轮过程文档（plan/arch/evidence/experience…） | `stager put --kind <kind> --title <标题>` —— 它自己落到本任务 `docs\\`，**别手写** |');
+  L.push('| 长期规范级文档（新规范/清单/运维手册） | `' + DOC_ROOT + '\\自编译统一版\\NN-中文名.md`（NN 接最大号往后排），并登记 3 处：README §二目录表 + 09-更新日志 + 50-按主题导航 |');
+  L.push('| 状态报告（44 号规格） | 本轮 `docs\\`，**不要**写进 `' + DOC_ROOT + '\\自编译统一版\\`，**不要**加进 read[] |');
+  L.push('');
+  L.push('**判据一句话**：下一个人接手时第一眼该看哪份？长期资产进统一版，一次性产物进 stager。');
+  L.push('细则见 `' + DOC_ROOT + '\\08-登记规约.md`。');
+  return L;
+}
+
+// ── 自检：文档根和每个 read[] 真的存在吗 ────────────────────────
+// 2026-10-01 知识库搬家，ctx 里的必读路径整批失配 —— 静态门禁不报警，
+// 因为「路径存在性」压根没被检查过。这里补上。
+CMD.selfCheck = function () {
+  let fail = 0;
+  const head = ok;
+  ok('════ stager 自检：路径可解析性 ════');
+  ok('文档根 docsRoot : ' + DOC_ROOT);
+  if (!fs.existsSync(DOC_ROOT)) {
+    err('  ✗ docsRoot 不存在！读[] 全是相对路径 → 所有必读都指不到东西。');
+    err('    改 stager/core/stages.json 的 docsRoot（唯一真源）。');
+    fail++;
+  } else {
+    ok('  ✔ 存在');
+  }
+  const stages = STAGES_RAW ? STAGES_RAW.stages : [];
+  let miss = 0, total = 0;
+  for (const s of stages) {
+    for (const r of (s.read || [])) {
+      total++;
+      const p = readPath(r);
+      if (!fs.existsSync(p)) { err('  ✗ ' + s.id + ' → ' + r + '　（解析成 ' + p + '）'); miss++; }
+    }
+  }
+  if (miss) { err('  → ' + miss + '/' + total + ' 条必读找不到文件'); fail++; }
+  else ok('  ✔ ' + total + ' 条必读全部可达');
+
+  // 反向抽查：统一版里有没有没人引用的 md（提示漏登记）
+  const uni = path.join(DOC_ROOT, '自编译统一版');
+  if (fs.existsSync(uni)) {
+    const idx = ['README.md', '50-按主题导航.md', '51-研发叙事时间线.md']
+      .map(f => path.join(uni, f)).filter(fs.existsSync);
+    const blob = idx.map(f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } }).join('\n');
+    const orphans = fs.readdirSync(uni).filter(f => f.endsWith('.md') && !blob.includes(f));
+    if (orphans.length) ok('  ⚠ 统一版有 ' + orphans.length + ' 份 md 没被 README/50/51 引用：\n     ' + orphans.slice(0, 8).join('\n     ') + (orphans.length > 8 ? '\n     …' : ''));
+    else ok('  ✔ 统一版每份 md 都在索引里有位置');
+  }
+  if (fail) { err('VERDICT=BROKEN  有 ' + fail + ' 项断了'); process.exit(2); }
+  ok('VERDICT=OK  路径全部可解析');
+};
+
 CMD.ctx = function (a) {
   const st = requireState();
   const md = ctxMd(st, !!a.f.full);
@@ -1838,6 +1931,7 @@ let cmd = a.pos[0];
 const rest = Object.assign({}, a, { pos: a.pos.slice(1) });
 const ALIAS = {
   'self-test': 'selfTest', selftest: 'selfTest',
+  'self-check': 'selfCheck', selfcheck: 'selfCheck', '路径自检': 'selfCheck',
   'conc-test': 'concTest', conc: 'concTest',
   st: 'status', s: 'status',
   c: 'ctx', i: 'ctx', inject: 'ctx',

@@ -2,6 +2,29 @@
   "$comment": "stager 阶段定义 · 2026-09-29 按用户口述收成 4 大阶段。改这个文件就改流程，不动代码。read[] = 该阶段开工必读的 md。gate = 不达标不许 next。",
   "version": 2,
   "loopTo": "plan",
+
+  "docsRoot": "E:\\新建文件夹\\rdd-docs\\rdd架构",
+  "$docsRoot说明": [
+    "★ read[] 里那些相对路径（自编译统一版/xx.md）都是相对本目录的。",
+    "stager.js 读本字段拼出全路径，每条必读后面直接打全路径 —— AI 不需要猜。",
+    "2026-10-01 之前这里是 6 处散落的硬编码，知识库一搬家全失配，ctx 会指向不存在的目录。",
+    "改文档位置 = 只改这一行。`stager self-check` 会验本目录和每个 read[] 真的存在。"
+  ],
+
+  "$writeTo说明": [
+    "★★ 新东西写到哪 —— 三条铁律 ★★：",
+    "1) 本轮过程文档（plan/arch/review/code/evidence/experience/log/note）",
+    "   → stager put --kind <kind> --title <标题>，它自己落进 stager/.stager/tasks/<任务>/docs/。",
+    "   ★ 不要手写到 rdd架构\\ 任何子目录 —— 那些是长期资产，不是本轮产物。",
+    "2) 要长期留、规范级的文档（新规范/新清单/新运维手册）",
+    "   → docsRoot\\自编译统一版\\NN-中文名.md，NN 接着现有最大号往后排，",
+    "     并同时登记 3 处：①README.md §二目录表 ②09-更新日志.md ③50-按主题导航.md。",
+    "   ★ 08-登记规约.md 是这条的细则。",
+    "3) 状态报告（44 号规格）：放本轮自己的 docs\\ 目录，",
+    "   ★ 不要写进 docsRoot\\自编译统一版\\，不要加进任何 read[]（close 阶段已明令）。",
+    "判据一句话：**下一个人接手时，第一眼该看哪份？** 长期资产进统一版，一次性产物进 stager。"
+  ],
+
   "defaults": {
     "maxRounds": 5,
     "actor": "opencode"

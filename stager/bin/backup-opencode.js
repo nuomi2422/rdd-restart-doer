@@ -8,7 +8,7 @@ const fs = require('fs');
 const path = require('path');
 
 const CFG = 'C:/Users/lenovo/.config/opencode/opencode.json';
-const OUT_DIR = 'E:/新建文件夹/rdd存放/配置备份';
+const OUT_DIR = 'E:/新建文件夹/rdd-docs/rdd存放/配置备份';
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
 const raw = fs.readFileSync(CFG, 'utf8');
 fs.mkdirSync(OUT_DIR, { recursive: true });
