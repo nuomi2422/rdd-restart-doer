@@ -1,4 +1,4 @@
-﻿# check-doc-anchor-drift · 查文档里的代码锚点有没有漂
+# check-doc-anchor-drift · 查文档里的代码锚点有没有漂
 
 > **干什么**：扫文档里所有 `Foo.java:123` 和「N 行」体量锚点，跟真实源码比对，
 > **给出新行号**，让人/AI 把文档改对。
@@ -13,7 +13,7 @@
 
 ```powershell
 # 基本用法（退出码有意义，能当证据用）
-node .\check-doc-anchor-drift.js --docs "E:\新建文件夹\rdd架构\自编译统一版" `
+node .\check-doc-anchor-drift.js --docs "E:\新建文件夹\rdd-docs\rdd架构\自编译统一版" `
                                   --src  "E:\restart developing doer\minecraft-numen"
 
 # 多个文档目录一起查
