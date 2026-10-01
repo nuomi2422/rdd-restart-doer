@@ -1,0 +1,24 @@
+chore(清理): 删 15 个一次性中间脚本，留长期有用的
+
+改 stager.js / stages.json 时的临时脚本，改完就完成使命，再跑会重复插入。
+
+删：
+  add-mc-nohang-rule / add-memory-probe / add-status-report-spec /
+  find-injection-source / fix-w-arg-truncate / fix-watchdog-wording /
+  inspect-real-task / live-state / revert-mc-rule-from-stages /
+  scan-launch-blocking / show-reads / peek-other-ai /
+  patch-wpool / patch-wpool2 / sync-stager-doc /
+  stages.json（误入 bin/ 的副本）
+
+留（长期有用）：
+  stager.js（本体 84KB）/ check-index-agents（改完自查）/
+  kill-by-cmdline.ps1 / stop-selfdrive.ps1 / show-pet.ps1 /
+  make-rollback.js / merge-global.js / repo-status.js /
+  conc-test.js / check-align.js / check-global.js /
+  build-harness-folder.js / backup-opencode.js / stager.cmd / stager.ps1
+  _*.txt 与 _*-template.js 共 12 个（改 stager.js 时的注入模板，stager.js 注释里引用了它们）
+
+顺带提醒：bin/stages.json 是今天误建的一份 stages.json 副本，
+真源在 stager/core/stages.json。以后改阶段定义只动 core/stages.json。
+
+验证：stager self-test 39/39 | ctx 退出码 0
