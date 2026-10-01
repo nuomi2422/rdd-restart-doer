@@ -20,6 +20,12 @@ rdd-selfcompile/mutations/
 # ── stager 运行态（任务/文档/锁）──
 .stager/
 
+# ── 持续 churn 的本机运行时文件（曾每个提交都带 4 行，纯噪音）──
+# 桌宠窗口坐标 + 用户手动指定的表情覆盖（本机 UI 状态，不是源码）
+stager/pet/pet-pos.json
+# 看门狗 / 心跳 / 驱动 / 开机自启的滚动日志（内容已留在历史里，文件本身不必跟版）
+*.log
+
 # ── 敏感配置（本机密钥，改码本地的 config 不入库）──
 config/*.json
 rdd-selfcompile/instances/
