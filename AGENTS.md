@@ -176,6 +176,31 @@ stager close --status done --note "<一句话结论>"   # ① 关 stage
 | **W 池调用别用默认 120s** | 大部分模型 2~3 分钟才说完，**GLM 可能要 4~5 分钟**，超时会被砍，**白等一场** | `bash(timeout=60000)` 起步（暂定 1 分钟，后面按实测调）；**超时就查落盘文件**（`report\w-replies\*.json`），别重发 |
 | ⚠️ **GLM 抓回复会抓到上一轮旧答案** | 2026-09-30 实测：GLM 浏览器里答对了，但落盘文件里存的是上一轮「1+1等于2」。**是脚本抓错元素，不是 GLM 答错**（Qwen/Kimi/DeepSeek 同时同题抓取正确）。**时序偶发，非必现** | **互审前先跑探针** `node rdd-selfcompile\scripts\w-probe.js`（发随机数问题核对答案）；探针不过就别问 |
 | **provider 先排再判代码** | 「它不动」被误判成执行层慢 | 第 0 步查日志有**无 401/402/5xx**（2026-09-28 实测 DeepSeek 402×49、0 成功 = 没钱） |
+| ⚠️ **`git add -A` 会卷进别人的改动** | 本工作区**常有两个会话并行改同一个仓库**。`-A` 会把对方未完成的改动一起提交，甚至把故意注入的变异（测试用）写进 commit | **精确 add 指定文件**：`git add <路径1> <路径2>…`。提交前必跑 `git status --short` 逐行确认，每一行都是你改的。2026-10-01 实测已出过一次事故（`MAX_QUEUE=63` 的变异被卷进 commit，HEAD 一度是坏的） |
+| ⚠️ **源码改了 ≠ 运行时生效** | 只改源码就写「已改完」= 把中间态当完成态 | 中间隔着 **编译 → 部署 jar → 重启游戏** 三步。判据：**jar 的 `LastWriteTime` ≥ 提交时间**。2026-10-01 RL-19 就是这么被判出来的（源码 10:37 改的，jar 还是 09-29 的） |
+
+---
+
+## 第 6 条·补 · 路径配置在哪（改文档位置只改两行）
+
+散落的硬编码路径已经收成配置。**别再自己写死路径**：
+
+| 侧 | 改这里 | 覆盖什么 |
+|---|---|---|
+| **node**（stager / loop-gate / stage-heartbeat） | `stager\core\stages.json` 的 `docsRoot` + `docsOut` | ctx 必读清单 · publish 投放到哪 |
+| **PowerShell**（sync-unified-copy / backup-to-removable 等） | `rdd-selfcompile\scripts\config.ps1` 的 `DOCS_ROOT` / `DOCS_UNIFIED` / `DOCS_OUT` | 副本同步 / 备份 |
+
+改完必跑：
+
+```powershell
+node stager\bin\stager.js self-check     # 验文档根 + 每个 read[] 真存在
+```
+
+> 为什么加这条：2026-10-01 知识库搬家（`rdd架构` → `rdd-docs\rdd架构`），
+> **13 处散落硬编码全失配** —— ctx 指向不存在的目录、loop-gate 读不到测试日志、
+> publish 往废弃目录投。第一次只搜了 `stager/` 就以为改完了，
+> **漏了 `rdd-selfcompile\scripts` 的 5 处**（其中 loop-gate 是硬门禁）。
+> 教训：**改路径必须全仓 grep，不要凭印象只搜一个目录。**
 
 ---
 
