@@ -165,10 +165,11 @@ function Get-Bmp($path) {
       </StackPanel>
     </Border>
 
-    <Grid x:Name="PetHost" Grid.Row="1" Width="200" Height="200" HorizontalAlignment="Right">
-      <Image x:Name="PetImage" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
-            <RenderTransform><ScaleTransform x:Name="PetScale" ScaleX="1" ScaleY="1" /></RenderTransform>
-        </Image>
+    <Grid x:Name="PetHost" Grid.Row="1" Width="200" Height="200" HorizontalAlignment="Right"
+          RenderTransformOrigin="0.5,0.5">
+      <Grid.RenderTransform><ScaleTransform x:Name="PetScale" ScaleX="1" ScaleY="1" /></Grid.RenderTransform>
+      <!-- Image 不能有内容属性，所以 RenderTransform 挂在它外面这层 PetHost 网格上 -->
+      <Image x:Name="PetImage" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality" />
       <Grid x:Name="Fallback" Visibility="Collapsed">
         <Ellipse Width="150" Height="140" Fill="#F0EAFF" Stroke="#B9A6E8" StrokeThickness="2"
                  VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,6"/>
