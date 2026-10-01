@@ -2440,3 +2440,78 @@
 2026-09-30 12:35:23 ROUND begin
 2026-09-30 12:35:23 ROUND queue no task - heartbeat only
 2026-09-30 12:35:25 NUDGE fail: opencode window not found
+2026-10-01 09:44:25 START every-10min-drive pid=8292 interval=600s loop=True nudge=True
+2026-10-01 09:44:25 ROUND begin
+2026-10-01 09:44:25 ROUND queue no task - heartbeat only
+2026-10-01 09:44:27 NUDGE sent to window 591886
+2026-10-01 09:44:34 START every-10min-drive pid=20752 interval=600s loop=False nudge=True
+2026-10-01 09:44:34 ROUND begin
+2026-10-01 09:44:35 ROUND queue no task - heartbeat only
+2026-10-01 09:44:38 NUDGE sent to window 591886
+2026-10-01 09:44:38 NUDGE focus restored to 328160
+2026-10-01 09:44:38 STOP every-10min-drive
+2026-10-01 09:45:39 START every-10min-drive pid=29060 interval=600s loop=False nudge=True
+2026-10-01 09:45:39 ROUND begin
+2026-10-01 09:45:39 ROUND queue no task - heartbeat only
+2026-10-01 09:45:41 NUDGE sent to window 591886
+2026-10-01 09:45:41 NUDGE focus restored to 2098842
+2026-10-01 09:45:41 STOP every-10min-drive
+2026-10-01 09:46:41 START every-10min-drive pid=33668 interval=600s loop=False nudge=True
+2026-10-01 09:46:41 ROUND begin
+2026-10-01 09:46:41 ROUND queue no task - heartbeat only
+2026-10-01 09:46:43 NUDGE sent to window 657042
+2026-10-01 09:46:43 NUDGE focus restored to 132106
+2026-10-01 09:46:43 STOP every-10min-drive
+2026-10-01 09:47:44 START every-10min-drive pid=35848 interval=600s loop=False nudge=True
+2026-10-01 09:47:44 ROUND begin
+2026-10-01 09:47:44 ROUND queue no task - heartbeat only
+2026-10-01 09:47:45 NUDGE sent to window 657042
+2026-10-01 09:47:45 STOP every-10min-drive
+2026-10-01 09:48:46 START every-10min-drive pid=7040 interval=600s loop=False nudge=True
+2026-10-01 09:48:46 ROUND begin
+2026-10-01 09:48:46 ROUND queue no task - heartbeat only
+2026-10-01 09:48:48 NUDGE sent to window 657042
+2026-10-01 09:48:48 NUDGE focus restored to 592398
+2026-10-01 09:48:48 STOP every-10min-drive
+2026-10-01 09:49:49 START every-10min-drive pid=34976 interval=600s loop=False nudge=True
+2026-10-01 09:49:49 ROUND begin
+2026-10-01 09:49:49 ROUND queue no task - heartbeat only
+2026-10-01 09:49:50 NUDGE sent to window 657042
+2026-10-01 09:49:50 STOP every-10min-drive
+2026-10-01 09:50:51 START every-10min-drive pid=29572 interval=600s loop=False nudge=True
+2026-10-01 09:50:51 ROUND begin
+2026-10-01 09:50:51 ROUND queue no task - heartbeat only
+2026-10-01 09:50:52 NUDGE skip: foreground=592398 != target 657042 (前台锁抢不过来). Try again next round.
+2026-10-01 09:50:52 STOP every-10min-drive
+2026-10-01 09:51:53 START every-10min-drive pid=24720 interval=600s loop=False nudge=True
+2026-10-01 09:51:53 ROUND begin
+2026-10-01 09:51:53 ROUND queue no task - heartbeat only
+2026-10-01 09:51:54 NUDGE sent to window 657042
+2026-10-01 09:51:54 STOP every-10min-drive
+2026-10-01 09:52:55 START every-10min-drive pid=34560 interval=600s loop=False nudge=True
+2026-10-01 09:52:55 ROUND begin
+2026-10-01 09:52:55 ROUND queue no task - heartbeat only
+2026-10-01 09:52:57 NUDGE sent to window 657042
+2026-10-01 09:52:58 NUDGE focus restored to 592918
+2026-10-01 09:52:58 STOP every-10min-drive
+2026-10-01 09:53:58 START every-10min-drive pid=6984 interval=600s loop=False nudge=True
+2026-10-01 09:53:58 ROUND begin
+2026-10-01 09:53:58 ROUND queue no task - heartbeat only
+2026-10-01 09:53:59 NUDGE sent to window 657042
+2026-10-01 09:53:59 STOP every-10min-drive
+2026-10-01 09:55:00 START every-10min-drive pid=7724 interval=600s loop=False nudge=True
+2026-10-01 09:55:00 ROUND begin
+2026-10-01 09:55:00 ROUND queue no task - heartbeat only
+2026-10-01 09:55:02 NUDGE sent to window 657042
+2026-10-01 09:55:02 NUDGE focus restored to 592398
+2026-10-01 09:55:02 STOP every-10min-drive
+2026-10-01 09:56:03 START every-10min-drive pid=26036 interval=600s loop=False nudge=True
+2026-10-01 09:56:03 ROUND begin
+2026-10-01 09:56:03 ROUND queue no task - heartbeat only
+2026-10-01 09:56:04 NUDGE sent to window 657042
+2026-10-01 09:56:04 STOP every-10min-drive
+2026-10-01 09:57:04 START every-10min-drive pid=15080 interval=600s loop=False nudge=True
+2026-10-01 09:57:04 ROUND begin
+2026-10-01 09:57:05 ROUND queue no task - heartbeat only
+2026-10-01 09:57:06 NUDGE skip: foreground=2098842 != target 657042 (前台锁抢不过来). Try again next round.
+2026-10-01 09:57:06 STOP every-10min-drive

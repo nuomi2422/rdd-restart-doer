@@ -1,1 +1,18 @@
 [2026-09-30T21:09:28.465Z] ROLLBACK stage=verify elapsed=23 inject=dry
+[2026-10-01T01:44:32.921Z] START pid=35232 interval=60 dry=false
+[2026-10-01T01:44:38.536Z] SOFT stage=plan round=4 elapsed=27min budget=20 inject=sent
+[2026-10-01T01:45:41.234Z] SOFT stage=plan round=4 elapsed=28min budget=20 inject=sent
+[2026-10-01T01:46:43.881Z] SOFT stage=plan round=4 elapsed=29min budget=20 inject=sent
+[2026-10-01T01:47:45.879Z] HARD stage=plan round=4 elapsed=30min budget=20 inject=sent
+[2026-10-01T01:48:48.996Z] HARD stage=plan round=4 elapsed=31min budget=20 inject=sent
+[2026-10-01T01:49:50.774Z] HARD stage=plan round=4 elapsed=32min budget=20 inject=sent
+[2026-10-01T01:50:52.686Z] HARD stage=plan round=4 elapsed=33min budget=20 inject=sent
+[2026-10-01T01:51:54.504Z] HARD stage=plan round=4 elapsed=34min budget=20 inject=sent
+[2026-10-01T01:52:58.109Z] HARD stage=plan round=4 elapsed=35min budget=20 inject=sent
+[2026-10-01T01:53:59.853Z] HARD stage=plan round=4 elapsed=36min budget=20 inject=sent
+[2026-10-01T01:55:02.671Z] HARD stage=plan round=4 elapsed=37min budget=20 inject=sent
+[2026-10-01T01:56:04.283Z] HARD stage=plan round=4 elapsed=38min budget=20 inject=sent
+[2026-10-01T01:57:06.258Z] HARD stage=plan round=4 elapsed=39min budget=20 inject=sent
+[2026-10-01T01:58:06.920Z] ROLLBACK stage=plan elapsed=40 inject=sent
+[2026-10-01T01:59:10.024Z] ROLLBACK stage=plan elapsed=41 inject=sent
+[2026-10-01T02:00:10.596Z] ROLLBACK stage=plan elapsed=42 inject=sent

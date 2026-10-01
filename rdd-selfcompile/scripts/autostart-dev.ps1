@@ -1,11 +1,16 @@
 ﻿# =====================================================================
-# autostart-dev.ps1  —  开发环境开机自启动（opencode / 浏览器 / 监测台 / watchdog）
+# autostart-dev.ps1  —  开发环境开机自启动（opencode / 浏览器 / 监测台）
 # 用法：由 Startup 的 rdd-autostart.bat 调用，也可手动执行。
 # 幂等：已在跑的不重复起（按端口/进程判断）。
+#
+# ★ 2026-10-01 用户批准：watchdog（every-10min-drive）改为【默认不启动】。
+#   原因：它每 600s 往 opencode 窗口注入一段文字，会插进用户正在打的字里
+#   （用户两次被它截断消息）。措辞已经改中性了，但它仍然打断输入 —— 打扰是硬伤。
+#   要开就显式加 -WithWatchdog；不用改任何代码，取消勾选即可。
 # =====================================================================
 [CmdletBinding()]
 param(
-    [switch]$NoWatchdog,      # 跳过 watchdog（默认起）
+    [switch]$WithWatchdog,    # ★ 只有显式加这个才起 watchdog（2026-10-01 起默认不起）
     [switch]$NoBrowser        # 跳过浏览器（默认起）
 )
 
@@ -44,9 +49,11 @@ try {
 } catch { Say "[monitor] 启动失败: $($_.Exception.Message)" }
 
 # --- 2. watchdog (every-10min-drive -Loop) ---
+# ★ 2026-10-01 起默认【不启动】。它会往 opencode 窗口注入文字、插进用户正在打的字里。
+#    要开： autostart-dev.ps1 -WithWatchdog
 try {
-    if ($NoWatchdog) {
-        Say "[watchdog] 按参数跳过"
+    if (-not $WithWatchdog) {
+        Say "[watchdog] 默认不启动（2026-10-01 起；要开加 -WithWatchdog）"
     } else {
         $exists = Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
                   Where-Object { $_.CommandLine -match 'every-10min-drive' }

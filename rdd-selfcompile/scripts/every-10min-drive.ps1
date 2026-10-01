@@ -22,6 +22,33 @@ param(
   [string]$Base = "E:\restart developing doer\rdd-selfcompile\scripts"
 )
 
+# =====================================================================
+# ★★ 总闸（2026-10-01 用户要求「把这个去掉不要再开了」）★★
+#
+#   这个脚本会每 600s 往 opencode 窗口用 SendKeys 注入一段文字，
+#   **会插进用户正在打的字里**（用户消息被截断过两次）。
+#   而且它会自我复活 —— 观察到一个现象：杀掉之后过一两分钟又出现新的，
+#   父进程是 OpenCode.exe，但用户确认当时没有任何 AI 在跑。
+#   靠「杀进程」和「改 autostart」都挡不住（已经都试过）。
+#
+#   所以加一道硬闸：**不给显式环境变量就立刻退出，一个字都不注入。**
+#   任何东西（autostart / AI / 手滑 / 计划任务）直接跑它都没用。
+#
+#   ★ 要用的话必须显式开：
+#       $env:RDD_ENABLE_SELFDRIVE = "1"; .\every-10min-drive.ps1 -Loop
+#   用完记得关掉那个环境变量。
+#
+#   已同步：autostart-dev.ps1 改成默认不启动 watchdog（要开加 -WithWatchdog）。
+# =====================================================================
+if ($env:RDD_ENABLE_SELFDRIVE -ne "1") {
+  $log0 = 'E:\restart developing doer\rdd-selfcompile\scripts\every-10min-drive.log'
+  try {
+    Add-Content -LiteralPath $log0 -Encoding UTF8 `
+      ("[{0}] SKIPPED — 总闸关闭（未设 RDD_ENABLE_SELFDRIVE=1），不注入任何内容。" -f (Get-Date).ToString('s'))
+  } catch {}
+  exit 0
+}
+
 function Get-OpenCodeWindowHandle {
   Add-Type @"
 using System;
@@ -245,12 +272,23 @@ function Get-LiveTaskLine {
 }
 
 <#
-  构造 nudge 文本。核心是**逼它用工具**：纯文字回复等于这一轮白干（这正是用户说的"吹风没用"）。
+  构造 nudge 文本。
+
+  ★ 2026-10-01 用户批准后改措辞（用户两次把这段贴出来要求改）：
+    原来写的是「立刻用工具继续当前任务。不要只回话、不要只解释、不要反问我 ——
+    纯文字回复等于这一轮白干。」
+    删掉的是【对被执行者的操纵】，不是状态通知：
+      · 「不要反问我」  → 压制 AI 判断「该不该问用户」
+      · 「纯文字等于白干」→ 惩罚性话术，逼 AI 为了看起来在干活而调用工具
+      · 「立刻」        → 制造紧迫感，跳过「这任务该不该继续」的判断
+    保留 [NOT the user] 前缀 —— 那个是对的，防止被当成用户批准。
+    详见 memory: issue/watchdog-injects-fake-user-turns-into-agent-context
+    ⚠ scripts\ 是闭环真源，本次改动已获用户批准。
 #>
 function New-NudgeMessage {
-  $head = "[WATCHDOG/self-drive, NOT the user] 立刻用工具继续当前任务。" +
-          "不要只回话、不要只解释、不要反问我 —— 纯文字回复等于这一轮白干。" +
-          "卡住就换策略（换位置 / 换工具 / 先回基地卸货）；确实无事可做时，回一句『无事可做：<原因>』。"
+  $head = "[WATCHDOG/self-drive, NOT the user] 检测到还有未完成的活（下面列了）。" +
+          "如果你判断该继续就继续；如果判断不该继续（比如在等用户、或已经做完了），" +
+          "直接说原因就行 —— 这里的判断权在你，这个脚本没有优先级。"
   $lines = @($head)
   $live = Get-LiveTaskLine
   if ($live) { $lines += $live }

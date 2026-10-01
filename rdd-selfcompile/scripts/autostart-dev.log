@@ -67,3 +67,10 @@
 2026-09-30 12:35:23 [w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用
 2026-09-30 12:35:23 [opencode] 启动失败: 由于出现以下错误，无法运行此命令: 系统找不到指定的文件。。
 2026-09-30 12:35:23 === autostart 完成 ===
+2026-10-01 09:44:23 === autostart 开始 ===
+2026-10-01 09:44:24 [monitor] 已启动 node server.mjs (8776), dir=E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor
+2026-10-01 09:44:24 [watchdog] 已启动 every-10min-drive -Loop -IntervalSec 600
+2026-10-01 09:44:24 [browser] 已启动 AI Bridge Chrome (profile=C:\Users\lenovo\.config\ai-bridge\chrome-profile)
+2026-10-01 09:44:25 [w-layer] 已启动 CDP Edge(9223)；首次需人工登录 GLM/Kimi，之后 profile 复用
+2026-10-01 09:44:25 [opencode] 已在新窗口启动 opencode (dir=E:\restart developing doer\minecraft-numen)
+2026-10-01 09:44:25 === autostart 完成 ===
