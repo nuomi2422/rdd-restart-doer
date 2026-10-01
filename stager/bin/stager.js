@@ -196,6 +196,45 @@ function totalStages() { return stages().stageList.length; }
 function activeId() { return readJson(ACTIVE_FILE, null); }
 
 function taskDir(id) { return path.join(TASKS, id); }
+// ── 外脑（免费模型池）本阶段问没问 ──────────────────────────
+//   判据：w-replies 里本阶段窗口内、回答 >40 字的、按平台去重。
+//   >40 是因为 <=40 基本是「抓到上一轮旧答案」（2026-09-30 实测 4~11 字）。
+//   单家不算数 —— 可被一次误抓骗过。要 >=2 家有效。
+const WPOOL_DIR = path.join(__dirname, '..', '..', 'rdd-selfcompile', 'report', 'w-replies');
+const WPOOL_MIN_CHARS = 40;
+const WPOOL_MIN_PLATFORMS = 2;
+function wpoolTally(st) {
+  const out = { total: 0, valid: 0, platforms: {}, skipped: 0 };
+  let t0 = 0;
+  try {
+    const H = fs.readFileSync(path.join(taskDir(st.id), "history.jsonl"), "utf8")
+      .split(/\r?\n/).filter(Boolean).map((x) => { try { return JSON.parse(x); } catch (e) { return null; } }).filter(Boolean);
+    for (let i = H.length - 1; i >= 0; i--) {
+      const e = H[i];
+      if ((e.ev === 'next' || e.ev === 'start') && (e.to === st.stage || e.stage === st.stage)) {
+        t0 = Date.parse(e.ts); break;
+      }
+    }
+    if (!t0) t0 = Date.parse(st.createdAt || 0);
+  } catch (e) { t0 = Date.parse(st.createdAt || 0); }
+  try {
+    for (const f of fs.readdirSync(WPOOL_DIR)) {
+      if (!/\.json$/.test(f)) continue;
+      const p = path.join(WPOOL_DIR, f);
+      const m = fs.statSync(p).mtimeMs;
+      if (m < t0) continue;
+      out.total++;
+      let j; try { j = JSON.parse(fs.readFileSync(p, 'utf8')); } catch (e) { continue; }
+      if ((j.chars || 0) < WPOOL_MIN_CHARS) { out.skipped++; continue; }
+      out.valid++;
+      const tag = String(j.tag || f.split('-')[0]);
+      out.platforms[tag] = (out.platforms[tag] || 0) + 1;
+    }
+  } catch (e) { /* 目录还没有 */ }
+  out.enough = Object.keys(out.platforms).length >= WPOOL_MIN_PLATFORMS;
+  return out;
+}
+
 
 function statePath(id) { return path.join(taskDir(id), 'state.json'); }
 
@@ -461,6 +500,57 @@ function ctxMd(st, full) {
       out.push('');
     } catch (e) { /* 记录坏了别拖垮 ctx */ }
   }
+
+// 阶段心跳（2026-09-30）：独立看门狗 stage-heartbeat.js 盯着你
+    {
+      const BUD = { plan: 20, implement: 20, verify: 30, close: 15 };
+      const bud = BUD[st.stage] || 25;
+      const F = String.fromCharCode(96).repeat(3);
+      out.push('### ⏱ 本阶段心跳预算 ' + bud + ' 分钟（独立看门狗盯着）');
+      out.push('');
+      out.push('超过预算分三档干预：T+' + bud + ' 温和提醒 → T+' + (bud + 10) + ' 强制自检 → T+' + (bud + 20) + ' 快照+回退。');
+      out.push('');
+      try {
+        const _hb = JSON.parse(fs.readFileSync(path.join(TASKS, 'heartbeat.json'), 'utf8'));
+        const _k = st.id + ':' + st.round + ':' + st.stage;
+        const _a = (_hb.acks || {})[_k];
+        if (_a) {
+          out.push('**本阶段已答过心跳**：耗时=' + _a.elapsed + '　状态=`' + _a.status + '`　下一步=' + _a.next);
+        } else {
+          out.push('**本阶段还没答过心跳**。超时会问你，所以别让自己卡到超时。');
+          out.push('');
+          out.push(F + 'powershell');
+          out.push('stager hb-ack --status <ok|looping|blocked|waiting_user> --elapsed <N>m --next "<下一步>"');
+          out.push(F);
+          out.push('');
+          out.push('★ 四个 status 的含义：`ok`（在推进）/ `looping`（在打转，自己发现）/ `blocked`（技术卡住）/ `waiting_user`（该等用户拍板）。');
+        }
+      } catch (e) { /* 没有心跳记录 = 还没答过 */ }
+      out.push('');
+    }
+
+// 外脑欠账：AI 自己能看见「我还欠一轮互审」
+    const F2 = String.fromCharCode(96).repeat(3);
+    {
+      const _w = wpoolTally(st);
+      const _names = Object.keys(_w.platforms);
+      out.push('### 🧠 外脑（本阶段问没问）');
+      out.push('');
+      out.push(`- 已问：${_w.valid} 份有效回答（>${WPOOL_MIN_CHARS} 字才算数）× ${_names.length} 家${_names.length ? '：' + _names.join(', ') : ''}`);
+      out.push(`- 本阶段调用 ${_w.total} 次，其中 ${_w.skipped} 份太短（疑似抓到上一轮旧答案）`);
+      if (_w.enough) {
+        out.push('- **够了**。但下一步别忘：把 4 家意见【逐条标注采纳/驳回+理由】写进文档 —— 问了不裁决等于没问。');
+      } else {
+        out.push(`- **不够**（要 ≥2 家有效）。★ 外脑是免费的，不花用户的钱，别把自己关在小方框里。`);
+        out.push('  唯一豁免：用户明确说了「本轮不走外脑」。没有这句话 = 没有豁免。');
+        out.push('');
+        out.push(F2 + 'bash');
+        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-probe.js"');
+        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-brain-drive.js" askall --file "<你的问题.md>"');
+        out.push(F2);
+      }
+      out.push('');
+    }
 
     if (s.ai && s.ai.length) {
       out.push('**必做：**');
@@ -1011,6 +1101,40 @@ CMD.check = function (a) {
       }
     }
   } catch (e) {}
+// 阶段心跳：最近有没有答过（提示不拦）
+  try {
+    const _hb = JSON.parse(fs.readFileSync(path.join(TASKS, 'heartbeat.json'), 'utf8'));
+    const _k = st.id + ':' + st.round + ':' + st.stage;
+    const _a = (_hb.acks || {})[_k];
+    if (_a) {
+      ok('  心跳: ✔ 已答（' + _a.elapsed + '  status=' + _a.status + '）');
+    } else {
+      ok('  心跳: 本阶段还没答（超预算时看门狗会问你）');
+    }
+  } catch (e) {}
+// 外脑：问没问（可查，不靠自觉）
+  {
+    const _w = wpoolTally(st);
+    const _names = Object.keys(_w.platforms);
+    const _needAsk = (s.read || []).some((r) => /45-|10-计划阶段/.test(r));
+    let _st;
+    if (_w.enough) _st = '✔ 够了';
+    else if (_w.valid) _st = `⚠ 只问了 ${_names.length} 家（要≥2 家有效）`;
+    else if (_w.total > 0) _st = '✘ 问了但全是废的（都抓到旧答案）';
+    else _st = _needAsk ? '✘ 本阶段没问外脑' : '· 本阶段未要求问';
+    const _tail = _w.total > 0
+      ? `　本阶段 ${_w.total} 次调用 / ${_w.valid} 份有效（>${WPOOL_MIN_CHARS}字）` +
+        (_w.skipped ? ` / ${_w.skipped} 份疑似抓到旧答案` : ' / 无异常') +
+        (_names.length ? `　${_names.join(',')}` : '')
+      : '';
+    ok(`  外脑: ${_st}${_tail}`);
+    if (_w.valid > 0 && !_w.enough) {
+      ok('     ★ 单家不算数 —— 误抓一次旧答案就能骗过。要 2 家以上有效才算问过。');
+    }
+    if (_w.enough) {
+      ok('     ★ 问了不算完：4 家意见必须【逐条标注采纳/驳回+理由】写进文档。');
+    }
+  }
   process.exitCode = g.ok ? 0 : 2;
   return st;
 };
@@ -1128,6 +1252,64 @@ CMD.read = function (a) {
   ok('✔ 已记读档：' + file);
   ok('   要点 = ' + note);
   ok('   本阶段已记 ' + readRecaps(st).length + ' 份（看全部： stager read list）');
+  return st;
+};
+
+// ── 心跳 ack（stage-heartbeat.js 的应答端）────────────────────
+//   为什么是命令而不是「请 AI 回一句话」：
+//   prompt 无法验证，命令可以。ack 落盘 → hb/ctx/check 都能看见「本阶段答过没有」。
+//   这跟 mark 是同一个思路：能被查的才叫门禁。
+CMD.hb = function (a) {
+  const st = requireState(null, { allowClosed: true });
+  const hbPath = path.join(TASKS, 'heartbeat.json');
+  let hb;
+  try { hb = JSON.parse(fs.readFileSync(hbPath, 'utf8')); } catch (e) { hb = { acks: {} }; }
+  if (!hb.acks) hb.acks = {};
+
+  const round = parseInt(a.f.round, 10) || st.round;
+  const key = st.id + ':' + round + ':' + st.stage;
+
+  // 子命令只看第一个位置参数是不是 list（不能只看「有没有位置参数」——
+  // `hb-ack --status ok` 里 ok 也会落在 pos 里）
+  const sub = String(a.pos[0] || '').toLowerCase();
+  if (sub === 'list' || sub === 'ls') {
+    ok('心跳应答记录');
+    if (!Object.keys(hb.acks).length) { ok('  （空 —— 本任务还没答过心跳）'); return st; }
+    Object.keys(hb.acks).sort().forEach((k) => {
+      const v = hb.acks[k];
+      const cur = (k === st.id + ':' + st.round + ':' + st.stage);
+      ok(`  ${cur ? '● 本阶段' : '○ 历史  '} ${k}`);
+      ok(`      耗时=${v.elapsed}  状态=${v.status}  下一步=${v.next}`);
+      ok(`      at=${v.at}  by=${v.actor || '?'}`);
+    });
+    return st;
+  }
+
+  const status = a.f.status || 'unknown';
+  const next = a.f.next || '';
+  const elapsed = a.f.elapsed || '?';
+  if (!next) die('必须给下一步：--next "<一句话>"（心跳的价值就在于逼它想清楚下一步）');
+
+  hb.acks[key] = {
+    elapsed: String(elapsed), status: String(status), next: String(next),
+    at: new Date().toISOString(), actor: st.actor || '(未指定)', round,
+  };
+  fs.mkdirSync(path.dirname(hbPath), { recursive: true });
+  fs.writeFileSync(hbPath, JSON.stringify(hb, null, 1), 'utf8');
+
+  // 也追一条 history，便于按时间线看
+  log(st, 'hb-ack', { status: String(status), elapsed: String(elapsed), next: String(next) });
+
+  ok(`✔ 已记心跳应答（第 ${round} 轮 ${st.stage}）`);
+  ok(`   耗时=${elapsed}  状态=${status}`);
+  ok(`   下一步= ${next}`);
+  const warn = {
+    looping: '★ 你自评 looping（在打转）→ 下一档会强制自检，别等',
+    blocked: '★ 你自评 blocked（技术卡住）→ 该写状态报告了，别硬扛',
+    waiting_user: '★ 你自评 waiting_user → 写完状态报告就停，等用户拍板',
+    unknown: '★ status 用了 unknown。四个合法值：ok / looping / blocked / waiting_user',
+  }[String(status)];
+  if (warn) ok('   ' + warn);
   return st;
 };
 
@@ -1595,6 +1777,8 @@ const ALIAS = {
   c: 'ctx', i: 'ctx', inject: 'ctx',
   go: 'next', nx: 'next',
   put: 'put', add: 'put', doc: 'put',
+  // 阶段心跳（2026-09-30）：独立看门狗 stage-heartbeat.js 在旁边盯着
+  'hb-ack': 'hb', hb: 'hb', heartbeat: 'hb',
   h: 'help', '-h': 'help', '--help': 'help', '?': 'help',
 };
 cmd = ALIAS[cmd] || cmd;

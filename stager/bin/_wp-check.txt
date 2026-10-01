@@ -1,0 +1,24 @@
+// 外脑：问没问（可查，不靠自觉）
+  {
+    const _w = wpoolTally(st);
+    const _names = Object.keys(_w.platforms);
+    const _needAsk = (s.read || []).some((r) => /45-|10-计划阶段/.test(r));
+    let _st;
+    if (_w.enough) _st = '✔ 够了';
+    else if (_w.valid) _st = `⚠ 只问了 ${_names.length} 家（要≥2 家有效）`;
+    else if (_w.total > 0) _st = '✘ 问了但全是废的（都抓到旧答案）';
+    else _st = _needAsk ? '✘ 本阶段没问外脑' : '· 本阶段未要求问';
+    const _tail = _w.total > 0
+      ? `　本阶段 ${_w.total} 次调用 / ${_w.valid} 份有效（>${WPOOL_MIN_CHARS}字）` +
+        (_w.skipped ? ` / ${_w.skipped} 份疑似抓到旧答案` : ' / 无异常') +
+        (_names.length ? `　${_names.join(',')}` : '')
+      : '';
+    ok(`  外脑: ${_st}${_tail}`);
+    if (_w.valid > 0 && !_w.enough) {
+      ok('     ★ 单家不算数 —— 误抓一次旧答案就能骗过。要 2 家以上有效才算问过。');
+    }
+    if (_w.enough) {
+      ok('     ★ 问了不算完：4 家意见必须【逐条标注采纳/驳回+理由】写进文档。');
+    }
+  }
+  process.exitCode = g.ok ? 0 : 2;

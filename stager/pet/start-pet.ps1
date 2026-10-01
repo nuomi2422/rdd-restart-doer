@@ -166,7 +166,9 @@ function Get-Bmp($path) {
     </Border>
 
     <Grid x:Name="PetHost" Grid.Row="1" Width="200" Height="200" HorizontalAlignment="Right">
-      <Image x:Name="PetImage" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality"/>
+      <Image x:Name="PetImage" Stretch="Uniform" Cursor="Hand" RenderOptions.BitmapScalingMode="HighQuality" RenderTransformOrigin="0.5,0.5">
+            <RenderTransform><ScaleTransform x:Name="PetScale" ScaleX="1" ScaleY="1" /></RenderTransform>
+        </Image>
       <Grid x:Name="Fallback" Visibility="Collapsed">
         <Ellipse Width="150" Height="140" Fill="#F0EAFF" Stroke="#B9A6E8" StrokeThickness="2"
                  VerticalAlignment="Bottom" HorizontalAlignment="Center" Margin="0,0,0,6"/>
@@ -226,6 +228,8 @@ $script:Stage       = $null
 $script:Expr        = 'calm'
 $script:FP          = ''
 $script:BubbleOn    = $false
+$script:DownAt       = $null
+$script:PetScale     = $null
 $script:Override    = $null
 $script:PtDown      = $null
 $script:Moved       = $false
@@ -390,11 +394,45 @@ function Refresh-All {
     }
 }
 
+# ---- Q 弹动画：0.86 → 1.12 → 0.97 → 1.0（三段衰减，像果冻）----
+# 用 ScaleTransform 改 ScaleX/ScaleY；RenderTransformOrigin 已在 XAML 里设为中心。
+function Invoke-PetBounce {
+    if ($null -eq $script:PetScale) { return }
+    $sc = $script:PetScale
+    $keys = @(
+        @{ ms = 0;   v = 1.00 },
+        @{ ms = 55;  v = 0.84 },
+        @{ ms = 115; v = 1.13 },
+        @{ ms = 170; v = 0.96 },
+        @{ ms = 225; v = 1.02 },
+        @{ ms = 285; v = 1.00 }
+    )
+    foreach ($k in $keys) {
+        $sc.ScaleX = $k.v
+        $sc.ScaleY = $k.v
+        $sc.UpdateLayout()
+        Start-Sleep -Milliseconds $k.ms
+    }
+    $sc.ScaleX = 1.0
+    $sc.ScaleY = 1.0
+}
+
+# ---- 点击换图：按 expressionOrder 循环 ----
+function Next-PetExpression {
+    if ($ExprOrder.Count -eq 0) { return $false }
+    $cur = $script:ExprNow
+    if ([string]::IsNullOrEmpty($cur) -or -not ($ExprOrder -contains $cur)) { $cur = $ExprOrder[0] }
+    $i = [Array]::IndexOf($ExprOrder, $cur)
+    $next = $ExprOrder[($i + 1) % $ExprOrder.Count]
+    Set-Expression $next
+    return $true
+}
 # ---------------------------------------------------------------- 拖动 / 点击
 
 $RootGrid.Add_MouseLeftButtonDown({
     param($sender, $e)
     $script:PtDown = $e.GetPosition($win)
+    $script:DownAt = Get-Date
     $script:Moved = $false
 })
 $RootGrid.Add_MouseMove({
@@ -420,6 +458,13 @@ $RootGrid.Add_MouseMove({
 $RootGrid.Add_MouseLeftButtonUp({
     param($sender, $e)
     if ($script:Moved) { $script:Moved = $false; return }
+    # 消抖：250ms 内的第二次抬起不认（防止双击抖动 / 误触）
+    if ($script:DownAt -and ((Get-Date) - $script:DownAt).TotalMilliseconds -lt 250) { return }
+    # ★ 先 Q 弹，动画跑完再切图 —— 这样是「弹一下然后变」，
+    #   而不是「突然变 + 抖一下」（后者就是你说的漂移感）
+    Invoke-PetBounce
+    $null = Next-PetExpression
+    # 气泡照旧（换完图仍然能看状态）
     if ($script:BubbleOn) { Set-Bubble $false } else { Update-Bubble; Set-Bubble $true }
 })
 $win.Add_KeyDown({

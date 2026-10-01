@@ -40,7 +40,10 @@ function Select-RddSelfCompileInstance {
         # Discover the bat via glob instead, keep this section ASCII-only.
         $gptBat = @(Get-ChildItem -LiteralPath (Join-Path $global:RDD_SC.MC_GAME_DIR 'shaderpacks') -Filter '*.bat' -ErrorAction Stop | Where-Object { $_.Name -notlike '*-test.bat' })[0].FullName
         $global:RDD_SC | Add-Member -NotePropertyName MC_BAT -NotePropertyValue $gptBat -Force
-        $global:RDD_SC | Add-Member -NotePropertyName MC_SAVE -NotePropertyValue 'gpt' -Force
+        # 2026-10-01 用户指示：存档换成 live（新建的），gpt 存档保留但不再是默认。
+        # ⚠️ 这里只是**脚本侧**记录；真正决定启动器进哪个存档的是该 bat 里
+        #    --quickPlaySingleplayer "<存档名>"，两处必须一致（只改一处 = 脚本说 live、实际进 rdd）。
+        $global:RDD_SC | Add-Member -NotePropertyName MC_SAVE -NotePropertyValue 'live' -Force
         $global:RDD_SC | Add-Member -NotePropertyName MONITOR_URL -NotePropertyValue $(if ($env:RDD_MONITOR_URL) { $env:RDD_MONITOR_URL } else { 'http://127.0.0.1:8776' }) -Force
     }
     $global:RDD_SC | Add-Member -NotePropertyName MC_MODS -NotePropertyValue (Join-Path $global:RDD_SC.MC_GAME_DIR 'mods') -Force
