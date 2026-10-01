@@ -118,19 +118,83 @@ function writeHbState(s) {
   catch (e) {}
 }
 
-// ── 注入（复用 every-10min-drive.ps1 的抢焦点+SendKeys 机制）──
-function inject(text) {
-  if (DRY) { console.log('  [DRY] 本该注入:\n' + text.split('\n').map((l) => '      ' + l).join('\n')); return 'dry'; }
+// ── 投递提醒：不碰用户的对话窗口 ──────────────────────────
+//
+// ★ 2026-10-01 用户要求：「提示可不可以改成不从我的对话窗口输入」
+//   原来用 every-10min-drive.ps1 的 SendKeys —— 它把字打进 opencode 的输入框，
+//   **会插进用户正在打的内容里**（用户消息被截断过两次，已实证）。
+//
+// 改走三个不碰对话框的渠道：
+//   ① **信箱文件** stager/.stager/heartbeat-inbox.jsonl
+//      —— stager ctx 会自动读它（正式渠道，不是伪造的用户消息）
+//      —— 桌宠气泡也会显示它
+//   ② **Windows 通知**（右下角气泡，想看才点）
+//   ③ **日志** heartbeat.log（本来就有的）
+//
+// 关键差别：①③ 是 AI 在自己的上下文里看到（正当渠道），
+//   ② 是系统级通知（不占用对话）。**没有一个往输入框里打字。**
+
+const INBOX = path.join(ROOT, 'stager/.stager/heartbeat-inbox.jsonl');
+
+function pushInbox(rec) {
   try {
-    const ps = path.join(ROOT, 'rdd-selfcompile/scripts/every-10min-drive.ps1');
-    // 它有 -Message 参数；用 -DryRun 先验证窗口能拿到
-    const args = ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-File', ps, '-Message', text];
-    execFileSync('powershell.exe', args, { encoding: 'utf8', timeout: 60000 });
-    return 'sent';
+    fs.mkdirSync(path.dirname(INBOX), { recursive: true });
+    fs.appendFileSync(INBOX, JSON.stringify(rec) + '\n', 'utf8');
+    return true;
   } catch (e) {
-    log('INJECT-FAIL ' + String(e.message).split('\n')[0]);
-    return 'fail';
+    log('INBOX-FAIL ' + String(e.message).split('\n')[0]);
+    return false;
   }
+}
+
+// 读信箱里「还没被消费」的提醒（stager ctx / 桌宠用）
+function pendingInbox() {
+  const out = [];
+  try {
+    const lines = fs.readFileSync(INBOX, 'utf8').split(/\r?\n/).filter(Boolean);
+    for (const l of lines) {
+      try {
+        const j = JSON.parse(l);
+        if (!j.acked) out.push(j);
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return out;
+}
+
+function toast(title, body) {
+  // 系统通知：不抢焦点、不打字。想看才点。
+  if (DRY) return 'dry';
+  try {
+    // 短文本才进通知栏，长了会被 Windows 截断 → 详细内容留信箱
+    const t = String(title).slice(0, 60);
+    const b = String(body).replace(/\s+/g, ' ').slice(0, 160);
+    execFileSync('powershell.exe', ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command',
+      "[Windows.UI.Notifications.ToastNotificationManager,Windows.UI.Notifications,ContentType=WindowsRuntime] > $null; " +
+      "$t=[Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent(1); " +
+      "$t.GetElementsByTagName('text')[0].AppendChild($t.CreateTextNode('" + t.replace(/'/g, "''") + "')) > $null; " +
+      "$t.GetElementsByTagName('text')[1].AppendChild($t.CreateTextNode('" + b.replace(/'/g, "''") + "')) > $null; " +
+      "$n=[Windows.UI.Notifications.ToastNotification]::new($t); " +
+      "[Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('STAGER 心跳').Show($n)"],
+      { encoding: 'utf8', timeout: 20000 });
+    return 'toast';
+  } catch (e) {
+    return 'toast-failed';
+  }
+}
+
+function inject(text) {
+  if (DRY) {
+    console.log('  [DRY] 本该投递（写信箱+系统通知，不打进对话框）:\n' +
+      text.split('\n').map((l) => '      ' + l).join('\n'));
+    return 'dry';
+  }
+  const rec = { at: new Date().toISOString(), text, acked: false };
+  pushInbox(rec);
+  const head = text.split('\n').filter(Boolean)[0] || 'STAGER 心跳';
+  const r = toast(head, text);
+  log('DELIVER inbox=1 ' + r);
+  return 'inbox+' + r;
 }
 
 // ── 三档文案 ──────────────────────────────────────────────

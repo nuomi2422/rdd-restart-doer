@@ -599,6 +599,9 @@ function ctxMd(st, full) {
     const _exp = expiredWaivers(st);
     const _act = activeWaivers(st);
     if (_w.items.length) {
+
+    // 证据三态
+
       // 证据三态
     try {
       const _ev = evaluateGate(st);
@@ -622,6 +625,29 @@ function ctxMd(st, full) {
       out.push('');
     }
   } catch (e) { /* 账本坏了别拖垮 ctx */ }
+    // ★ 心跳信箱（2026-10-01）：提醒不再 SendKeys 进对话框，改由这里投递
+    //   读 heartbeat-inbox.jsonl —— 这是正当渠道（AI 自己的上下文），
+    //   不再往用户的输入框里打字（那个做法截断过用户消息两次）。
+    try {
+      const _ib = path.join(RUNTIME, 'heartbeat-inbox.jsonl');
+      const _pend = [];
+      for (const _l of fs.readFileSync(_ib, 'utf8').split(/\r?\n/).filter(Boolean)) {
+        try { const _j = JSON.parse(_l); if (!_j.acked) _pend.push(_j); } catch (e) {}
+      }
+      if (_pend.length) {
+        const _last = _pend[_pend.length - 1];
+        out.push('### ⏱ 有 ' + _pend.length + ' 条心跳提醒待处理（不再打断你，只是告诉你）');
+        out.push('');
+        out.push('```');
+        out.push(_last.text);
+        out.push('```');
+        out.push('');
+        out.push('> 这是独立看门狗 stage-heartbeat.js 投递的（阶段超时了）。');
+        out.push('> 处理完跑 `stager hb-ack --status <ok|looping|blocked|waiting_user> --elapsed <N>m --next "<下一步>"`。');
+        out.push('');
+      }
+    } catch (e) { /* 没有信箱 = 没有待处理提醒 */ }
+
   // 每 3 轮回流提醒
   if (st.round > 1 && st.round % 3 === 0) {
     out.push('### ⏰ 每 3 轮回流提醒');
