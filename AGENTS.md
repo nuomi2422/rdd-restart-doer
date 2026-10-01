@@ -1,3 +1,6 @@
+## ★★★ 第 −1 条 · 所有 shell 一律后台跑（用户被卡了几十次）
+
+**任何 shell 命令都不要前台阻塞等待。** 要么用 `Start-Process … -WindowStyle Minimized` 脱离启动，要么让命令自己立刻返回；起长驻进程统一走 `node "E:\restart developing doer\rdd-selfcompile\scripts\mc-start.js" gpt 10`（它内部已脱离 + 每 3 秒轮询）。**加长 timeout 不是解法。**
 
 ## 第 0 条 · 硬门（**只在用户说「stage」时才走 stage 路线**）
 

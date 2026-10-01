@@ -1,0 +1,34 @@
+docs(AGENTS): 加第 −1 条「所有 shell 一律后台跑」
+
+用户原话：「直接把opencode的后台现有能力给开了…已经卡了不知道几十次了
+你直接加在那个agent前面，就加几行字…就一行字，那个shell全都用后台」
+
+## 改了什么
+工作区版 + 全局卡两份 AGENTS.md 都在「## 第 0 条」之前插入：
+
+    ## ★★★ 第 −1 条 · 所有 shell 一律后台跑（用户被卡了几十次）
+
+    **任何 shell 命令都不要前台阻塞等待。** 要么用 `Start-Process … -WindowStyle Minimized`
+    脱离启动，要么让命令自己立刻返回；起长驻进程统一走
+    `node "E:\restart developing doer\rdd-selfcompile\scripts\mc-start.js" gpt 10`
+    （它内部已脱离 + 每 3 秒轮询）。**加长 timeout 不是解法。**
+
+## 为什么放最前面
+第 0 条是「用户说 stage 才走 stage 路线」的硬门，AI 读规则时先看到它。
+**阻塞规则必须排在它前面** —— 因为卡住这件事本身会让 AI 什么都做不成，
+包括「按第 0 条判断该不该开 stage」。
+
+## 为什么给的是 mc-start.js 而不是 launch-mc.ps1
+`launch-mc.ps1` 直接调会把 shell 卡死（子进程继承句柄不释放），
+而且它的默认 `-AutoStopMinutes 120` 违反「用户在场 ≤10 分钟」铁律。
+`mc-start.js` 内部已 `spawn(detached)+unref` + 每 3 秒轮询 + 空闲内存 <1200MB 拒起。
+
+## 位置事实
+- 工作区 `E:\restart developing doer\AGENTS.md`：379 → 383 行
+- 全局 `C:\Users\lenovo\.config\opencode\AGENTS.md`：436 → 442 行，
+  规则落在**第 11 行**（头部块第 1-9 行之后、第 0 条之前）
+- 全局卡已备份 `AGENTS.backup\AGENTS-20261001103025-pre-global-merge.md`
+
+## 验证
+两份文件都确认新条在「## 第 0 条」之前，且 merge-global.js 已跑过（下次再跑会保留这条，
+因为它随工作区正文一起合并）。
