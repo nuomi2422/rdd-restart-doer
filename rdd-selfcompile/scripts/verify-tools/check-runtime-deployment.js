@@ -28,10 +28,13 @@ const EXIT_USAGE = 3;
 const TOLERANCE_MS = 30 * 60 * 1000;
 
 const DEFAULT_SRC = 'E:\\restart developing doer\\minecraft-numen';
+// ★ 只扫 live（= gpt 实例 = E:\.minecraft\versions\The Best of Twilight Forest）。
+//   用户 2026-10-01 确认：现在只用 live，instances\test 已不再使用 → 不计入债。
+//   test 目录仍在磁盘上，要查就显式 --mods <路径> 或 --all-instances。
 const DEFAULT_MODS = [
-  'E:\\.minecraft\\versions\\The Best of Twilight Forest\\mods',   // gpt 生产实例
-  'E:\\restart developing doer\\rdd-selfcompile\\instances\\test\\mods',
+  'E:\\.minecraft\\versions\\The Best of Twilight Forest\\mods',   // ← live（唯一在用）
 ];
+const TEST_MODS = 'E:\\restart developing doer\\rdd-selfcompile\\instances\\test\\mods';
 
 /** jar 文件名主干 → git 源码目录（按依赖关系配对） */
 const JAR_TO_MODULE = {
@@ -92,7 +95,7 @@ function main() {
       console.log(`用法：node check-runtime-deployment.js [--src <minecraft-numen 路径>] [--mods <实例 mods 目录>]
 
   --src    Java 源码仓库（默认 minecraft-numen）
-  --mods   实例 mods 目录，可重复。默认扫 gpt 生产实例 + test 实例
+  --mods   实例 mods 目录，可重复。默认只扫 live（唯一在用）
 
 判据：该 jar 对应模块「最后一次改 main 源码的提交时间」 vs jar 的 LastWriteTime
   jar 更早 → 源码领先运行时，游戏里跑的是旧版
@@ -128,7 +131,7 @@ function main() {
   console.log('');
 
   for (const modsDir of modsDirs) {
-    const tag = modsDir.includes('instances\\test') ? 'test 实例' : 'gpt 生产实例';
+    const tag = modsDir.includes('instances\\test') ? 'test 实例' : 'live';
     console.log(`── ${tag}：${modsDir}`);
     const files = fs.readdirSync(modsDir).filter(f => f.startsWith('numen') && f.endsWith('.jar'));
     if (!files.length) { console.log('   （无 numen jar）\n'); continue; }

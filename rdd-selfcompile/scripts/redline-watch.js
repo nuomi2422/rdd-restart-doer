@@ -1,6 +1,6 @@
 // redline-watch.js -- 红线/assist 在线巡检器：一次采样，输出紧凑状态 + 新增异常
 // 用法: node redline-watch.js [companion]   默认 rdd
-// 依赖: 读 gpt 实例 mcp_server.json 连 Numen MCP；读 monitor/*.jsonl 统计异常
+// 依赖: 读 live 实例（= gpt 实例 = The Best of Twilight Forest）mcp_server.json 连 Numen MCP；读 monitor/*.jsonl 统计异常
 const http = require('http');
 const fs = require('fs');
 const path = require('path');

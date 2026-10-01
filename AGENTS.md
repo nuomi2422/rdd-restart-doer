@@ -167,11 +167,24 @@ stager close --status done --note "<一句话结论>"   # ① 关 stage
 | **PS 5.1 按 ANSI 读无 BOM 的 UTF-8** | `.ps1` 中文乱码 + 一串语法错 | `.ps1` **必须写 UTF-8 BOM** |
 | **`node -e "…"` 内联被 PS 引号拆坏** | 各种诡异报错 | **一律写 `.js` 文件再 `node file.js`** |
 | **PS `:` 插值** | `":$mod:jar"` 整串变成 `:`，gradle 报找不到 task `:` | 用 `":$($mod):jar"` |
-| **MCP 端口** | 文档里写过 test=8765，**是错的** | **test=8766 ／ gpt=8765**（真源：各实例 `config\numen\mcp_server.json`） |
-| **监测台端口** | 记混 | **gpt=8776 ／ test=8777**（真源：`config.ps1` 的 `MONITOR_URL`） |
+| **MCP 端口** | 文档里写过 test=8765，**是错的** | **live=8765**（真源：`<实例>\config\numen\mcp_server.json`）。test=8766 已停用 |
+| **监测台端口** | 记混 | **live=8776**（真源：`config.ps1` 的 `MONITOR_URL`）。test=8777 已停用 |
 | **游戏日志中文是 GBK** | 用中文 grep 假阴性 | 判中文功能查**监测台 `rdd.jsonl`**（干净 UTF-8） |
 | **`get_self_status` 等 MCP 工具** | 直接派活会被门禁拒 | 关 MCP 止投，只读 |
-| **test 实例 `api_key` 是 EMPTY** | 验 LLM 链路失败 | **用 gpt 实例**（`[openai]` 段） |
+| **test 实例 `api_key` 是 EMPTY** | 验 LLM 链路失败 | **用 live 实例**（`[openai]` 段） |
+### ★ 实例叫法（2026-10-01 用户确认：只用 live）
+
+| 叫法 | 指什么 | 状态 |
+|---|---|---|
+| **live** | `E:\.minecraft\versions\The Best of Twilight Forest` | ✅ **唯一在用** —— 用户口中的「live」就是它 |
+| ~~gpt~~ | **同一个目录**，只是脚本参数名（`config.ps1` 的 `ValidateSet('test','gpt')`） | 别当成另一个实例 |
+| ~~test~~ | `rdd-selfcompile\instances\test` | ❌ **已停用**，不计入任何债 |
+
+**三个叫法是同一个东西**：`live` = `gpt 实例` = `The Best of Twilight Forest`。
+文档里一律叫 **live**；只有在写命令行时才写 `-Instance gpt`（那是**参数名**，不是实例名）。
+
+> ⚠️ 改叫法时**别顺手把 `ValidateSet` 也改了** —— 那是脚本契约，`launch-mc.ps1` /
+> `run-mutation.ps1` / `config.ps1` 都按它传参。
 | **Bash 工具 120s 超时** | 杀掉等待循环（**但 MC 照样在跑**） | 起了就查状态，**别重发** |
 | **W 池调用别用默认 120s** | 大部分模型 2~3 分钟才说完，**GLM 可能要 4~5 分钟**，超时会被砍，**白等一场** | `bash(timeout=60000)` 起步（暂定 1 分钟，后面按实测调）；**超时就查落盘文件**（`report\w-replies\*.json`），别重发 |
 | ⚠️ **GLM 抓回复会抓到上一轮旧答案** | 2026-09-30 实测：GLM 浏览器里答对了，但落盘文件里存的是上一轮「1+1等于2」。**是脚本抓错元素，不是 GLM 答错**（Qwen/Kimi/DeepSeek 同时同题抓取正确）。**时序偶发，非必现** | **互审前先跑探针** `node rdd-selfcompile\scripts\w-probe.js`（发随机数问题核对答案）；探针不过就别问 |
