@@ -323,6 +323,18 @@ function expiredWaivers(st) {
   const w = loadWaivers(st.id);
   return w.items.filter((it) => it.untilRound && it.untilRound < st.round);
 }
+// ── ② 证据三态：PASS / FAIL / UNKNOWN（Codex：门禁的第三种状态）────
+//   只对 kind==="evidence" 生效。判据 = 文件在 且 自称验过 且 带本轮签名。
+//   缺签名 → UNKNOWN。UNKNOWN 不算通过（会单列出来），也不算「缺文档」。
+const EVIDENCE_SIG = /验证|实机|VERIFIED|证据|命令输出|回归|\d+\s*(?:项|个|tests?)/i;
+function evidenceVerdict(st, kind, file) {
+  const p = path.join(docsDir(st.id), file);
+  let body = "", sz = 0;
+  try { body = fs.readFileSync(p, "utf8"); sz = fs.statSync(p).size; } catch (e) { return "missing"; }
+  if (sz < 120) return "unknown";                       // 太短，不像证据
+  if (!EVIDENCE_SIG.test(body)) return "unknown";      // 没有自称验过的痕迹
+  return "pass";
+}
 function evaluateGate(st) {
   const stage = stageById(st.stage);
   const need = [];
@@ -350,7 +362,15 @@ function evaluateGate(st) {
   for (let i = need.length - 1; i >= 0; i--) {
     if (wv[need[i]]) { waived.unshift(need.splice(i, 1)[0]); }
   }
-  return { ok: need.length === 0, need: need, have: have, waived: waived };
+  // ★ 证据三态：UNKNOWN 单列，不混进 need 也不混进 have（Codex：别让「不知道」冒充「通过」）
+  const unknownDocs = [];
+  docs.forEach((d) => {
+    if (d.kind !== "evidence") return;
+    if (d.stage !== st.stage || d.round !== st.round || !d.file) return;
+    const v = evidenceVerdict(st, d.kind, d.file);
+    if (v === "unknown") unknownDocs.push(d.file);
+  });
+  return { ok: need.length === 0, need: need, have: have, waived: waived, unknownDocs: unknownDocs };
 }
 
 function addMark(st, cmd) {
@@ -579,7 +599,18 @@ function ctxMd(st, full) {
     const _exp = expiredWaivers(st);
     const _act = activeWaivers(st);
     if (_w.items.length) {
-      out.push('### ⚠ 本任务带着豁免（门禁不是全绿，是记账放行的）');
+      // 证据三态
+    try {
+      const _ev = evaluateGate(st);
+      if (_ev.unknownDocs && _ev.unknownDocs.length) {
+        out.push('### ⚠ 证据不足（本阶段）' + _ev.unknownDocs.length + ' 份');
+        out.push('');
+        _ev.unknownDocs.forEach((f) => out.push('- ' + f + '　← 里面没有验证痕迹，**不能当验证通过用**'));
+        out.push('');
+        out.push('★ 「没采到」≠「没问题」。补真实证据，或显式 waive 并写清理由。');
+        out.push('');
+      }
+    } catch (e) {}    out.push('### ⚠ 本任务带着豁免（门禁不是全绿，是记账放行的）');
       out.push('');
       Object.keys(_act).forEach((k) => {
         const it = _act[k];
@@ -1134,6 +1165,14 @@ CMD.check = function (a) {
     if (_w.enough) {
       ok('     ★ 问了不算完：4 家意见必须【逐条标注采纳/驳回+理由】写进文档。');
     }
+  }
+  // ★ 证据不足（Codex「第三种状态」）：不是缺，也不是过 —— 是「不知道」
+  if (g.unknownDocs && g.unknownDocs.length) {
+    ok("");
+    ok("  ⚠ 证据不足 " + g.unknownDocs.length + " 份（不是缺，也不是过 —— 是「不知道」）：");
+    g.unknownDocs.forEach((f) => ok("     " + f + "　← 声称是证据，但里面没有验证痕迹"));
+    ok("     ★ 「没采到」不等于「没问题」。这份不能当验证通过用。");
+    ok("       要么补上真实证据（命令输出/事件流/回归数字），要么显式 waive --reason \"为什么这次可以不算\"。");
   }
   process.exitCode = g.ok ? 0 : 2;
   return st;

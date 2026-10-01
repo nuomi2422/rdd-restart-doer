@@ -7,8 +7,7 @@
 //
 // 三条设计约束（照外部评审的「防翻车」建议）：
 //   ① **独立进程**：不能挂在执行主循环里——主循环死锁时它自己的定时器也失效。
-//      本脚本是独立 Node 进程，由 stager-hb.cmd 脱离启动。
-//   ② **强制回答，不是强制提问**：光问「你在哪」没用，要它「答」。
+//      本脚本是独立 Node 进程，由 stager-hb.cmd 脱离启动。//   ② **强制回答，不是强制提问**：光问「你在哪」没用，要它「答」。
 //      所以 ack 是一个**命令**（stager hb-ack），落盘可验证 —— 和 mark 一样。
 //      没 ack → check 能看见「本阶段还没答过心跳」，这是能查的，不像 prompt 无法验证。
 //   ③ **阶梯式干预，不一刀切**：复杂 bug 确实要时间，直接掐断会误杀。
@@ -36,6 +35,24 @@ const val = (k, d) => { const i = argv.indexOf(k); return i >= 0 ? argv[i + 1] :
 const LOOP = has('--loop');
 const DRY = has('--dry');
 const INTERVAL = parseInt(val('--interval', '60'), 10);
+
+// ── 总闸（2026-10-01 用户要求「把这个去掉不要再开了」）──
+//   本脚本的注入方式和 every-10min-drive 一样：SendKeys 抢焦点往 opencode 窗口打字。
+//   那个脚本已经因为插进用户正在输入的内容被投诉两次 —— 用户明确说「很打扰」。
+//   所以这里用同一把锁：**不给显式环境变量就只算不注入**（--dry 仍可用，方便看判据）。
+//   要真正启用：
+//       $env:RDD_ENABLE_HEARTBEAT = "1"
+//       node stage-heartbeat.js --loop
+if (process.env.RDD_ENABLE_HEARTBEAT !== '1') {
+  if (LOOP) {
+    console.log('阶段心跳：总闸关闭（未设 RDD_ENABLE_HEARTBEAT=1）—— 不启动，不注入。');
+    console.log('要启用： $env:RDD_ENABLE_HEARTBEAT = "1"; node stage-heartbeat.js --loop');
+    process.exit(0);
+  }
+  if (!DRY) {
+    console.log('阶段心跳：总闸关闭 —— 只算不注入（--dry 可用，加 RDD_ENABLE_HEARTBEAT=1 才注入）');
+  }
+}
 
 // ── 每阶段的预算（分钟）────────────────────────────────────
 // 外部评审给的：写代码 20（高强度逻辑计算）/ 游戏验证 30（环境交互+视觉反馈）

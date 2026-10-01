@@ -52,7 +52,16 @@ const INSPECTION_GLOB_DIRS = [
   path.join(UNIFIED, '_stage'),
   path.join(ARCH, '_废弃-特殊模式-20260930'),
 ];
-const BRAIN_REPLIES = path.join(ARCH, 'brain-replies');
+// W 层回稿的落点。
+// ★ 2026-10-01 修「门禁指错路」：原来指向 rdd架构\brain-replies\，
+//   但 2026-09-30 外脑落盘已统一迁到 rdd-selfcompile\report\w-replies\
+//   （w-brain-drive.js 的 W_REPLY_DIR 也已改指那里），而 brain-replies\ 下
+//   只剩 1 个历史文件 → **②-2 W 层外脑这一项永远判「没落盘」**。
+//   现在扫两个地方：新的 report\w-replies\ 为主，历史 brain-replies\ 兜底。
+const WREPLY_DIRS = [
+  path.join(SCRIPTS, '..', 'report', 'w-replies'),
+  path.join(ARCH, 'brain-replies'),
+];
 const REPORT_DIR = path.join(SCRIPTS, '..', 'report');
 const INSTANCE_ROOT = 'E:/restart developing doer/rdd-selfcompile/instances';
 
@@ -173,8 +182,8 @@ function listFilesUnder(root, depthLimit) {
   chk(planHit ? 'ok' : 'block', '②-1 计划文档是本轮产出（非旧文件）', planHit, planWhy);
 
   // 2.2 W 层外脑（网页端 AI）产物落盘 —— 零成本，必须做
-  const w = producedInDir(BRAIN_REPLIES, /\.(md|txt|json)$/i, ['W 层', 'GLM', 'Kimi', '网页外脑', 'askall', 'synth']);
-  const wFresh = listFilesUnder(BRAIN_REPLIES, 0).filter(f => isFresh(f));
+  const w = producedInDir(WREPLY_DIRS[0], /\.(md|txt|json)$/i, ['W 层', 'GLM', 'Kimi', '网页外脑', 'askall', 'synth']);
+  const wFresh = WREPLY_DIRS.flatMap((d) => listFilesUnder(d, 0)).filter(f => isFresh(f));
   chk(w.hits.length > 0 ? 'ok' : 'block',
     '②-2 W 层外脑（网页 GLM/Kimi）本轮商讨已落盘',
     w.hits.length > 0,
