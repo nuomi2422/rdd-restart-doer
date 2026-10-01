@@ -183,12 +183,24 @@ stager close --status done --note "<一句话结论>"   # ① 关 stage
 
 | 路径 | 是什么 | 关键入口 |
 |---|---|---|
-| `stager\` | **★ 流程状态机**（4 阶段 / 轮次 / 人次 / 文档 / 门禁 / 桌宠）。第 0 条那条就是它 | `bin\stager.js ctx`（AI 开工第一条）、`core\stages.json`（阶段定义）、`pet\start-pet.ps1`（桌宠） |
-| `minecraft-numen\` | **Numen 源码**（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1） | `gradlew.bat :plugins:rdd:test`、`plugins/selfcompile/.../generated/` |
+| `stager\` | **★ 流程状态机**（4 阶段 / 轮次 / 人次 / 文档 / 门禁 / 桌宠）。第 0 条那条就是它 | `bin\stager.js ctx`（AI 开工第一条）、`core\stages.json`（阶段定义）、`bin\repo-status.js`（**套娃仓库状态面板**）、`pet\start-pet.ps1`（桌宠） |
+| `minecraft-numen\` | **Numen 源码 · 真源**（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1）。全部游戏代码在这 | `gradlew.bat :plugins:rdd:test`、`plugins/selfcompile/.../generated/` |
 | `rdd-selfcompile\` | **自编译运行时真源**。`scripts\`（闭环/看门狗/巡检/外脑/回滚/清理）、`templates\`、`mutations\`、`ai-bridge\` | `scripts\run-mutation.ps1`（**唯一改码入口**）、`scripts\config.ps1`（真源） |
 | `rdd-monitor-publish-20260913\` | **监测台 live 副本**（只读观测） | `monitoring-station\server.mjs` → `http://127.0.0.1:8776/` |
-| `mc-openclaw-controller\` | OpenClaw **客户端玩家控制器**（8080，键鼠/感知/截图）。**不经 Numen MCP → 同伴 AI 照常跑** | `scripts\server.js` + `oc-drive.js` |
+| `mc-openclaw-controller\` | OpenClaw 客户端玩家控制器（8080，键鼠/感知/截图）。**★已存档弃用**，改走 mineflayer-mcp，代码只读留档 | tag `archived-2026-10-01`；`scripts\oc-drive.js`（参考用，勿跑） |
 | `gradle-9.2.0\` | 离线 Gradle 发行版 | `gradle-9.2.0\bin\gradle.bat` |
+
+### ⚠ 套娃仓库（本工作区有 6 个 git 仓库）
+
+外层 `E:\restart developing doer` 有一个，另有 5 个套娃：`minecraft-numen`（真源）、
+`rdd-selfcompile\ai-bridge`、`rdd-monitor-publish-20260913`、`mc-openclaw-controller`、`voyager`。
+
+**外层 `.gitignore` 排掉了它们**（理由：提交只会存成 gitlink 指针，克隆外层拿不到内容）。
+代价是**外层 git 完全看不见内层改动** —— 所以 `stager` 门禁和 `loop-gate` 的
+「本轮有按模块 commit」判据**对 `minecraft-numen` 的改动是盲的**。
+
+**动子仓库前后跑一次** `node stager\bin\repo-status.js`（只读，一次看清 6 个仓库的
+HEAD / 脏项 / 推没推 / 有没有远程 / 是不是浅克隆）。**跨仓库对账时看它，不要只看外层 `git log`。**
 
 **真正的规则正文在** `E:\新建文件夹\rdd架构\自编译统一版\`。
 **本文件就是唯一索引** —— 每个阶段该读哪几份，上面第 1 条已经写死，不用再找别的索引页。
