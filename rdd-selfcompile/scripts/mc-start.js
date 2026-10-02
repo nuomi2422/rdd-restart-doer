@@ -78,7 +78,10 @@ function probe() {
     log: num('(Get-Item "' + GAME + '/logs/latest.log" -EA SilentlyContinue).Length'),
     lock: psCmd('(Get-Item "' + GAME + '/saves/rdd/session.lock" -EA SilentlyContinue).LastWriteTime.ToString("HH:mm:ss")'),
     mcp: num('(Get-NetTCPConnection -State Listen -LocalPort 8765 -EA SilentlyContinue | Measure-Object).Count'),
-    mem: num('[math]::Round((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1MB)'),
+    // ★ 2026-10-01 修：FreePhysicalMemory 单位是 KB，原来除以 1MB(1048576)
+    //   把 2149MB 算成 "2"，导致 <1200MB 的门永远为真 → 这个启动门一直是死的。
+    //   正确换算是 KB→MB 除 1024。备份：mc-start.js.pre-unitfix-20261001.bak
+    mem: num('[math]::Round((Get-CimInstance Win32_OperatingSystem).FreePhysicalMemory/1024)'),
   };
 }
 function show(p, tag) {
@@ -124,12 +127,12 @@ async function main() {
     process.exit(0);
   }
 
-  // 坑9：内存不足直接拒起，说清原因
+  // 2026-10-02 用户定：低内存也照起，不再硬拦（原来的 1200MB 硬门已去掉）
+  // 只留一句提示，方便事后看日志时知道当时内存是紧的。
   if (p.mem > 0 && p.mem < 1200) {
     console.log('');
-    console.error('[X] 空闲内存只有 ' + p.mem + 'MB，不足 1200MB —— 起了必中途消失。');
-    console.error('    先关点浏览器/别的程序。这不是 mod 崩，也不是脚本问题。');
-    process.exit(3);
+    console.log('[提醒] 空闲内存只有 ' + p.mem + 'MB（偏低）—— 照样起。');
+    console.log('       万一中途消失，先看是不是被系统换出；这不等于 mod 崩。');
   }
 
   console.log('');
