@@ -1,10 +1,11 @@
 # presence-watchdog.ps1 -- Close Minecraft when the user goes silent (treated as offline).
-# Rule (user 2026-09-27): if no user message for >= StaleMinutes (default 10) -> considered offline -> close MC.
+# Rule (user 2026-10-02): default 120 (2 hours). The old 10-minute check is cancelled;
+# MC is allowed to run its full 2-hour session even if the user is quiet.
 # The agent refreshes presence-last-user.txt on every real user message. This watcher only frees RAM.
 # ASCII-only (PS5.1).
-# Usage: powershell -File presence-watchdog.ps1 [-StaleMinutes 10] [-IntervalSeconds 60] [-Loop] [-DryRun]
+# Usage: powershell -File presence-watchdog.ps1 [-StaleMinutes 120] [-IntervalSeconds 60] [-Loop] [-DryRun]
 param(
-  [int]$StaleMinutes = 10,
+  [int]$StaleMinutes = 120,
   [int]$IntervalSeconds = 60,
   [switch]$Loop,
   [switch]$DryRun

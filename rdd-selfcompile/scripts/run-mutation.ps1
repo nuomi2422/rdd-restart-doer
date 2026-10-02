@@ -7,9 +7,8 @@ param(
     [switch]$SkipLaunch,
     [switch]$SkipMcp,
     [string]$Module,
-    # MC 时长铁律（全局卡「十」）：用户在场 <=10 分钟/次，用户不在 <=60 分钟/次。
-    # launch-mc.ps1 原来默认 120，等于默认违规，所以这里必须显式传。
-    [int]$AutoStopMinutes = 10,
+    # 2026-10-02 用户定：默认 120（2 小时），旧的「10 分钟/次」限制作废。
+    [int]$AutoStopMinutes = 120,
     # 采集 verify 要求的五件证据；不开则 verify 必然 UNVERIFIED。
     [switch]$CollectEvidence,
     [string]$EvidenceTool = ""

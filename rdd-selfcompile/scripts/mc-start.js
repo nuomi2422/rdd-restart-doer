@@ -5,12 +5,12 @@
  * 为什么要重写：把 11 条踩过的坑一次性封死，让调用方只填一个参数、不可能卡住。
  *
  * 用法（只有一个位置参数）：
- *     node mc-start.js                      # 默认实例 gpt，默认 10 分钟
+ *     node mc-start.js                      # 默认实例 gpt，默认 120 分钟（2 小时）
  *     node mc-start.js gpt                  # 指定实例
  *     node mc-start.js gpt 60               # 实例 + 运行时长（分钟）
  *     node mc-start.js gpt 60 --status      # 只查状态，秒回
  *     node mc-start.js gpt 60 --stop        # 关掉
- *     node mc-start.js gpt 10 --wait 0      # 只脱离启动，不轮询
+ *     node mc-start.js gpt 120 --wait 0     # 只脱离启动，不轮询
  *
  * ★ 本脚本封死的 11 个坑（都来自 memory 图谱，见 entities 名）
  *  1 issue/sync-wait-on-mc-launch-hangs-shell
@@ -29,7 +29,8 @@
  *  6 同上 —— launch-mc.ps1 的 fallback 还是 'test'，config.ps1 默认 gpt，两处不一致
  *     ★ 本脚本不读任何 fallback
  *  7 mc-autostop-default-violated-iron-rule
- *     AutoStopMinutes 默认 120 违反铁律（在场 ≤10 分钟）→ ★ 本脚本默认 10
+ *     2026-10-02 用户定：默认 120（2 小时），旧的「在场 ≤10 分钟」铁律作废
+ *     → ★ 本脚本默认 120
  *  8 issue/sync-wait-on-mc-launch-hangs-shell
  *     已经在跑还去启动 → 撞单实例锁，把先起的实例弄丢
  *     ★ 本脚本起之前先查，起了就只报状态不动手
@@ -61,7 +62,7 @@ const ARGV = process.argv.slice(2);
 const POS = ARGV.filter((a) => !a.startsWith('--'));
 const FLAGS = ARGV.filter((a) => a.startsWith('--'));
 const INSTANCE = POS[0] || 'gpt';
-const MINUTES = POS[1] ? parseInt(POS[1], 10) : 10;
+const MINUTES = POS[1] ? parseInt(POS[1], 10) : 120;
 const WANT_STATUS = FLAGS.includes('--status');
 const WANT_STOP = FLAGS.includes('--stop');
 const WI = FLAGS.indexOf('--wait');

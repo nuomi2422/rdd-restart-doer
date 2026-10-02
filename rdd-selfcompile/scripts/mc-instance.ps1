@@ -57,7 +57,7 @@ function Stop-RddMcInstance {
 # 「确保它在跑」：已在跑就**直接返回**，绝不重复启动。
 # 这是幂等的那一半 —— 光修检查路径不够，不幂等照样会重复启动。
 function Ensure-RddMcRunning {
-    param([string]$Instance, [string]$MutationId, [int]$AutoStopMinutes = 10)
+    param([string]$Instance, [string]$MutationId, [int]$AutoStopMinutes = 120)
     if (Test-RddMcRunning -Instance $Instance) {
         Write-Output "LAUNCH_SKIP_ALREADY_RUNNING ($Instance)"
         return $false

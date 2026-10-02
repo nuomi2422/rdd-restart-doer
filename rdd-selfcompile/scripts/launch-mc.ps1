@@ -2,9 +2,9 @@
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
-    # 默认 10：全局卡「十」的 MC 时长铁律是「用户在场 <=10 分钟/次」。
-    # 原来是 120，等于默认违规（实测 2026-09-29 拉起后 watchdog 计划 120 分钟后才关）。
-    [int]$AutoStopMinutes = 10
+    # 默认 120（2 小时）—— 2026-10-02 用户定：「不要再加什么十分钟的检测，默认一律 2 小时」。
+    # 旧的「用户在场 <=10 分钟/次」铁律作废；自动关只为防空转耗电，不是门禁。
+    [int]$AutoStopMinutes = 120
 )
 
 # 2026-09-30 用户指示：默认 gpt（原来两处 fallback 都是 test，导致"默认跑错存档"）。
