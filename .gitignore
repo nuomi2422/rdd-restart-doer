@@ -30,6 +30,8 @@ stager/pet/pet-pos.json
 # ── 敏感配置（本机密钥，改码本地的 config 不入库）──
 config/*.json
 rdd-selfcompile/instances/
+# AI Bridge MCP token（2026-10-03 从 start-ai-bridge.ps1 里移出，那行曾被提交）
+rdd-selfcompile/scripts/ai-bridge.token
 
 # ── 套娃仓库（各自有 .git，提交只会存成一个「gitlink」指针，
 #    克隆外层仓库时拿不到内容，反而误导）──
