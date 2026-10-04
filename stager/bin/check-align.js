@@ -115,6 +115,61 @@ const missP = P.filter((p) => !fs.existsSync(p));
 if (missP.length === 0) good.push('细则两份文件真实存在');
 else bad.push('文件不存在：' + missP.join(' / '));
 
+// ⑦ stages.json ↔ harness 的接线（2026-10-04 加：进出游戏 = 换阶段提示）
+//    这条查的是「声明在 stages.json 里的东西是不是真的存在/一致」：
+//    · $harnessGate 的两个命令指向的门禁脚本必须在
+//    · 四个阶段每个都必须有 harness 字段（不然某个阶段会静默不提示）
+//    · harness.cmd 与 ai[] 里给 AI 的那行命令必须指向同一个 mode（preflight/postflight）
+//      —— 这两条如果不一致，AI 照 ai[] 跑，而门禁按 cmd 判，永远对不上
+//    · stage.md 必须也承载同一套（不然 AI 读 stage.md 时看不到进出游戏提示）
+//    ★ 与 P4/P10/Q7/Q9/bug-10 同族的第 8 个教训：声明 ≠ 接线。
+const SJ = 'E:/restart developing doer/stager/core/stages.json';
+try {
+  const sj = JSON.parse(fs.readFileSync(SJ, 'utf8'));
+  const HG = sj['$harnessGate'] || {};
+  if (!HG.gateExe || !fs.existsSync(HG.gateExe)) bad.push('stages.json 的 $harnessGate.gateExe 指向的门禁脚本不存在：' + HG.gateExe);
+  const noHook = sj.stages.filter((x) => !x.harness);
+  if (noHook.length === 0) good.push('stages.json 四个阶段都挂了 harness 提示');
+  else bad.push('这几个阶段没挂 harness 提示（会在该阶段静默不提醒进出游戏）：' + noHook.map((x) => x.id).join(' / '));
+  // ★ 判据从 harness.cmd 改成 harness.mode —— 2026-10-04 stages.json 里那四个
+  //   harness.cmd 写的全是字面量 "$harnessGate.cmdPre"，而 **stager.js 不解析 $ 引用**，
+  //   那串永远不会被执行（属"空头支票"那一族）。改成语义字段 mode 后，
+  //   「唯一可执行的命令在 ai[] 里，mode 只是声明」这条分工才是真的。
+  const badMode = sj.stages.filter((x) => x.harness && !['preflight', 'postflight'].includes(x.harness.mode));
+  if (badMode.length === 0) good.push('每阶段 harness.mode 都是 preflight/postflight（没有假引用字符串）');
+  else bad.push('这阶段的 harness.mode 不是 preflight/postflight：' + badMode.map((x) => x.id).join(' / '));
+  const stillCmd = sj.stages.filter((x) => x.harness && x.harness.cmd);
+  if (stillCmd.length === 0) good.push('harness.cmd 已全部去掉（那是不会被执行的空头支票）');
+  else bad.push('harness.cmd 还在：' + stillCmd.map((x) => x.id).join(' / ') + ' —— stager.js 不解析 $ 引用');
+  const modeMismatch = sj.stages.filter((x) => {
+    if (!x.harness || !x.harness.mode) return false;
+    const aiTxt = (x.ai || []).join('\n');
+    return !new RegExp('harness-gate\\.js" ' + x.harness.mode).test(aiTxt);
+  });
+  if (modeMismatch.length === 0) good.push('每阶段 harness.mode 与 ai[] 给的命令 mode 一致');
+  else bad.push('harness.mode 与 ai[] 里的命令 mode 对不上（AI 会照 ai[] 跑，门禁按 mode 判）：' + modeMismatch.map((x) => x.id).join(' / '));
+  // stage.md 也得承载同一套，否则 AI 读细则时看不到
+  const S_HOOK = [
+    ['进出游戏 = 换阶段提示', /进出游戏\s*=\s*换阶段提示/],
+    ['preflight 命令', /harness-gate\.js" preflight/],
+    ['postflight 命令', /harness-gate\.js" postflight/],
+    ['ASK 提示说明', /☞/],
+    ['退出码 0/1/3', /exit=0[\s\S]{0,40}1[\s\S]{0,40}3|退出码/],
+    ['外脑可选', /外脑[\s\S]{0,10}可选/],
+    ['能力清单指向', /进游戏前必读-游戏内能力清单\.md/],
+    ['arch 是防迷路的锚', /防迷路的锚/],
+  ];
+  const missHook = S_HOOK.filter((x) => !x[1].test(s)).map((x) => x[0]);
+  if (missHook.length === 0) good.push('stage.md 承载了同一套进出游戏提示与外脑可选规则');
+  else bad.push('stage.md 缺：' + missHook.join(' / ') + '（stages.json 已经声明了，细则却没写 → 又一次两份文件漂移）');
+  // stages.json 里不得再有「外脑必问」这种与新裁定矛盾的措辞
+  const sjRaw = fs.readFileSync(SJ, 'utf8');
+  if (!/外脑必问/.test(sjRaw)) good.push('stages.json 里没有与「外脑可选」矛盾的措辞');
+  else bad.push('stages.json 里还有「外脑必问」—— 与 2026-10-04「外脑降为可选」的裁定矛盾');
+} catch (e) {
+  bad.push('stages.json 读不了或格式错：' + e.message);
+}
+
 good.forEach((x) => console.log('  PASS  ' + x));
 warn.forEach((x) => console.log('  WARN  ' + x));
 bad.forEach((x) => console.log('  BLOCK ' + x));
