@@ -247,6 +247,14 @@ node stager\bin\stager.js self-check     # 验文档根 + 每个 read[] 真存�
 | `mc-openclaw-controller\` | OpenClaw 客户端玩家控制器（8080，键鼠/感知/截图）。**★已存档弃用**，改走 mineflayer-mcp，代码只读留档 | tag `archived-2026-10-01`；`scripts\oc-drive.js`（参考用，勿跑） |
 | `gradle-9.2.0\` | 离线 Gradle 发行版 | `gradle-9.2.0\bin\gradle.bat` |
 
+### ★ AI 工程脚手架（2026-10-04 新增）
+
+`E:\新建文件夹\rddharness\` = **工具注册表 + 编程规范 + 两段门禁 + 时间锁**，开工/收工先看它。
+`registry.json`（61 工具 / 12 项 preflight / 11 项 postflight / 6 条时间锁 / 编号规则）是唯一真源，
+`standards.md`（8 域 40 条带 id）是规范唯一真源。
+→ `node "E:\新建文件夹\rddharness\bin\harness-gate.js" preflight|postflight|registry --since <今天> --keyword <模块> --head <HEAD>`
+→ **总结 / 复盘 / 经验文档一律写 `rdd-docs\rdd架构\`，不写进 harness 目录。**
+
 ### ⚠ 套娃仓库（本工作区有 6 个 git 仓库）
 
 外层 `E:\restart developing doer` 有一个，另有 5 个套娃：`minecraft-numen`（真源）、
