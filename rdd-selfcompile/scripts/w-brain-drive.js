@@ -1,15 +1,18 @@
-// w-brain-drive.js — 特殊模式 W 层驱动（playwright 直驱网页免费模型 GLM / Qwen / Kimi）
-// 角色：O（OpenCode 免费 AI）通过本脚本，用 playwright 直接进入浏览器，与 W 层三个网页模型对话。
+// w-brain-drive.js — 特殊模式 W 层驱动（playwright 直驱网页免费模型 GLM / DeepSeek）
+// 角色：O（OpenCode 免费 AI）通过本脚本，用 playwright 直接进入浏览器，与 W 层两个网页模型对话。
+// ★ 2026-10-05 用户裁定：池子只留 **GLM + DeepSeek**（用户原话「这两个应该最强」）。
+//   Qwen / Kimi 已从默认平台集里移除 —— 不是删配置，是被 ALLOWED 白名单挡掉（见 loadPlatforms）。
+//   白名单挡掉时会 console.log 一行说明，不静默丢（静默丢 = 以后没人知道为什么少一家）。
 // 依据 brain-drive.js 的成熟经验：CDP 优先复用已登录浏览器，否则用持久化 profile（含登录态）。
 //
 // 用法：
-//   node w-brain-drive.js probe                       → 枚举窗口/标签，确认三站点是否已打开/登录
+//   node w-brain-drive.js probe                       → 枚举窗口/标签，确认两站点是否已打开/登录
 //   node w-brain-drive.js open glm                    → 打开某平台页面（供人工首次登录）
 //   node w-brain-drive.js ask glm "问题文本"           → 向某平台发问并取回全文
-//   node w-brain-drive.js askall "问题文本"            → 依次问 GLM/Qwen/Kimi 三家并汇总
-//   node w-brain-drive.js askall --file q.txt          → ★ 问题从文件读（长文本/代码块用这个）
+//   node w-brain-drive.js askall "问题文本"            → ★ 问题从文件读（长文本/代码块用这个）
+//   node w-brain-drive.js askall --file q.txt          → 依次问 GLM + DeepSeek 两家并汇总
 //   node w-brain-drive.js ask glm --file q.txt         → ★ 单家 + 文件
-//   node w-brain-drive.js synth "汇总指令"             → 把最近三家回复交给 GLM 综合（O↔GLM 轮）
+//   node w-brain-drive.js synth "汇总指令"             → 把最近两家回复交给 GLM 综合（O↔GLM 轮）
 //   node w-brain-drive.js reset-profile               → 清 W 专用 profile 缓存
 //
 // 环境变量（可选）：
@@ -43,6 +46,10 @@ const HEADLESS = process.env.W_HEADLESS === '1';
 const TIMEOUT_MS = parseInt(process.env.W_TIMEOUT_MS || '600000', 10);
 const REPLY_DIR = process.env.W_REPLY_DIR || 'E:\\restart developing doer\\rdd-selfcompile\\report\\w-replies';
 
+// ★ 白名单：整个 W 层只允许这两家。改这里就改了池子，不用改 DEFAULT_PLATFORMS 和 w-platforms.json。
+//   顺序 = askall 的问询顺序（先便宜/先出稿的一家先问，省得等两家都跑完）。
+const ALLOWED = ['glm', 'deepseek'];
+
 // 平台默认配置（选择器为兜底候选，失效时用 probe/人工核对更新 w-platforms.json）
 const DEFAULT_PLATFORMS = {
   glm: {
@@ -54,22 +61,15 @@ const DEFAULT_PLATFORMS = {
     stop: ['button[aria-label*="停止"]', 'button[aria-label*="Stop"]', '[class*="stop"]'],
     continue: ['继续生成', 'Continue'],
   },
-  qwen: {
-    url: 'https://chat.qwen.ai/',
-    open: 'https://chat.qwen.ai/',
+  // 2026-10-05 从 w-platforms.json 的 deepseek 段搬进来当兜底 —— 原来只在覆盖文件里有，
+  // 覆盖文件一改名/删掉，deepseek 就整个消失（默认集里没有 = 池子少一家，且没人报错）。
+  deepseek: {
+    url: 'https://chat.deepseek.com/',
+    open: 'https://chat.deepseek.com/',
     input: ['textarea', 'div[contenteditable="true"]', '[contenteditable="true"]'],
-    reply: ['.markdown-body', '[class*="markdown"]', '[class*="message-content"]', 'main'],
+    reply: ['[class*="markdown"]', '[class*="fbb737a4"]', '.markdown-body', '[class*="response"]', 'main'],
     send: [],
     stop: ['button[aria-label*="停止"]', 'button[aria-label*="Stop"]', '[class*="stop"]'],
-    continue: ['继续生成', 'Continue'],
-  },
-  kimi: {
-    url: 'https://www.kimi.com/',
-    open: 'https://www.kimi.com/',
-    input: ['div[contenteditable="true"]', 'textarea', '[contenteditable="true"]'],
-    reply: ['[class*="markdown"]', '[class*="segment-content"]', '.markdown-body', 'main'],
-    send: [],
-    stop: ['button[aria-label*="停止"]', '[class*="stop"]'],
     continue: ['继续生成', 'Continue'],
   },
 };
@@ -86,7 +86,19 @@ function loadPlatforms() {
       }
     } catch (e) { /* fall through */ }
   }
-  return merged;
+  // 白名单过滤放在合并之后 —— 因为 w-platforms.json 里还留着 qwen/kimi 的条目（那是历史资产，
+  // 删掉会丢选择器知识）。谁把 qwen/kimi 从覆盖文件里「清理」掉了，这里也照样只有两家。
+  const dropped = Object.keys(merged).filter((k) => !ALLOWED.includes(k));
+  const kept = {};
+  for (const k of ALLOWED) if (merged[k]) kept[k] = merged[k];
+  if (dropped.length) {
+    console.log(`[w] 白名单只留 ${ALLOWED.join('/')}，已忽略：${dropped.join('/')}（2026-10-05 用户裁定）`);
+  }
+  const missing = ALLOWED.filter((k) => !kept[k]);
+  if (missing.length) {
+    console.log(`[w] ★ 白名单里的 ${missing.join('/')} 没有任何选择器配置，askall 会漏掉它 —— 别当成「它没意见」`);
+  }
+  return kept;
 }
 const PLATFORMS = loadPlatforms();
 
