@@ -27,8 +27,69 @@ const ACTIVE = path.join(RUNTIME, 'active.json')
 const STAGES_FILE = path.join(STAGER_ROOT, 'core', 'stages.json')
 const MARKER = '## ▶ STAGER 阶段管理器 · 上下文注入'
 
-/** 同一进程内：sessionID -> 已经注入过的状态指纹（per-session 的理由见 fingerprintOf） */
+/** 同一个进程内：sessionID -> 已经注入过的状态指纹（per-session 的理由见 fingerprintOf） */
 const seen = new Map()
+
+/**
+ * ★ 决策收件箱（2026-10-05 新增）。
+ *
+ * 用户诉求原话：「AI 可以把自己要做的总结放在那里，一些决策放到那个窗口……
+ * 我选了之后它就自动保存到那个文档去，后面我再告诉那个 AI，我已经决策好了。」
+ *
+ * 这两条职责：
+ *  1) **AI 该问的挂上去** —— 只有极高架构决策 / 高风险才挂；机械性技术问题 stager decide 会硬拦。
+ *  2) **用户选完告诉 AI** —— 这里做。每轮查一次 decisions.json，
+ *     有「上次通知之后才定下来的」就在注入包里加一段，并给出文档路径。
+ *
+ * 用 fileRevision 当游标，而不是「已通知过」的内存集合：opencode 一个进程开多个会话，
+ * 内存集合会让 B 会话看不见 A 会话已经报过的事（反之亦然），两边说法不一致。
+ * docRev 本来就是干这个的（docRev 变了要有人看见），复用它不新增状态。
+ */
+function decisionDigest() {
+  const st = readJson(path.join(RUNTIME, 'tasks', ACTIVE_ID(), 'state.json'), null)
+  if (!st || st.status !== 'active') return null
+  let box
+  try { box = readJson(path.join(RUNTIME, 'tasks', st.id, 'decisions.json'), { items: [] }) } catch { return null }
+  if (!box || !Array.isArray(box.items)) return null
+  const pend = box.items.filter((x) => x.status === 'pending')
+  const rev = st.docRev || 0
+  const settled = box.items.filter((x) => x.status !== 'pending' && (x.__rev === undefined || x.__rev <= rev))
+  return { st, pend, settled, rev, taskId: st.id }
+}
+
+function decisionLines(d) {
+  if (!d) return []
+  const L = []
+  if (d.settled.length) {
+    L.push('### ✅ 用户已决策 —— 别再犹豫，按这个做')
+    for (const x of d.settled) {
+      const pick = x.status === 'resolved'
+        ? ('选了 **' + x.chosen + '** · ' + (x.chosenLabel || ''))
+        : ('已撤回（' + (x.note || 'AI 提错了') + '）—— **不要再按这个方向做**')
+      L.push('- **' + x.id + ' ' + x.title + '** → ' + pick)
+      if (x.note) L.push('  - 用户补充：' + x.note)
+      L.push('  - 决策记录：`stager\\.stager\\tasks\\' + d.taskId + '\\docs\\` 里 kind=decision 的那份（`stager decide list --resolved` 能找到全文）')
+    }
+    L.push('')
+    L.push('> ★ 用户拍板之前，你**不要**自己替他做这个决定、也不要换个方向先做着试试。')
+    L.push('> 只有一种例外：发现事实与决策时的假设不符 —— 那要先说清「哪条假设不成立」，再重新 `stager decide add`。')
+    L.push('')
+  }
+  if (d.pend.length) {
+    L.push('### 📮 有 ' + d.pend.length + ' 条在等用户拍板（决策收件箱）')
+    for (const x of d.pend) {
+      L.push('- **' + x.id + '** [' + (x.riskLabel || x.risk) + '] ' + x.title)
+      L.push('  - 用户还没选。**在这条定下来之前不要两种方案同时开工** —— 那是最贵的一种错。')
+      L.push('  - 想催：`stager decide list`。改主意：`stager decide dismiss ' + x.id + ' --reason "…"`')
+    }
+    L.push('')
+    L.push('> ★ **别拿机械问题去烦用户。** 命名 / 格式 / 调参数 / 超时 / 排查步骤 / 用哪条现成命令 —— 这些自己定。')
+    L.push('> `stager decide why "<你的问题>"` 可以先判一下（不许问 → 退出码 2）。')
+    L.push('> 确实该问的挂上去：`stager decide add "<标题>" --risk high-arch|high-risk --why "…不决定会怎样" --opt "A|…|推荐|后果" --opt "B|…| |后果"`')
+    L.push('')
+  }
+  return L
+}
 
 /**
  * 注入正文超过这个长度就退化成精简版。
@@ -44,6 +105,12 @@ function readJson(file, fallback) {
   catch { return fallback }
 }
 
+/** 当前活跃任务 id（没活返回空串）—— 决策队列跟着任务走，所以也要跟着它走 */
+function ACTIVE_ID() {
+  const id = readJson(ACTIVE, null)
+  return typeof id === 'string' ? id : (id?.id || '')
+}
+
 /**
  * 状态指纹：变了才重新注入。
  * 同一进程内 sessionID -> 已注入的指纹。必须 per-session，不能用全局指纹：
@@ -53,6 +120,25 @@ function readJson(file, fallback) {
  */
 function fingerprintOf(st) {
   return [st.id, st.status, st.stage, st.round, st.wrap, st.actor, st.updatedAt, st.docRev || 0].join('|')
+}
+
+/**
+ * ★ 注入的 part 必须自带 id / sessionID / messageID，否则 opencode 存不下去。
+ *
+ * 2026-10-05 从 model-router 那边的日志里顺出来的（同一个坑）：
+ *   `invalid user part before save ... SchemaError: Missing key at ["id"]/["sessionID"]/["messageID"]`
+ *   症状阴险：**当轮模型看得到，但历史里没有**，下一轮就没了，日志里只有一条条 ERROR。
+ *   所以这里也用带全字段的 part。id 用 opencode 的 `prt_` + 30 位 base36 前缀风格。
+ */
+function makePart(input, text) {
+  const rid = () => Math.random().toString(36).slice(2, 10)
+  return {
+    id: 'prt_' + rid() + rid() + rid(),
+    sessionID: input.sessionID,
+    messageID: input.messageID || '',
+    type: 'text',
+    text: String(text),
+  }
 }
 
 function loadStages() {
@@ -180,20 +266,31 @@ export const StagerPlugin = async () => {
       else body = buildCtxViaCli()
       if (!body) return
 
-      // 2) 这个会话在同一个状态下注入过了 → 不重复刷（防上下文膨胀）
+      // 2) 决策收件箱：用户拍板了就报给 AI；还在等就提醒别抢跑
+      const d = decisionDigest()
+      const decLines = decisionLines(d)
+
+      // 3) 这个会话在同一个状态下注入过了 → 不重复刷（防上下文膨胀）
       const sid = input.sessionID || '_shared'
       const fp = fingerprintOf(st)
       if (seen.get(sid) === fp) return
 
-      // 3) 别重复贴同样的东西
+      // 4) 别重复贴同样的东西
       if (output.parts.some((p) => p.type === 'text' && typeof p.text === 'string' && p.text.includes(MARKER))) return
 
-      // 4) 太长就退一步：精简版（S 为 null 时 briefSummary 不可用，给纯文本兜底）
+      // 5) 拼起来。决策段放在【最前面】—— 它是「用户刚说的话」，比阶段进度更该先看到。
       let text
-      if (body.length > MAX_CTX_CHARS) text = S ? briefSummary(st, S) : shortFallback(st, body)
-      else text = body
+      if (decLines.length && d && d.settled.length) {
+        const head = [MARKER, '', ...decLines, '---', ''].join('\n')
+        text = head + (body.length > MAX_CTX_CHARS ? (S ? briefSummary(st, S) : shortFallback(st, body)) : body)
+      } else if (decLines.length) {
+        const tail = [body.length > MAX_CTX_CHARS ? (S ? briefSummary(st, S) : shortFallback(st, body)) : body, ...decLines].join('\n')
+        text = tail
+      } else {
+        text = body.length > MAX_CTX_CHARS ? (S ? briefSummary(st, S) : shortFallback(st, body)) : body
+      }
 
-      output.parts.push({ type: 'text', text })
+      output.parts.push(makePart(input, text))
       seen.set(sid, fp)
     },
   }
@@ -225,7 +322,7 @@ function briefSummary(st, S) {
   ].join('\n')
 }
 
-export { buildCtx, briefSummary, MAX_CTX_CHARS }
+export { buildCtx, briefSummary, MAX_CTX_CHARS, decisionDigest, decisionLines, makePart }
 export default StagerPlugin
 
 /**

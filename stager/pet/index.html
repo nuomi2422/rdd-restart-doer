@@ -41,6 +41,61 @@
   .acts button{background:#241d3d;color:var(--fg);border:1px solid var(--line);border-radius:9px;
                padding:6px 12px;font:inherit;font-size:12.5px;cursor:pointer}
   .acts button:hover{border-color:var(--acc)}
+  /* ---- 决策收件箱按钮（有待决策时红点）---- */
+  #inboxBtn{position:relative;border-color:#5a4a2c!important;background:#2a2338!important;color:#ffe9b8!important}
+  #inboxBtn:hover{border-color:#c9a6ff!important}
+  #inboxBtn .dot{display:none;position:absolute;top:-7px;right:-7px;min-width:19px;height:19px;
+                padding:0 5px;border-radius:999px;background:#ff5c5c;color:#fff;font-size:11px;
+                line-height:19px;font-weight:700;text-align:center;box-shadow:0 0 0 2px #14121c}
+  #inboxBtn.has .dot{display:block}
+  /* ---- 弹窗 ---- */
+  #mask{position:fixed;inset:0;background:rgba(8,6,14,.72);display:none;align-items:flex-start;
+        justify-content:center;z-index:50;overflow:auto;padding:40px 16px}
+  #mask.on{display:flex}
+  #modal{width:100%;max-width:860px;background:var(--card);border:1px solid var(--line);
+         border-radius:18px;padding:22px 24px;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+  #modal h2{margin:0}
+  .mhead{display:flex;align-items:flex-start;gap:12px;margin-bottom:6px}
+  .mhead .x{margin-left:auto;background:#241d3d;border:1px solid var(--line);color:var(--dim);
+            border-radius:9px;padding:5px 11px;cursor:pointer;font:inherit;font-size:12.5px}
+  .mhead .x:hover{color:var(--fg);border-color:var(--acc)}
+  .pol{background:#191627;border:1px dashed var(--line);border-radius:12px;padding:12px 14px;
+       font-size:12.5px;color:var(--dim);margin:14px 0}
+  .pol b{color:var(--fg)}
+  .pol .no{color:#ffb3b3}
+  .dec{border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin:14px 0;background:#191627}
+  .dec.arch{border-left:3px solid var(--acc)}
+  .dec.risk{border-left:3px solid #ff8f5c}
+  .dec .t{font-size:15.5px;font-weight:600;margin:0 0 6px}
+  .dec .why{font-size:13px;color:var(--fg);opacity:.9;margin:0 0 10px;white-space:pre-wrap}
+  .dec .meta{font-size:11.5px;color:var(--dim);margin-bottom:10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .dec .ctx{font-size:12.5px;color:var(--dim);white-space:pre-wrap;background:#100d19;border-radius:9px;
+            padding:9px 11px;margin:0 0 12px;max-height:190px;overflow:auto}
+  .warn{display:inline-block;background:#4a2c1c;border:1px solid #7a4a2c;color:#ffcf9f;
+        padding:1px 8px;border-radius:999px;font-size:11px}
+  .opt{display:flex;gap:11px;align-items:flex-start;border:1px solid var(--line);border-radius:12px;
+       padding:11px 13px;margin:8px 0;background:#141220;cursor:pointer;text-align:left;width:100%;
+       font:inherit;color:var(--fg)}
+  .opt:hover{border-color:var(--acc);background:#1d1830}
+  .opt .k{flex:0 0 auto;width:24px;height:24px;border-radius:7px;background:#2a2340;border:1px solid var(--line);
+          display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700}
+  .opt.rec .k{background:#3a2a5c;border-color:var(--acc)}
+  .opt .b{flex:1;min-width:0}
+  .opt .l{font-size:13.5px;font-weight:600;margin-bottom:3px}
+  .opt .c{font-size:12.5px;color:var(--dim)}
+  .rec-tag{display:inline-block;margin-left:6px;color:#c9a6ff;font-size:11px}
+  .note-in{width:100%;margin-top:8px;background:#100d19;border:1px solid var(--line);border-radius:9px;
+           color:var(--fg);padding:8px 10px;font:inherit;font-size:12.5px;resize:vertical;min-height:44px}
+  .row2{display:flex;gap:8px;margin-top:12px}
+  .row2 button{flex:1;background:#241d3d;border:1px solid var(--line);color:var(--fg);border-radius:10px;
+               padding:8px;font:inherit;font-size:12.5px;cursor:pointer}
+  .done{border:1px solid #2c5a41;border-radius:12px;padding:11px 13px;margin:8px 0;background:#141d19;font-size:12.5px}
+  .done b{color:var(--ok)}
+  .toast{position:fixed;left:50%;bottom:26px;transform:translateX(-50%);background:#241d3d;
+         border:1px solid var(--acc);border-radius:11px;padding:10px 16px;font-size:13px;
+         display:none;z-index:60;max-width:80vw}
+  .toast.on{display:block}
+  .toast.bad{border-color:#ff5c5c}
 </style>
 </head>
 <body>
@@ -63,6 +118,7 @@
           <button onclick="location.reload()">刷新</button>
           <button onclick="next()">stager next</button>
           <button onclick="cyc()">换图</button>
+          <button id="inboxBtn" onclick="openInbox()">📮 决策收件箱<span class="dot" id="inboxDot">0</span></button>
         </div>
       </div>
     </div>
@@ -76,6 +132,21 @@
     <div id="docs"></div>
   </div>
 </div>
+
+<!-- 决策收件箱弹窗：点上面那个按钮出来 -->
+<div id="mask" onclick="if(event.target===this)closeInbox()">
+  <div id="modal">
+    <div class="mhead">
+      <div>
+        <h2 style="font-size:19px">📮 决策收件箱</h2>
+        <div class="sub" id="inboxSub" style="margin:2px 0 0">读取中…</div>
+      </div>
+      <button class="x" onclick="closeInbox()">关闭（Esc）</button>
+    </div>
+    <div id="inboxBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
 
 <script>
 let S = null, imgIdx = 0;
@@ -148,7 +219,135 @@ async function tick(){
     const r = await fetch('/api/state',{cache:'no-store'});
     S = await r.json();
     render();
+    // 决策数走 /api/state 里那个轻量计数，别为了一个红点去拉整包决策
+    const n = (S.decide && S.decide.pendingCount) || 0;
+    const btn = document.getElementById('inboxBtn'), dot = document.getElementById('inboxDot');
+    if(btn){ btn.classList.toggle('has', n>0); dot.textContent = n; btn.title = n>0 ? ('有 '+n+' 条等你拍板') : '暂时没有要你拍板的事'; }
+    if(document.getElementById('mask').classList.contains('on')) loadInbox();
   }catch(e){ $('sub').textContent='连接断开：'+e; }
+}
+
+// ======================================================================
+// 决策收件箱
+//   为什么长这样：AI 遇到「极高架构决策 / 高风险」才往这里挂一条，
+//   人点开、点一个选项 → 立刻自动存成 docs/NN-决策-….md 并登记 manifest，
+//   AI 下一轮就被告知「用户已决策」。
+//   机械性技术问题 AI 自己定，不许往这里塞（decide.js 会硬拦）。
+// ======================================================================
+let INBOX = null;
+
+async function loadInbox(){
+  try{
+    const r = await fetch('/api/decisions',{cache:'no-store'});
+    INBOX = await r.json();
+    paintInbox();
+  }catch(e){ $('inboxBody').innerHTML = '<div class="empty">读决策队列失败：'+esc(e.message)+'</div>'; }
+}
+
+function openInbox(){ document.getElementById('mask').classList.add('on'); loadInbox(); }
+function closeInbox(){ document.getElementById('mask').classList.remove('on'); }
+document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') closeInbox(); });
+
+function paintInbox(){
+  const B = INBOX || {pending:[],resolved:[],policy:{}};
+  const body = $('inboxBody');
+  $('inboxSub').textContent = B.activeId
+    ? ('任务 ' + B.activeId + ' · 待你拍板 ' + B.pending.length + ' 条 · 已定 ' + B.resolved.length + ' 条')
+    : '没有进行中的 stage 任务';
+
+  let h = '';
+  // 策略条：让人知道自己被问的都是什么事
+  const P = B.policy || {};
+  if(P.ok){
+    h += '<div class="pol"><b>这里只放该我拍板的</b>：'
+       + P.risks.map(r=>'【'+esc(r.label)+'】'+esc(r.means)).join('　｜　')
+       + '<br><span class="no">AI 不许问的</span>：' + P.never.join('、')
+       + '<br><b>被问之前 AI 必须先自己做完</b>：①自己查一遍定位清楚 ②先看有没有已有规矩 ③选项收敛到 2~4 个且各写后果 ④写清不决定会怎样'
+       + '</div>';
+  } else {
+    h += '<div class="pol" style="border-color:#7a2c2c">★ 策略读不到：'+esc(P.why||'?')+'</div>';
+  }
+
+  if(!B.pending.length){
+    h += '<div class="done">✔ <b>没有等我拍板的事。</b>AI 要么在自己写，要么在问你之前已经把该查的查完了。</div>';
+  }
+
+  B.pending.forEach((d,i)=>{
+    h += '<div class="dec '+(/^high-risk/.test(d.risk)?'risk':'arch')+'">';
+    h += '<p class="t">'+esc(d.title)+'</p>';
+    h += '<div class="meta"><span class="pill">'+esc(d.riskLabel||d.risk)+'</span>'
+       + '<span>'+esc(d.id)+'</span><span>阶段 '+(d.stage||'?')+' 第'+(d.round!=null?d.round:'?')+'轮</span>'
+       + '<span>'+esc(d.raisedBy||'ai')+' '+(esc(String(d.raisedAt||'').replace('T',' ').slice(0,19)))+'</span>';
+    if(d.forced) h += '<span class="warn">⚠ 强制入队（AI 认为系统判错了）</span>';
+    if(d.conflict) h += '<span class="warn">⚠ 这句也像机械问题，但命中了客观风险 —— 请确认真有这么高风险</span>';
+    h += '</div>';
+    h += '<p class="why">'+esc(d.why)+'</p>';
+    if(d.context) h += '<div class="ctx">'+esc(d.context)+'</div>';
+    d.options.forEach(o=>{
+      h += '<button class="opt'+(o.recommended?' rec':'')+'" onclick="decide(\''+d.id+'\',\''+esc(o.id)+'\',this)">'
+         + '<span class="k">'+esc(o.id)+'</span><span class="b">'
+         + '<span class="l">'+esc(o.label)+(o.recommended?'<span class="rec-tag">★ AI 推荐</span>':'')+'</span>'
+         + '<span class="c">'+esc(o.consequence||'（AI 没写后果 —— 这是它的失职）')+'</span></span></button>';
+    });
+    h += '<textarea class="note-in" id="note-'+d.id+'" placeholder="补充说明（可选，会一起存进决策文档）"></textarea>';
+    h += '<div class="row2"><button onclick="dismiss(\''+d.id+'\')">这条不用问，撤回</button></div>';
+    h += '</div>';
+  });
+
+  if(B.resolved.length){
+    h += '<div class="pol" style="margin-top:20px"><b>最近已定</b>（选完自动存成了 docs/ 里的决策文档，AI 已经知道）</div>';
+    B.resolved.slice().reverse().forEach(d=>{
+      h += '<div class="done">'+ (d.status==='resolved'?'✔':'✘') +' <b>'+esc(d.id)+'</b> '+esc(d.title)
+         + '<br>→ '+(d.chosen?'选了 '+esc(d.chosen)+' · '+esc(d.chosenLabel||''):'已撤回')
+         + (d.note?'　<span style="opacity:.7">'+esc(d.note)+'</span>':'')
+         + '<br><span style="opacity:.6">'+esc(String(d.resolvedAt||'').replace('T',' ').slice(0,19))+'</span></div>';
+    });
+  }
+  body.innerHTML = h;
+}
+
+/** 点选项 → 后端落盘 → 明确告诉你落在哪；失败一定要说出来。 */
+async function decide(id, choice, btn){
+  const note = ($('note-'+id) || {}).value || '';
+  const all = btn ? btn.parentNode.querySelectorAll('.opt') : [];
+  all.forEach(b=>b.disabled=true);
+  try{
+    const r = await fetch('/api/decide',{method:'POST',headers:{'content-type':'application/json'},
+      body: JSON.stringify({ id: id, choice: choice, note: note })});
+    const j = await r.json();
+    if(!j.ok){
+      toast('✘ 没选成：'+(j.why||r.status), true);
+      all.forEach(b=>b.disabled=false);
+      return;
+    }
+    toast('✔ '+id+' 已定：'+j.item.chosenLabel+'　→ 已存 '+j.file);
+    await loadInbox();
+    if(S) tick();
+  }catch(e){
+    toast('✘ 请求失败：'+e.message, true);
+    all.forEach(b=>b.disabled=false);
+  }
+}
+
+async function dismiss(id){
+  const note = ($('note-'+id) || {}).value || '';
+  try{
+    const r = await fetch('/api/decide',{method:'POST',headers:{'content-type':'application/json'},
+      body: JSON.stringify({ id: id, action: 'dismiss', note: note })});
+    const j = await r.json();
+    if(!j.ok) return toast('✘ 撤不回：'+(j.why||r.status), true);
+    toast('✘ '+id+' 已撤回');
+    await loadInbox();
+  }catch(e){ toast('✘ 请求失败：'+e.message, true); }
+}
+
+let toastT = null;
+function toast(msg, bad){
+  const t = $('toast');
+  t.textContent = msg;
+  t.className = 'toast on' + (bad ? ' bad' : '');
+  clearTimeout(toastT);
+  toastT = setTimeout(()=>{ t.className='toast'+(bad?' bad':''); }, bad ? 9000 : 6000);
 }
 tick(); setInterval(tick, 1500);
 </script>

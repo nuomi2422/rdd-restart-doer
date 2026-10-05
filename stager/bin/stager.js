@@ -30,29 +30,6 @@ const IMAGES_DIR = path.join(PET_DIR, 'images');
 const PLUGIN_SRC = path.join(ROOT, 'opencode-plugin', 'stager-plugin.mjs');
 const STAGER_MARKER = '## ▶ STAGER 阶段管理器（自动）';
 
-// ── 文档根目录：唯一真源 = stages.json 的 docsRoot ────────────────
-// 为什么提成配置而不是散在各脚本里：2026-10-01 知识库搬家时，
-// 6 个脚本各写一份「E:\新建文件夹\rdd架构」硬编码，全部失配 ——
-// ctx 会把 AI 指向一个不存在的目录。
-// 现在：改一处 → 全链路跟着变；self-check 会验路径真的存在。
-function readStagesRaw() {
-  try { return JSON.parse(fs.readFileSync(STAGES_FILE, 'utf8').replace(/^\uFEFF/, '')); }
-  catch (e) { return null; }
-}
-const STAGES_RAW = readStagesRaw();
-// read[] 条目常带「（必看…）」这类括号注释 → 取括号前那段当路径，再统一斜杠。
-function readPath(rel) {
-  const clean = String(rel).split('（')[0].split('(')[0].trim().replace(/\//g, '\\');
-  return DOC_ROOT + '\\' + clean;
-}
-function readLabel(rel) {
-  const m = String(rel).match(/[（(]([^）)]*)[）)]/);
-  return m ? m[1] : '';
-}
-
-const DOC_ROOT = (STAGES_RAW && STAGES_RAW.docsRoot) || 'E:\\新建文件夹\\rdd-docs\\rdd架构';
-const DOCS_OUT = (STAGES_RAW && STAGES_RAW.docsOut) || 'E:\\新建文件夹\\rdd-docs\\rdd存放';
-
 // 运行时目录用 let：self-test 要临时重定向到 tmp
 let RUNTIME = path.join(ROOT, '.stager');
 let TASKS = '';
@@ -517,12 +494,7 @@ function ctxMd(st, full) {
     if (s.read && s.read.length) {
       out.push('**📖 本阶段开工必读（不读不许动手）：**');
       out.push('');
-      // ★ 打在每一行后面，不靠「读者知道根在哪」—— 之前只在标题后写一句根路径，
-      //   AI 读完第一行就去别处找了。现在每条自带全路径，零推断空间。
-      s.read.forEach((r) => {
-        const lab = readLabel(r);
-        out.push('- `' + readPath(r) + '`' + (lab ? '　← ' + lab : ''));
-      });
+      s.read.forEach((r) => out.push('- `' + r + '`　（`' + (stages().docsRoot || '') + '\\` 下）'));
       out.push('');
     }
 // 读档记录（GLM「读后一行复述」）—— 让「读没读」从黑箱变可观测
@@ -577,6 +549,28 @@ function ctxMd(st, full) {
       out.push('');
     }
 
+// 外脑欠账：AI 自己能看见「我还欠一轮互审」
+    const F2 = String.fromCharCode(96).repeat(3);
+    {
+      const _w = wpoolTally(st);
+      const _names = Object.keys(_w.platforms);
+      out.push('### 🧠 外脑（本阶段问没问）');
+      out.push('');
+      out.push(`- 已问：${_w.valid} 份有效回答（>${WPOOL_MIN_CHARS} 字才算数）× ${_names.length} 家${_names.length ? '：' + _names.join(', ') : ''}`);
+      out.push(`- 本阶段调用 ${_w.total} 次，其中 ${_w.skipped} 份太短（疑似抓到上一轮旧答案）`);
+      if (_w.enough) {
+        out.push('- **够了**。但下一步别忘：把 4 家意见【逐条标注采纳/驳回+理由】写进文档 —— 问了不裁决等于没问。');
+      } else {
+        out.push(`- **不够**（要 ≥2 家有效）。★ 外脑是免费的，不花用户的钱，别把自己关在小方框里。`);
+        out.push('  唯一豁免：用户明确说了「本轮不走外脑」。没有这句话 = 没有豁免。');
+        out.push('');
+        out.push(F2 + 'bash');
+        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-probe.js"');
+        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-brain-drive.js" askall --file "<你的问题.md>"');
+        out.push(F2);
+      }
+      out.push('');
+    }
 
     if (s.ai && s.ai.length) {
       out.push('**必做：**');
@@ -584,11 +578,6 @@ function ctxMd(st, full) {
       s.ai.forEach((x) => out.push(x));
       out.push('');
     }
-
-    // 写到哪 —— 每阶段都重申一次。散落的「写到一半就不写了」的目录，
-    // 根因就是从没明确说过该写哪。这段每次 ctx 都出现，位置在「必做」之后。
-    out.push(...writeToLines());
-    out.push('');
   }
 
   // 最终架构文档 = 防跑偏的锚，每个阶段都要回头读
@@ -659,29 +648,6 @@ function ctxMd(st, full) {
       }
     } catch (e) { /* 没有信箱 = 没有待处理提醒 */ }
 
-// 外脑欠账：AI 自己能看见「我还欠一轮互审」
-    const F2 = String.fromCharCode(96).repeat(3);
-    {
-      const _w = wpoolTally(st);
-      const _names = Object.keys(_w.platforms);
-      out.push('### 🧠 外脑（本阶段问没问）');
-      out.push('');
-      out.push(`- 已问：${_w.valid} 份有效回答（>${WPOOL_MIN_CHARS} 字才算数）× ${_names.length} 家${_names.length ? '：' + _names.join(', ') : ''}`);
-      out.push(`- 本阶段调用 ${_w.total} 次，其中 ${_w.skipped} 份太短（疑似抓到上一轮旧答案）`);
-      if (_w.enough) {
-        out.push('- **够了**。但下一步别忘：把 4 家意见【逐条标注采纳/驳回+理由】写进文档 —— 问了不裁决等于没问。');
-      } else {
-        out.push(`- **不够**（要 ≥2 家有效）。★ 外脑是免费的，不花用户的钱，别把自己关在小方框里。`);
-        out.push('  唯一豁免：用户明确说了「本轮不走外脑」。没有这句话 = 没有豁免。');
-        out.push('');
-        out.push(F2 + 'bash');
-        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-probe.js"');
-        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-brain-drive.js" askall --file "<你的问题.md>"');
-        out.push(F2);
-      }
-      out.push('');
-    }
-
   // 每 3 轮回流提醒
   if (st.round > 1 && st.round % 3 === 0) {
     out.push('### ⏰ 每 3 轮回流提醒');
@@ -748,9 +714,26 @@ function ctxMd(st, full) {
 // ---------------------------------------------------------------- 参数解析
 
 function parseArgs(argv) {
-  const pos = [];
+const pos = [];
   const flags = {};
-  const alias = { n: 'note', t: 'title', k: 'kind', s: 'stage', a: 'actor', f: 'force', r: 'rounds' };
+const alias = { n: 'note', t: 'title', k: 'kind', s: 'stage', a: 'actor', f: 'force', r: 'rounds' };
+  /**
+   * 允许重复传、累积成数组的 flag（2026-10-05 加）。
+   *
+   * ★ 原来 `flags[key] = val` 直接覆盖，于是 `--opt A --opt B` 只剩 B ——
+   *   而选项天然就是「一条一个 flag」，所以 stager decide add 拿到的永远是 1 个选项，
+   *   然后被自己的「至少 2 个选项」判据拒掉。**症状是「明明写了两个选项却说只给了一个」**，
+   *   病因在参数解析器，离真正出问题的地方隔着两层，属同一类「门禁/工具自己的缺陷长得像用户用错」。
+   *
+   *   ★ 只对白名单里的 flag 生效：其它 flag 保持「最后一个赢」的旧行为，
+   *   因为它们被当成字符串用（note/title/kind），改成数组会波及一堆命令。
+   */
+  const MULTI = new Set(['opt']);
+  const setFlag = (key, val) => {
+    if (!MULTI.has(key)) { flags[key] = val; return; }
+    if (!Array.isArray(flags[key])) flags[key] = flags[key] === undefined ? [] : [flags[key]];
+    flags[key].push(val);
+  };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a.slice(0, 2) === '--') {
@@ -763,12 +746,14 @@ function parseArgs(argv) {
         const nx = argv[i + 1];
         if (nx !== undefined && nx.slice(0, 2) !== '--') { val = nx; i++; } else { val = true; }
       }
-      flags[alias[key] || key] = val;
+      const k = alias[key] || key;
+      if (MULTI.has(k) && typeof val !== 'string') val = true;
+      setFlag(k, val);
     } else if (a.slice(0, 1) === '-' && a.length > 1) {
       const key = a.slice(1);
       const nx = argv[i + 1];
-      if (nx !== undefined && nx.slice(0, 1) !== '-') { flags[alias[key] || key] = nx; i++; }
-      else flags[alias[key] || key] = true;
+      if (nx !== undefined && nx.slice(0, 1) !== '-') { setFlag(alias[key] || key, nx); i++; }
+      else setFlag(alias[key] || key, true);
     } else pos.push(a);
   }
   return { pos: pos, f: flags };
@@ -796,6 +781,15 @@ CMD.help = function () {
     '',
     '  人次  stager swap <名字> [--note "…"]                         换人接手当前阶段（不查出身）',
     '',
+    '  决策  stager decide policy                                    ★ 什么才配问你（高架构/高风险才问，机械问题自己定）',
+    '        stager decide why "<一句话>"                            先判一件事配不配问用户（不许问 → 退出码 2）',
+    '        stager decide add "<要你拍板的事>" --risk high-arch|high-risk --why "为什么必须你定"',
+    '              --opt "A|标签|推荐|后果" --opt "B|…" [--opt-file x.json] [--ctx "背景"] [--force]',
+    '        stager decide list [--all|--resolved]                   列队列',
+    '        stager decide pick <D-1> --choice A [--note "…"]         终端里直接拍板（不想开看板时）',
+    '        stager decide dismiss <D-1> --reason "前提变了"         撤回（AI 提错了）',
+    '        ★ 人怎么选：stager web（8899）→ 顶上「决策收件箱」按钮 → 弹窗里点选项 → 自动落盘 docs/',
+    '',
     '  文档  stager put <文件|-> --kind requirement|plan|review|contract|evidence|log|note',
     '              [--title "标题"] [--stage <id>] [--round N]      把文档存进 stage 并登记',
     '        stager docs [--stage <id>] [--kind <k>]                列文档',
@@ -807,13 +801,12 @@ CMD.help = function () {
     '        stager progress                                         刷一份 progress.md 看板',
     '',
     '  其他  stager publish <文件> --as report|tool|shot|doc --title "标题"',
-    '                                                        放到 rdd存放\\ 并自动登记 INDEX.md',
+    '                                                        放到 rdd-selfcompile\\给用户\\ 并自动登记 INDEX.md',
     '        stager pet [--size 200]                                起桌面宠物（点它报阶段/轮次）',
     '        stager web [--port 8899]                                起网页看板',
     '        stager install                                          注册 opencode 自动注入插件 + 工作区 AGENTS.md 指针',
     '        stager uninstall                                        注销',
     '        stager self-test                                        状态机自测（临时目录，跑完即删）',
-'        stager self-check                                       路径自检：文档根 + 每个 read[] 真的存在吗（改了文档位置必跑）',
     '        stager conc-test                                        并发压测（8 进程抢锁，验丢更新/残锁）',
     '',
     '  状态真身：.stager/tasks/<id>/state.json　　阶段定义：core/stages.json（可改）',
@@ -1471,66 +1464,6 @@ CMD.docs = function (a) {
 };
 
 CMD.check2 = null;
-// ── 写到哪：明确三条铁律，避免「想到哪里写哪里」─────────────────
-// 问题背景：知识库里有大量「写到一半就不写了」的目录、_stage/、
-//   各处随手起的名字。根因是**从没告诉 AI 该写哪**。
-// 现在每次 ctx 都带这三行，且 stager self-check 会机器校验路径真的存在。
-function writeToLines() {
-  const L = [];
-  L.push('### ✍️ 新东西写到哪（三条，别自己找地方）');
-  L.push('');
-  L.push('| 东西 | 写到哪 |');
-  L.push('|---|---|');
-  L.push('| 本轮过程文档（plan/arch/evidence/experience…） | `stager put --kind <kind> --title <标题>` —— 它自己落到本任务 `docs\\`，**别手写** |');
-  L.push('| 长期规范级文档（新规范/清单/运维手册） | `' + DOC_ROOT + '\\自编译统一版\\NN-中文名.md`（NN 接最大号往后排），并登记 3 处：README §二目录表 + 09-更新日志 + 50-按主题导航 |');
-  L.push('| 状态报告（44 号规格） | 本轮 `docs\\`，**不要**写进 `' + DOC_ROOT + '\\自编译统一版\\`，**不要**加进 read[] |');
-  L.push('');
-  L.push('**判据一句话**：下一个人接手时第一眼该看哪份？长期资产进统一版，一次性产物进 stager。');
-  L.push('细则见 `' + DOC_ROOT + '\\08-登记规约.md`。');
-  return L;
-}
-
-// ── 自检：文档根和每个 read[] 真的存在吗 ────────────────────────
-// 2026-10-01 知识库搬家，ctx 里的必读路径整批失配 —— 静态门禁不报警，
-// 因为「路径存在性」压根没被检查过。这里补上。
-CMD.selfCheck = function () {
-  let fail = 0;
-  const head = ok;
-  ok('════ stager 自检：路径可解析性 ════');
-  ok('文档根 docsRoot : ' + DOC_ROOT);
-  if (!fs.existsSync(DOC_ROOT)) {
-    err('  ✗ docsRoot 不存在！读[] 全是相对路径 → 所有必读都指不到东西。');
-    err('    改 stager/core/stages.json 的 docsRoot（唯一真源）。');
-    fail++;
-  } else {
-    ok('  ✔ 存在');
-  }
-  const stages = STAGES_RAW ? STAGES_RAW.stages : [];
-  let miss = 0, total = 0;
-  for (const s of stages) {
-    for (const r of (s.read || [])) {
-      total++;
-      const p = readPath(r);
-      if (!fs.existsSync(p)) { err('  ✗ ' + s.id + ' → ' + r + '　（解析成 ' + p + '）'); miss++; }
-    }
-  }
-  if (miss) { err('  → ' + miss + '/' + total + ' 条必读找不到文件'); fail++; }
-  else ok('  ✔ ' + total + ' 条必读全部可达');
-
-  // 反向抽查：统一版里有没有没人引用的 md（提示漏登记）
-  const uni = path.join(DOC_ROOT, '自编译统一版');
-  if (fs.existsSync(uni)) {
-    const idx = ['README.md', '50-按主题导航.md', '51-研发叙事时间线.md']
-      .map(f => path.join(uni, f)).filter(fs.existsSync);
-    const blob = idx.map(f => { try { return fs.readFileSync(f, 'utf8'); } catch (e) { return ''; } }).join('\n');
-    const orphans = fs.readdirSync(uni).filter(f => f.endsWith('.md') && !blob.includes(f));
-    if (orphans.length) ok('  ⚠ 统一版有 ' + orphans.length + ' 份 md 没被 README/50/51 引用：\n     ' + orphans.slice(0, 8).join('\n     ') + (orphans.length > 8 ? '\n     …' : ''));
-    else ok('  ✔ 统一版每份 md 都在索引里有位置');
-  }
-  if (fail) { err('VERDICT=BROKEN  有 ' + fail + ' 项断了'); process.exit(2); }
-  ok('VERDICT=OK  路径全部可解析');
-};
-
 CMD.ctx = function (a) {
   const st = requireState();
   const md = ctxMd(st, !!a.f.full);
@@ -1566,9 +1499,13 @@ CMD.progress = function (a) {
 
 CMD.close = function (a) {
   const status = a.f.status || 'done';
-  if (['done', 'aborted'].indexOf(status) < 0) die('--status 只能是 done 或 aborted');
+  if (['done', 'aborted'].indexOf(status) < 0) die('--status 只有 done 和 aborted');
   return withLock(() => {
-    const st = requireState();
+    // ★ 传 a.pos[0]（2026-10-05 修）：原来是无参 requireState()，**收下了 id 却不用**，
+    //   永远关 active 那一个。后果：手上开着 5 个任务时想关指定那个根本关不掉 ——
+    //   关掉第一个之后 active 变 null，第二个 close 就报「没有指定任务，但有未关档的」。
+    //   症状是「参数写了跟没写一样」，属于「看起来能用其实不能」那一类。
+    const st = requireState(a.pos[0], { allowClosed: true });
     const g = evaluateGate(st);
     if (status === 'done' && !a.f.force) {
       if (!g.ok) {
@@ -1605,16 +1542,13 @@ CMD.close = function (a) {
 };
 
 // ---------------------------------------------------------------- publish
-// 「用户要看/要用的东西」统一进 rdd存放\（用户面收件夹），并自动登记 INDEX.md
+// 「用户要看/要用的东西」统一进 rdd-selfcompile\给用户\，并自动登记 INDEX.md
 /** doc:xxx 门禁的正文下限（字节）。空壳文档不算数 —— 2026-09-30 加。
  *  只查"文件在不在"的话，AI 写个空 md 就能过 ④；加内容下限逼它真写。
  *  不设太高：一份合格的经验记录 1KB 起步，500 足够把空壳和敷衍挡在外面。 */
 const MIN_DOC_BYTES = 500;   // 仅附注用，不参与判定（GLM Goodhart 批评后降级）
 
-// ★ 2026-10-01 改指向：原来指向 `rdd-selfcompile\给用户\`，那目录 2026-09-30 已废弃
-//   （内容归到 rdd存放），所以 publish 会往一个没人看的地方投 —— 用户永远收不到。
-//   现在指向用户面收件夹 DOCS_OUT，与 AGENTS.md「用户只看这一个地方」一致。
-const USER_OUT = DOCS_OUT;
+const USER_OUT = path.join(ROOT, '..', 'rdd-selfcompile', '给用户');
 const USER_KINDS = { report: '报告', tool: '工具', shot: '截图', doc: '文档' };
 
 CMD.publish = function (a) {
@@ -1692,6 +1626,145 @@ CMD.web = function (a) {
     execFileSync(process.execPath, [srv, String(port)], { stdio: 'inherit', cwd: ROOT });
   } catch (e) { /* 正常退出 */ }
   return null;
+};
+
+// ---------------------------------------------------------------- 决策收件箱
+//   引擎在 bin/decide.js（纯函数）。这里只负责：取状态、加锁、打印、退出码。
+//   ★ 最重要的一条：decide.add 会拿 core/decide-policy.json 拦人 ——
+//     简单机械的技术性问题不许问用户，命中就 die 并把它自己该做的建议打出来。
+const DECIDE = require('./decide.js');
+
+CMD.decide = function (a) {
+  const sub = a.pos[0];
+
+  // ★ policy 不需要活任务（2026-10-05 自查时发现的自己的 bug）：
+  //   「什么才配问你」恰恰是 AI 在没开 stage / 干别的活时最需要读的，
+  //   原来放在 requireState 后面 → 一读就 die「没有进行中的任务」，等于这条命令白写。
+  if (sub === 'policy' || !sub) {
+    const p = DECIDE.loadPolicy();
+    ok('★ 什么才配问你（策略真源 core/decide-policy.json）');
+    Object.keys(p.risks).forEach((r) => {
+      ok('  【' + p.risks[r].label + '】 --risk ' + r + '　= ' + p.risks[r].means);
+      (p.risks[r].examples || []).forEach((e) => ok('      例：' + e));
+    });
+    ok('');
+    ok('  ⚖ 怎么判（两层，顺序不能反）：');
+    (p.howItDecides || []).forEach((x) => ok('      ' + x));
+    ok('');
+    ok('  ✘ 绝对不许问（没命中风险信号、又命中这里就拦下）：');
+    (p.neverEscalate.patterns || []).forEach((x) => ok('      ' + x.what + '　匹配 /' + x.re + '/'));
+    ok('');
+    ok('  问之前必须先做完：');
+    (p.requireBeforeAsking || []).forEach((x, i) => ok('      ' + (i + 1) + ') ' + x));
+    const aid = DECIDE.activeId();
+    if (aid) {
+      let pend = 0;
+      try { pend = DECIDE.pending(aid).length; } catch (e) { /* 队列坏掉不该挡读策略 */ }
+      ok('');
+      ok('  当前任务 ' + aid + '　待决策 ' + pend + ' 条　·　人怎么选：stager web（8899）→ 决策收件箱');
+    } else {
+      ok('');
+      ok('  当前没有进行中的 stage 任务（所以这里只列策略，没有队列）。');
+    }
+    return null;
+  }
+
+  const st = requireState(null, { allowClosed: true });
+  const id = st.id;
+
+  if (sub === 'list') {
+    const only = a.f.all ? null : (a.f.resolved ? 'resolved' : 'pending');
+    ok('决策队列（任务 ' + id + '）');
+    ok('');
+    process.stdout.write(DECIDE.renderMd(id, only));
+    ok('全部：stager decide list --all　·　已定：stager decide list --resolved');
+    ok('人怎么选：起看板 stager web（默认 8899）→ 点「决策收件箱」→ 选一个选项');
+    return st;
+  }
+
+  if (sub === 'add') {
+    const title = a.pos.slice(1).join(' ');
+    // 选项两种给法：--opt "A|标签|推荐|后果"（可重复） 或 --opt-file <json>
+    let options = [];
+    if (a.f['opt-file']) {
+      const raw = fs.readFileSync(a.f['opt-file'], 'utf8');
+      try { options = JSON.parse(raw); } catch (e) { die('--opt-file 不是合法 JSON：' + e.message); }
+    }
+    (a.f.opt || []).forEach((s) => {
+      const p = String(s).split('|');
+      options.push({ id: p[0] && p[0].length <= 2 ? p[0] : undefined, label: p[0] && p[0].length <= 2 ? p[1] : p[0], recommended: /推荐|^true$/i.test(p[p[0] && p[0].length <= 2 ? 2 : 1] || ''), consequence: p.slice(p[0] && p[0].length <= 2 ? 3 : 2).join('｜') });
+    });
+    const item = withLock(() => DECIDE.add(id, {
+      title: title,
+      risk: a.f.risk,
+      why: a.f.why,
+      context: a.f.ctx || '',
+      options: options,
+      actor: st.actor,
+      stage: st.stage,
+      round: st.round,
+      forced: !!a.f.force,
+    }));
+    log(st, 'decide.add', { id: item.id, risk: item.risk, title: item.title, forced: !!item.forced });
+    st.docRev = (st.docRev || 0) + 1;   // 让看板/插件知道有新鲜东西
+    saveState(st);
+    ok('📮 已挂进决策收件箱：' + item.id + '  [' + item.riskLabel + ']');
+    ok('   ' + item.title);
+    ok('   选它：起看板 stager web → 点「决策收件箱」→ 点一个选项。选完自动落盘成 docs/…-决策-' + item.id + '-….md');
+    ok('   不想启看板也能选：stager decide pick ' + item.id + ' --choice ' + (item.options[0].id) + ' --note "…"');
+    if (item.forced) ok('   ⚠ 强制入队（AI 认为我判错了）—— 看板和文档里都会留痕');
+    return st;
+  }
+
+  if (sub === 'pick' || sub === 'resolve') {
+    const did = a.pos[1];
+    if (!did) die('给决策 id：stager decide pick <D-1> --choice A [--note "…"]');
+    if (!a.f.choice) die('给 --choice <选项 id>。这条有：stager decide list 里能看到。');
+    const r = withLock(() => DECIDE.resolve(id, did, a.f.choice, a.f.note || '', st.actor));
+    if (!r.ok) die(r.why);
+    st.docRev = (st.docRev || 0) + 1;
+    saveState(st);
+    log(st, 'decide.resolve', { id: did, choice: a.f.choice });
+    ok('✔ ' + did + ' 已定为 ' + a.f.choice + '：' + r.item.chosenLabel);
+    ok('   已落盘：' + r.docPath);
+    return st;
+  }
+
+  if (sub === 'dismiss') {
+    const did = a.pos[1];
+    if (!did) die('给决策 id：stager decide dismiss <D-1> --reason "前提变了"');
+    const r = withLock(() => DECIDE.dismiss(id, did, a.f.reason || '', st.actor));
+    if (!r.ok) die(r.why);
+    ok('✘ ' + did + ' 已撤回（AI 提错了 / 前提变了）。理由：' + (a.f.reason || '(未填)'));
+    return st;
+  }
+
+  if (sub === 'why') {
+    // 只想问「这件事配不配问」：stager decide why "把 X 换成 Y"
+    const title = a.pos.slice(1).join(' ') || (a.f.title || '');
+    if (!title) die('给一句话：stager decide why "要不要把 provider 换成 openai"');
+    const j = DECIDE.judge(title, a.f.why || '', DECIDE.loadPolicy());
+    ok('「' + title + '」');
+    ok('  结论：' + (j.escalate ? '✔ 配问用户（仍须带 --risk high-arch|high-risk 和至少 2 个选项）' : '✘ 不许问用户'));
+    if (j.matched.length) {
+      ok('  命中「绝对不许问」：');
+      j.matched.forEach((m) => ok('      ' + m.what + '　匹配 /' + m.re + '/'));
+    }
+    ok('  问之前先做完：');
+    j.advice.forEach((x, i) => ok('      ' + (i + 1) + ') ' + x));
+    process.exitCode = j.escalate ? 0 : 2;
+    return st;
+  }
+
+  if (sub === 'notified') {
+    // 给插件用：返回「上次通知之后新定下来的」条数与摘要（插件据此决定要不要在聊天框里报）
+    const since = a.f.since || null;
+    const items = DECIDE.resolvedSince(id, since);
+    ok(JSON.stringify({ count: items.length, items: items.map((x) => ({ id: x.id, title: x.title, chosen: x.chosen, chosenLabel: x.chosenLabel, resolvedAt: x.resolvedAt, note: x.note })) }));
+    return st;
+  }
+
+  die('stager decide 子命令不认识：' + (sub || '(空)') + '\n  可用：policy | list | add | pick | dismiss | why | notified');
 };
 
 CMD.install = function (a) {
@@ -1935,7 +2008,6 @@ let cmd = a.pos[0];
 const rest = Object.assign({}, a, { pos: a.pos.slice(1) });
 const ALIAS = {
   'self-test': 'selfTest', selftest: 'selfTest',
-  'self-check': 'selfCheck', selfcheck: 'selfCheck', '路径自检': 'selfCheck',
   'conc-test': 'concTest', conc: 'concTest',
   st: 'status', s: 'status',
   c: 'ctx', i: 'ctx', inject: 'ctx',
