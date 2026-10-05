@@ -1,0 +1,53 @@
+{
+  "$schema": "rdd/model-router/budget@1",
+  "$comment": "★ 每个模型【每小时】的用量上限。插件 model-router.mjs 读它，改这里就改了策略，不用动代码。hourKey 是本地整点桶（不是滚动 60 分钟），所以每个整点自动清零。",
+  "version": 1,
+
+  "$comment2": "额度单位：maxMinutesPerHour = 这一小时内该模型被占用的墙钟分钟数（委派调用从发出到返回的真实耗时）；maxCallsPerHour = 调用次数；maxCharsPerHour = 返回正文字符数（粗略的 token 代理）。三者任一超了就跳过这一档，往下一档走。",
+
+  "defaultTimeoutMs": 900000,
+  "contextMessages": 12,
+  "contextChars": 6000,
+  "maxReturnChars": 12000,
+
+  "tiers": [
+    {
+      "id": "free",
+      "label": "免费档（就是你自己）",
+      "$comment": "不发委派请求。action=back / to=free 只回一条策略提醒，提醒你已经回到免费档。",
+      "model": { "providerID": "opencode", "modelID": "big-pickle" }
+    },
+    {
+      "id": "deepseek",
+      "label": "DeepSeek（稍微难一点的问题先问它）",
+      "$comment": "model 留 null = 运行时从 client.provider.list() 里按 matchModels 现场解析（哪个 provider 上有就调哪个，不写死）。★ 解析不到就报错，不静默换人。",
+      "model": null,
+      "matchModels": ["deepseek"],
+      "preferProviders": ["openrouter", "deepseek", "moyuu"],
+      "preferModelIds": []
+    },
+    {
+      "id": "sol",
+      "label": "gpt-6-sol（难的代码/方案）",
+      "model": { "providerID": "moyuu", "modelID": "gpt-6-sol" }
+    },
+    {
+      "id": "astra",
+      "label": "gpt-6-astra（架构决策 / 深审，最后一档，最贵）",
+      "model": { "providerID": "moyuu", "modelID": "gpt-6-astra" }
+    }
+  ],
+
+  "$comment3": "escalateOrder = auto 时的降级链，从便宜到贵。用户 2026-10-05 定：难问题问 deepseek，再 gpt-6-sol，最后 astra。",
+  "escalateOrder": ["deepseek", "sol", "astra"],
+
+  "hourly": {
+    "free": { "enabled": true, "maxMinutesPerHour": null, "maxCallsPerHour": null, "$comment": "免费不限，但仍计数（status 里能看到用了几次）" },
+    "deepseek": { "enabled": true, "maxMinutesPerHour": 45, "maxCallsPerHour": 40 },
+    "sol": { "enabled": true, "maxMinutesPerHour": 25, "maxCallsPerHour": 15 },
+    "astra": { "enabled": true, "maxMinutesPerHour": 15, "maxCallsPerHour": 6 }
+  },
+
+  "$comment4": "plan 模式 = 只出方案不许动手：委派子会话结构性地关掉 write/edit/patch/bash/task/todowrite，不是靠提示词求它别写。",
+  "planModeToolsOff": ["write", "edit", "patch", "apply_patch", "bash", "task", "todowrite", "todoread"]
+}
