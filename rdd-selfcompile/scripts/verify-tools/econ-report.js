@@ -12,7 +12,8 @@
  * 数据源：<monitor>/context.jsonl(执行AI) rdd.jsonl(规划) learner.jsonl(学习) ai.jsonl(自编译)
  *         <monitor>/tools.jsonl(工具调用/结果)
  * 事件由 NumenLlmClient 的 llm_usage / llm_response 与 tools.jsonl 产生。
- * 预算建议来自 budget_advice 事件（E1 shadow，配置 budget-policy.json 后超限才产生）。
+ * 预算建议来自 budget_advice 事件（E1 shadow，配置 budget-policy.json 后超限才产生）；
+ * 预算拦截来自 budget_block 事件（E1 enforce，拦截该角色新调用时产生，绝不静默停）。
  *
  * 用法：
  *   node econ-report.js                         # 默认 live 监控目录，全部历史
@@ -115,6 +116,7 @@ function main() {
   // ---- 1) LLM 用量：按 actor|phase|model 聚合 ----
   const llm = new Map();
   const advice = new Map();
+  const blocks = new Map();
   let llmBad = 0;
   const filesSeen = [];
   for (const f of LLM_FILES) {
@@ -127,6 +129,19 @@ function main() {
         const v = add(advice, d.role || '?', () => ({ count: 0, exceeded: new Set(), lastTs: null, last: null }));
         v.count++;
         if (Array.isArray(d.exceeded)) for (const k of d.exceeded) v.exceeded.add(k);
+        if (v.lastTs == null || (ts0 != null && ts0 >= v.lastTs)) { v.lastTs = ts0; v.last = d; }
+        return;
+      }
+      if (row.type === 'budget_block') {
+        const d = row.data || {};
+        const key = `${d.actor || '?'}|${d.role || '?'}`;
+        const v = add(blocks, key, () => ({ count: 0, exceeded: new Set(), lastTs: null, last: null }));
+        v.count++;
+        if (typeof d.exceeded === 'string') {
+          for (const k of d.exceeded.split('+')) if (k) v.exceeded.add(k);
+        } else if (Array.isArray(d.exceeded)) {
+          for (const k of d.exceeded) v.exceeded.add(k);
+        }
         if (v.lastTs == null || (ts0 != null && ts0 >= v.lastTs)) { v.lastTs = ts0; v.last = d; }
         return;
       }
@@ -227,6 +242,15 @@ function main() {
           limitTokens: v.last.limitTokens, limitCalls: v.last.limitCalls, limitMinutes: v.last.limitMinutes,
         } : null,
       })),
+      budgetBlocks: [...blocks.entries()].map(([key, v]) => ({
+        key, count: v.count, exceeded: [...v.exceeded],
+        last: v.last ? {
+          mode: v.last.mode, phase: v.last.phase, stage: v.last.stage, actor: v.last.actor,
+          usedTokens: v.last.usedTokens, projectedTokens: v.last.projectedTokens,
+          usedCalls: v.last.usedCalls, usedMillis: v.last.usedMillis,
+          limitTokens: v.last.limitTokens, limitCalls: v.last.limitCalls, limitMinutes: v.last.limitMinutes,
+        } : null,
+      })),
     };
     console.log(JSON.stringify(dump, null, 2));
     process.exit(EXIT_OK);
@@ -284,6 +308,20 @@ function main() {
       const l = v.last || {};
       console.log(
         `  ${String(role).padEnd(10)} 建议 ${String(v.count).padStart(3)} 次 | 最近超: ${(v.exceeded.size ? [...v.exceeded].join('+') : '?')} ` +
+        `used=${fmtNum(l.usedTokens)} projected=${fmtNum(l.projectedTokens)} ` +
+        `limit(tokens=${fmtNum(l.limitTokens)} calls=${l.limitCalls} min=${l.limitMinutes}) mode=${l.mode}`);
+    }
+  }
+
+  const blockRows = [...blocks.entries()].sort((a, b) => b[1].count - a[1].count);
+  if (blockRows.length) {
+    console.log('');
+    console.log('── 预算拦截（E1 enforce：超限拦截该角色新调用；聊天栏/事件已明确提示，绝不静默停） ──');
+    for (const [key, v] of blockRows) {
+      const [actor, role] = key.split('|');
+      const l = v.last || {};
+      console.log(
+        `  ${String(actor).padEnd(10)} ${String(role).padEnd(10)} 拦截 ${String(v.count).padStart(3)} 次 | 最近超: ${(v.exceeded.size ? [...v.exceeded].join('+') : '?')} ` +
         `used=${fmtNum(l.usedTokens)} projected=${fmtNum(l.projectedTokens)} ` +
         `limit(tokens=${fmtNum(l.limitTokens)} calls=${l.limitCalls} min=${l.limitMinutes}) mode=${l.mode}`);
     }
