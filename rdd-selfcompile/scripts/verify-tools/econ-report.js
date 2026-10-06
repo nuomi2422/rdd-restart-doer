@@ -12,6 +12,7 @@
  * 数据源：<monitor>/context.jsonl(执行AI) rdd.jsonl(规划) learner.jsonl(学习) ai.jsonl(自编译)
  *         <monitor>/tools.jsonl(工具调用/结果)
  * 事件由 NumenLlmClient 的 llm_usage / llm_response 与 tools.jsonl 产生。
+ * 预算建议来自 budget_advice 事件（E1 shadow，配置 budget-policy.json 后超限才产生）。
  *
  * 用法：
  *   node econ-report.js                         # 默认 live 监控目录，全部历史
@@ -113,24 +114,35 @@ function main() {
 
   // ---- 1) LLM 用量：按 actor|phase|model 聚合 ----
   const llm = new Map();
+  const advice = new Map();
   let llmBad = 0;
   const filesSeen = [];
   for (const f of LLM_FILES) {
     const full = path.join(args.dir, f);
     const r = readJsonl(full, (row) => {
+      const ts0 = Date.parse(row.timestamp);
+      if (!inWindow(Number.isNaN(ts0) ? null : ts0, since, until)) return;
+      if (row.type === 'budget_advice') {
+        const d = row.data || {};
+        const v = add(advice, d.role || '?', () => ({ count: 0, exceeded: new Set(), lastTs: null, last: null }));
+        v.count++;
+        if (Array.isArray(d.exceeded)) for (const k of d.exceeded) v.exceeded.add(k);
+        if (v.lastTs == null || (ts0 != null && ts0 >= v.lastTs)) { v.lastTs = ts0; v.last = d; }
+        return;
+      }
       if (row.type !== 'llm_usage') return;
       const d = row.data || {};
-      const ts = Date.parse(row.timestamp);
-      if (!inWindow(Number.isNaN(ts) ? null : ts, since, until)) return;
+      const ts = ts0;
       const key = `${d.actor || '?'}|${d.phase || '?'}|${d.model || '?'}`;
       const v = add(llm, key, () => ({
-        calls: 0, ok: 0, failed: 0, unknownUsage: 0,
+        calls: 0, ok: 0, failed: 0, unknownUsage: 0, truncated: 0,
         input: 0, output: 0, cacheRead: 0, cacheWrite: 0, fresh: 0, total: 0,
         durationMs: 0, durationMax: 0, toolCalls: 0, attempts: 0,
       }));
       v.calls++;
       if (d.status === 'ok') v.ok++; else v.failed++;
       if (d.usageState === 'UNKNOWN') v.unknownUsage++;
+      if (d.truncated === true) v.truncated++;
       for (const k of ['input', 'output', 'cacheRead', 'cacheWrite', 'freshTokens', 'totalTokens']) {
         if (typeof d[k] === 'number') {
           const t = k === 'freshTokens' ? 'fresh' : k === 'totalTokens' ? 'total' : k;
@@ -206,6 +218,15 @@ function main() {
           durationMax: ds.length ? ds[ds.length - 1] : null,
         };
       }),
+      budgetAdvice: [...advice.entries()].map(([role, v]) => ({
+        role, count: v.count, exceeded: [...v.exceeded],
+        last: v.last ? {
+          mode: v.last.mode, phase: v.last.phase, actor: v.last.actor,
+          usedTokens: v.last.usedTokens, projectedTokens: v.last.projectedTokens,
+          usedCalls: v.last.usedCalls, usedMillis: v.last.usedMillis,
+          limitTokens: v.last.limitTokens, limitCalls: v.last.limitCalls, limitMinutes: v.last.limitMinutes,
+        } : null,
+      })),
     };
     console.log(JSON.stringify(dump, null, 2));
     process.exit(EXIT_OK);
@@ -247,6 +268,25 @@ function main() {
       `cacheR=${fmtNum(totals.cacheRead)} cacheW=${fmtNum(totals.cacheWrite)} fresh=${fmtNum(totals.fresh)} total=${fmtNum(totals.total)} ` +
       `| 模型耗时合计=${fmtMs(totals.durationMs)} | tool_calls提出=${totals.toolCalls}`);
     if (totals.unknownUsage) console.log(`⚠ usage 未知(UNKNOWN)的调用: ${totals.unknownUsage} —— 「没拿到」与「真的是 0」区分开`);
+    const truncRows = llmRows.filter(([, v]) => v.truncated > 0);
+    if (truncRows.length) {
+      const n = truncRows.reduce((a, [, v]) => a + v.truncated, 0);
+      console.log(`⚠ 响应被截断(finish_reason=length): ${n} 次 —— ` +
+        `${truncRows.map(([k, v]) => `${k.split('|').slice(1).join('/')}×${v.truncated}`).join(', ')}（工具调用 JSON 可能不完整）`);
+    }
+  }
+
+  const adviceRows = [...advice.entries()].sort((a, b) => b[1].count - a[1].count);
+  if (adviceRows.length) {
+    console.log('');
+    console.log('── 预算建议（E1 shadow：只建议不拦截；配置 config/numen/budget-policy.json 超限后产生） ──');
+    for (const [role, v] of adviceRows) {
+      const l = v.last || {};
+      console.log(
+        `  ${String(role).padEnd(10)} 建议 ${String(v.count).padStart(3)} 次 | 最近超: ${(v.exceeded.size ? [...v.exceeded].join('+') : '?')} ` +
+        `used=${fmtNum(l.usedTokens)} projected=${fmtNum(l.projectedTokens)} ` +
+        `limit(tokens=${fmtNum(l.limitTokens)} calls=${l.limitCalls} min=${l.limitMinutes}) mode=${l.mode}`);
+    }
   }
 
   console.log('');
