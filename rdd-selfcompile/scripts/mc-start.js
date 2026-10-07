@@ -49,7 +49,7 @@
  *     ④ 日志出现 [rdd] / [numen-llm] 行      ⑤ MCP 8765 可连
  */
 'use strict';
-const { spawn, execFileSync } = require('child_process');
+const { execFileSync } = require('child_process');
 const fs = require('fs');
 
 const ROOT = 'E:/restart developing doer';
@@ -139,18 +139,28 @@ async function main() {
   console.log('');
   console.log('启动 ' + INSTANCE + '（' + MINUTES + ' 分钟后自动关）…');
 
-  // 坑4：哈希表 splat（在 script block 里按名字传参），不用数组 splat
-  // 坑1+2：detached spawn，父进程立刻返回，句柄不继承
-  const cmdLine =
-    '& { param([string]$Instance,[int]$AutoStopMinutes) ' +
-    '  & \'' + LAUNCH + '\' -Instance $Instance -AutoStopMinutes $AutoStopMinutes ' +
-    '} -Instance \'' + INSTANCE + '\' -AutoStopMinutes ' + MINUTES;
-
-  const child = spawn(PS, ['-NoProfile', '-STA', '-ExecutionPolicy', 'Bypass', '-Command', cmdLine], {
-    detached: true, stdio: 'ignore', windowsHide: true,
-  });
-  child.unref();
-  console.log('  已脱离启动（pid ' + child.pid + '）—— 本命令立即返回，不会卡住。');
+  // ★★ 2026-10-07 修（AI 实测踩坑）：**detached spawn 在 opencode 的 Bash 工具下活不过调用方**。
+  //   工具按【进程树】收尾，detached+unref 的子进程一样被连坐杀掉 ——
+  //   现象：mc-start.js / Start-Process / 前台 launch-mc 都说"已启动"，命令一结束游戏就没了
+  //   （latest.log 不长、8765 不开、java 进程不见）。长 timeout 不是解法。
+  //   改用 **WMI 创建进程**：新进程挂在 WmiPrvSE.exe 下、不在调用方的 job 对象里 → 活得下来。
+  //   实测：WMI 创建的进程仍在 **session 1（交互会话）**，游戏窗口正常可见（不是 session 0 黑洞）。
+  //   兜底办法（万一 WMI 不可用）：前台跑 launch-mc.ps1 并把输出重定向到文件
+  //   （`... *> out.txt`）——游戏能起，但调用方可能仍被它的进程树拖住/收掉。
+  const inner = PS + ' -NoProfile -ExecutionPolicy Bypass -File "' + LAUNCH +
+    '" -Instance ' + INSTANCE + ' -AutoStopMinutes ' + MINUTES;
+  const psCreate =
+    '(Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{ CommandLine = \'' +
+    inner + '\' }).ProcessId';
+  let launchedPid = '?';
+  try {
+    launchedPid = execFileSync(PS, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', psCreate],
+      { encoding: 'utf8', timeout: 30000 }).trim();
+  } catch (e) {
+    console.error('[X] WMI 创建启动进程失败: ' + String(e && e.message ? e.message : e).split('\n')[0]);
+    process.exit(1);
+  }
+  console.log('  已脱离启动（WMI pid ' + launchedPid + '，session 1）—— 本命令立即返回，不会被调用方连坐。');
 
   if (WAIT <= 0) {
     console.log('  --wait 0 → 不轮询。查状态： node mc-start.js ' + INSTANCE + ' --status');
