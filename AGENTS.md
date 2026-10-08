@@ -1,4 +1,5 @@
 ## ★★★ 第 −1 条 · 所有 shell 一律后台跑（用户被卡了几十次）
+用户提出要求之后，一律走九步编程流
 
 **任何 shell 命令都不要前台阻塞等待。** 要么用 `Start-Process … -WindowStyle Minimized` 脱离启动，要么让命令自己立刻返回。**加长 timeout 不是解法。**
 
@@ -30,7 +31,7 @@ node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目�
 & "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
 ```
 
-- `-Module`：`plugins:rdd` / `plugins:learner` / `plugins:ac` / `plugins:experience` / `plugins:camera` / `core:neoforge`
+- `-Module`：`plugins:rdd` / `plugins:learner` / `plugins:acx` / `plugins:experience` / `plugins:camera` / `core:neoforge`
 - **改执行层（`core/common` 的类）必须 `-Module core:neoforge`**，默认模块盖不到
 - `-MaxAttempts N` 止损循环 ｜ `-SkipLaunch -SkipMcp` 只编译+部署 ｜ `-AutoStopMinutes N`（默认 120）
 - **一个 mutation 只放一个 jar**（`deploy.ps1` 取 jar 目录下的第一个）→ 多模块要用多个 mutation
@@ -69,7 +70,8 @@ node rdd-selfcompile\scripts\verify-tools\check-runtime-deployment.js    # 退�
 | **node**（stager / loop-gate / stage-heartbeat） | `stager\core\stages.json` 的 `docsRoot` + `docsOut` | ctx 必读清单 · publish 投放到哪 |
 | **PowerShell**（sync-unified-copy / backup-to-removable 等） | `rdd-selfcompile\scripts\config.ps1` 的 `DOCS_ROOT` / `DOCS_UNIFIED` / `DOCS_OUT` | 副本同步 / 备份 |
 
-⚠️ **以前这里写的是「改完跑 stager.js self-check 验 read[] 真实存在」—— 那个命令根本不存在**（真命令是 self-test，验的是状态机不是路径）。g --files 一下 read[] 里的每个路径即可，别照抄不存在的命令。
+⚠️ **以前这里写的是「改完跑 stager.js self-check 验 read[] 真实存在」—— 那个命令根本不存在**（真命令是 self-test，验的是状态机不是路径）。
+g --files 一下 read[] 里的每个路径即可，别照抄不存在的命令。
 
 > 为什么加这条：2026-10-01 知识库搬家（`rdd架构` → `rdd-docs\rdd架构`），**13 处散落硬编码全失配** ——
 > ctx 指向不存在的目录、loop-gate 读不到测试日志、publish 往废弃目录投。

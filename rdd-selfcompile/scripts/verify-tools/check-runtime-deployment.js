@@ -41,7 +41,7 @@ const JAR_TO_MODULE = {
   'numen-plugin-rdd': { dirs: ['plugins/rdd', 'rdd-core'], label: 'RDD 插件(+rdd-core)' },
   'numen-plugin-selfcompile': { dirs: ['plugins/selfcompile'], label: '自编译插件' },
   'numen-plugin-learner': { dirs: ['plugins/learner'], label: '学习者插件' },
-  'numen-plugin-ac': { dirs: ['plugins/ac'], label: 'AC 插件' },
+  'numen-plugin-acx': { dirs: ['plugins/acx'], label: 'ACX 插件' },
   'numen-plugin-experience': { dirs: ['plugins/experience'], label: '经验插件' },
   'numen_api': { dirs: ['api/common', 'ai'], label: 'NumenApi + ai' },
   'numen-neoforge': { dirs: ['core/common'], label: '模组本体' },
