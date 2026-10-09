@@ -1,0 +1,10 @@
+{
+  "id": "mutation-2026-09-24T13-14-14.290286200Z-ad1d1c3f",
+  "requirement": "修复/稳定“右键打开容器 GUI”这一交互能力。现象（有证据）：调 interact_at(button=right) 点容器后 GUI 不打开，共 5 次尝试 4 次失败——箱子 (-155,0,-473) 试 2 次、箱子 (-154,0,-475) 试 2 次、熔炉 (-111,67,-494) 试 1 次；仅 (-154,0,-475) 曾成功打开一次。返回值均为“nothing visibly changed / block=chest|furnace”，随后 inspect_gui 显示没有打开的 GUI，transfer 无法执行。影响：无法装炉烧炼（烤食物、烧木炭做火把）、无法取箱子补给，直接卡死“食物→护甲→夜间刷僵尸”的补给循环。验收标准：对 3 个不同容器（2 个箱子 + 1 个熔炉）各 right-click 一次，每次 inspect_gui 都能看到该容器的槽位；随后 transfer 至少能成功放入 1 件物品并取回 1 件物品。",
+  "state": "WORKSPACE_CREATED",
+  "attempt": 0,
+  "createdAt": "2026-09-24T13:14:14.496992400Z",
+  "workspace": "E:\\.minecraft\\versions\\The Best of Twilight Forest\\config\\numen\\selfcompile\\mutations\\mutation-2026-09-24T13-14-14.290286200Z-ad1d1c3f",
+  "artifact": "",
+  "failure": ""
+}

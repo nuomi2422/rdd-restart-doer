@@ -1,0 +1,10 @@
+{
+  "id": "mutation-2026-08-31T05-28-45.942801700Z-d0fc49d1",
+  "requirement": "需要一个能可靠获取黑曜石(minecraft:obsidian)的专门工具:当前废弃传送门的黑曜石框架,自动挖矿寻路反复报no path out无法到达(已失败6次),手动交互挖下的黑曜石掉落物也捡不起来(collect_items两次返回0);需要一种能无视地形寻路、直接挖掘黑曜石并自动收入背包的能力,目标是凑齐10块黑曜石建造下界传送门。",
+  "state": "WORKSPACE_CREATED",
+  "attempt": 0,
+  "createdAt": "2026-08-31T05:28:46.025651800Z",
+  "workspace": "E:\\.minecraft\\versions\\The Best of Twilight Forest\\config\\numen\\selfcompile\\mutations\\mutation-2026-08-31T05-28-45.942801700Z-d0fc49d1",
+  "artifact": "",
+  "failure": ""
+}

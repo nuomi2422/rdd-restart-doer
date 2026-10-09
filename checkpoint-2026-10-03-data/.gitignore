@@ -1,0 +1,7 @@
+# 运行时快照里夹带的凭证：绝不入库（工程纪律：密钥/凭证不入库）
+# 这些是 2026-10-03 快照时 data/numen-top 下的真实 provider 密钥与 MCP token
+data/numen-top/providers.json
+data/numen-top/providers.json.*
+data/numen-top/mcp_server.json
+# 该会话 chat.jsonl 命中密钥特征，一并排除以免泄露
+data/companions/7a5a9659-e6a1-4d6f-b50d-2cec7fafd1b2/chat.jsonl

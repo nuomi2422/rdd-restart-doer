@@ -9,11 +9,11 @@
  * 指标取自 Codex 审稿建议（按重要性排序），全部从 jsonl 可算：
  *   1. 死亡强度 / 连死率        2. 死亡恢复成功率·耗时
  *   3. 资产损失暴露             4. 有效任务进展（去重）
- *   5. 停滞率                   6. 工具协议失败率
+ *   5. 停滞率                   6. 工具协议失败率（6b 按工具明细：谁在失败、谁永远没结果）
  *   7. 决策延迟 P50/P95         8. 压缩负担
  *
  * 用法：
- *   node survival-eval.js [--since ISO] [--instance gpt|test] [--json] [--compare a.jsonl?]
+ *   node survival-eval.js [--since ISO] [--instance gpt|test] [--top N] [--json] [--compare a.jsonl?]
  */
 
 'use strict';
@@ -123,6 +123,69 @@ function evaluate(dir, sinceMs) {
   m.tool_risk_gate_rejections = riskRej.length;
   m.tool_protocol_fail_rate = calls.length ? pct(protoRej.length, calls.length) : null;
 
+  // ---- 6b. per-tool breakdown ----
+  // Why this block exists: the aggregate "rejected=N" above cannot answer the two questions that
+  // actually locate a broken tool -- WHICH tool, and WHICH reason. It also cannot see the tools
+  // that never fail loudly: the ones that are called hundreds of times and emit no result event
+  // at all, so the logs cannot tell you whether they worked.
+  //
+  // Two traps measured on live data, both of which silently corrupt the numbers:
+  //   1. tool_call_id is NOT unique -- the per-session counter resets, so "mcp-1" is reused
+  //      100+ times. Keying a Map by it under-counts calls by ~20%. Pair by event identity and
+  //      drain a FIFO count per id instead.
+  //   2. A result is truncated to ~303 chars, so JSON.parse always fails; and matching Chinese
+  //      prose like "no background task" against a failure regex reports 96% failure for a tool
+  //      that actually fails 1 time in 1739. Only the declared "success" field decides.
+  const DECLARED = /"success"\s*:\s*(true|false)/;
+  const byTool = {};
+  const open = new Map();                       // tool_call_id -> calls still awaiting a result
+  const drain = id => {
+    if (id == null) return;
+    const n = open.get(id) || 0;
+    if (n <= 1) open.delete(id); else open.set(id, n - 1);
+  };
+  for (const e of ev) {
+    const tool = e.data?.tool;
+    if (!tool) continue;
+    const t = byTool[tool] = byTool[tool] || { calls: 0, results: 0, rejected: 0, failed: 0, loops: 0, reasons: {} };
+    if (e.type === 'tool_call') {
+      t.calls++;
+      const id = e.data?.tool_call_id;
+      if (id != null) open.set(id, (open.get(id) || 0) + 1);
+    } else if (e.type === 'tool_rejected') {
+      t.rejected++;
+      const reason = String(e.data?.reason || '?').slice(0, 120);
+      t.reasons[reason] = (t.reasons[reason] || 0) + 1;
+      drain(e.data?.tool_call_id);
+    } else if (e.type === 'tool_result') {
+      t.results++;
+      const declared = DECLARED.exec(String(e.data?.result ?? ''));
+      if (declared && declared[1] === 'false') t.failed++;   // absent field = not counted as failure
+      drain(e.data?.tool_call_id);
+    } else if (e.type === 'tool_loop') {
+      // Emitted by ToolCallLoopWatch (game side) once the same tool has failed the same way
+      // WARN_AT times in a row. Deliberately NOT a tool_rejected: that one means "this call
+      // failed", this one means "it is repeating" -- mixing them corrupts the reason clusters.
+      t.loops++;
+      const fp = String(e.data?.fingerprint || '?').slice(0, 120);
+      t.reasons['[loop x' + (e.data?.repeat_count ?? '?') + '] ' + fp] =
+        (t.reasons['[loop x' + (e.data?.repeat_count ?? '?') + '] ' + fp] || 0) + 1;
+    }
+  }
+  const toolRows = Object.entries(byTool).map(([tool, v]) => ({
+    tool, ...v,
+    zeroResult: v.calls > 0 && v.results === 0,
+    topReason: Object.entries(v.reasons).sort((a, b) => b[1] - a[1])[0]?.[0] || null,
+  }));
+  m.tools_total = toolRows.length;
+  m.tools_zero_result = toolRows.filter(t => t.zeroResult).map(t => t.tool);
+  m.tools_unpaired_calls = [...open.values()].reduce((a, b) => a + b, 0);
+  m.tool_loop_events = toolRows.reduce((a, t) => a + t.loops, 0);
+  m.tools_in_loop = toolRows.filter(t => t.loops > 0)
+    .sort((a, b) => b.loops - a.loops).map(t => t.tool + ' x' + t.loops);
+  m.tools = toolRows.sort((a, b) =>
+    (b.zeroResult - a.zeroResult) || (b.loops - a.loops) || ((b.rejected + b.failed) - (a.rejected + a.failed)) || (b.calls - a.calls));
+
   // ---- 7. decision latency ----
   const req = ev.filter(e => e.type === 'llm_request');
   const resp = ev.filter(e => e.type === 'llm_response');
@@ -175,6 +238,21 @@ function fmt(m, label) {
   console.log('  --- 6 工具协议 ---');
   console.log('  tool_calls      ' + m.tool_calls + '   rejected=' + m.tool_rejected_total + ' (协议' + m.tool_protocol_failures + ' / 风险门' + m.tool_risk_gate_rejections + ')');
   console.log('  protocol_fail%  ' + m.tool_protocol_fail_rate);
+  console.log('  --- 6b 工具明细（零结果 / 循环排最前）---');
+  console.log('  工具种类        ' + m.tools_total + '   永久零结果=' + (m.tools_zero_result || []).length
+    + (m.tools_zero_result && m.tools_zero_result.length ? '  ' + m.tools_zero_result.join(', ') : '')
+    + '   尾部未配对调用=' + m.tools_unpaired_calls);
+  console.log('  同错循环事件    ' + (m.tool_loop_events || 0)
+    + ((m.tools_in_loop || []).length ? '   ' + m.tools_in_loop.join(', ') : ''));
+  (m.tools || []).slice(0, TOP).forEach(t => console.log('     ' + t.tool.padEnd(24)
+    + ' calls=' + String(t.calls).padStart(5)
+    + ' result=' + String(t.results).padStart(5)
+    + ' rej=' + String(t.rejected).padStart(4)
+    + ' fail=' + String(t.failed).padStart(4)
+    + ' loop=' + String(t.loops || 0).padStart(3)
+    + (t.zeroResult ? '   <== 零结果，从日志判断不出成功没有' : '')
+    + (t.loops ? '   <== 同一错误连拒，模型在原地打转' : '')
+    + (t.topReason ? '   | ' + t.topReason.slice(0, 70) : '')));
   console.log('  --- 7 延迟 ---');
   console.log('  决策延迟        ' + (m.decision_latency ? 'p50=' + m.decision_latency.p50 + ' p90=' + m.decision_latency.p90 + ' max=' + m.decision_latency.max + ' (n=' + m.decision_latency.n + ')' : '(无 durationMs 字段)'));
   console.log('  --- 8 压缩负担 ---');
@@ -186,6 +264,7 @@ const since = val('since');
 // Bare ISO strings parse as LOCAL time in Node; force UTC so --since means what it says.
 const sinceMs = since ? (Date.parse(since.length === 10 ? since + 'T00:00:00Z' : (since.endsWith('Z') ? since : since + 'Z')) || 0) : 0;
 const want = val('instance');
+const TOP = parseInt(val('top') || '12', 10) || 12;
 const targets = want ? [want] : ['gpt', 'test'];
 const results = {};
 for (const inst of targets) results[inst] = evaluate(DIRS[inst], sinceMs);

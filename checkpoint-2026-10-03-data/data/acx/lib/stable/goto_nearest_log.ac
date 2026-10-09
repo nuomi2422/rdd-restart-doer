@@ -1,0 +1,79 @@
+{
+  "name": "goto_nearest_log",
+  "version": "1",
+  "description": "扫半径 48 的原木，用 binder 取最近的一根走过去，再读一次状态。专为「看得见状态机在动」写的演示脚本。",
+  "tags": ["demo", "visible", "loop"],
+  "planner_notes": "演示三段状态转换：① scan_blocks 把结果绑成 $scan.matches ② binder 用 $pick:nearest + $origin:$read.position 从数组里取最近那根的坐标 ③ goto 真的走过去。",
+  "safety_notes": "may_alter_terrain=true —— 被挡住时会挖路（这是故意的：走不动就看不见）。不改方块不建东西，只走。",
+  "steps": [
+    {
+      "id": "read",
+      "block": "get_self_status",
+      "params": {}
+    },
+    {
+      "id": "scan",
+      "block": "scan_blocks",
+      "params": {
+        "block_ids": [
+          "minecraft:oak_log",
+          "minecraft:birch_log",
+          "minecraft:spruce_log",
+          "minecraft:jungle_log",
+          "minecraft:acacia_log",
+          "minecraft:dark_oak_log"
+        ],
+        "radius": 48
+      }
+    },
+    {
+      "id": "has_log",
+      "block": "guard",
+      "params": {
+        "condition": {
+          "field": "$scan.matches.0.block",
+          "op": "!=",
+          "value": null
+        },
+        "message": "半径 48 内没扫到任何原木",
+        "hint": "走到树林边再跑一次"
+      }
+    },
+    {
+      "id": "go",
+      "block": "goto",
+      "params": {
+        "x": {
+          "$from": "$scan.matches",
+          "$filter": { "field": "block", "op": "!=", "value": null },
+          "$pick": "nearest",
+          "$origin": "$read.position",
+          "$take": "x",
+          "$as": "int"
+        },
+        "y": {
+          "$from": "$scan.matches",
+          "$filter": { "field": "block", "op": "!=", "value": null },
+          "$pick": "nearest",
+          "$origin": "$read.position",
+          "$take": "y",
+          "$as": "int"
+        },
+        "z": {
+          "$from": "$scan.matches",
+          "$filter": { "field": "block", "op": "!=", "value": null },
+          "$pick": "nearest",
+          "$origin": "$read.position",
+          "$take": "z",
+          "$as": "int"
+        },
+        "may_alter_terrain": true
+      }
+    },
+    {
+      "id": "after",
+      "block": "get_self_status",
+      "params": {}
+    }
+  ]
+}

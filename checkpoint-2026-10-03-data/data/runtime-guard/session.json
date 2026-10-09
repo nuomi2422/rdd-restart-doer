@@ -1,0 +1,14 @@
+{
+  "version": 1,
+  "game_dir": "E:\\.minecraft\\versions\\The Best of Twilight Forest",
+  "status": "expired",
+  "armed_at": 1790375391.2618196,
+  "duration": 7200,
+  "launch_deadline": 1790376291.2618196,
+  "target": {
+    "pid": 24908,
+    "created": "639259726264828045",
+    "started": 1790375826
+  },
+  "deadline": 1790383026
+}

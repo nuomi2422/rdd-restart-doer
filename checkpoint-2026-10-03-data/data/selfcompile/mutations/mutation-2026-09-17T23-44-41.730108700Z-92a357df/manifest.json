@@ -1,0 +1,10 @@
+{
+  "id": "mutation-2026-09-17T23-44-41.730108700Z-92a357df",
+  "requirement": "缺少\"点击GUI按钮\"的能力:附魔台(EnchantmentMenu)的附魔选项是按钮而非物品槽,interact_at 只能对准世界方块、transfer 只能操作槽位,因此无法按下附魔选项,目标成就 minecraft:story/enchant_item 卡死。需要一个可对已打开GUI的按钮/选项执行点击的能力(例如 click_gui / click_menu_button,参数:按钮索引0-2或屏幕坐标),最好能通用到其他菜单按钮(铁砧、织布机、村民交易等)。",
+  "state": "WORKSPACE_CREATED",
+  "attempt": 0,
+  "createdAt": "2026-09-17T23:44:41.803922800Z",
+  "workspace": "E:\\.minecraft\\versions\\The Best of Twilight Forest\\config\\numen\\selfcompile\\mutations\\mutation-2026-09-17T23-44-41.730108700Z-92a357df",
+  "artifact": "",
+  "failure": ""
+}
