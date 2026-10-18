@@ -57,3 +57,7 @@ rdd-selfcompile/scripts/*.state.*.json
 # ── 本机启动脚本（含绝对路径/端口，按需留）──
 # autostart-dev.ps1 已在库；下面这几个只给本机用
 # Startup/
+
+# ── checkpoint 快照（2026-10-18 清理：85MB 本机数据快照不当源码入库）──
+checkpoint-*/
+AGENTS.backup/

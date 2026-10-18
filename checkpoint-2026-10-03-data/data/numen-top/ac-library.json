@@ -1,1 +1,0 @@
-{"status-overview":{"1":{"name":"status-overview","version":"1","steps":[{"id":"s1","tool":"get_self_status","parameters":{}},{"id":"s2","tool":"rdd_whereami","parameters":{}},{"id":"s3","tool":"rdd_get_inventory","parameters":{}}]}}}
