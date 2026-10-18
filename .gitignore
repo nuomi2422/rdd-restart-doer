@@ -3,6 +3,8 @@ rdd-selfcompile/instances/
 *.cmd
 # stager.bat 依赖 bin/stager.cmd，白名单放行（否则新克隆必报「folder is broken」）
 !stager/bin/stager.cmd
+# packaging 的离线编译启动器也是要跟版本的脚本，白名单放行
+!packaging/templates/build-offline.cmd
 
 # ── 离线 Gradle 发行版（307 个 lib 文件）──
 gradle-9.2.0/

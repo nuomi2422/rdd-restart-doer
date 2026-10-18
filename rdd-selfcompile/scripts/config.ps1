@@ -13,7 +13,9 @@ $global:RDD_SC = [pscustomobject]@{
     PLUGIN_JAR_GLOB = "plugins\selfcompile\build\libs\numen-plugin-selfcompile-*.jar"
     GRADLE          = "E:\restart developing doer\gradle-9.2.0\bin\gradle.bat"
     JAVA_HOME       = "E:\jdk21\jdk-21.0.11+10"
-    GRADLE_OPTS     = "-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=7897 -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=7897"
+    # 2026-10-18: proxy is opt-in now (host switched to direct outbound). Set
+    # RDD_GRADLE_PROXY=<port> to inject the local proxy again; empty = direct.
+    GRADLE_OPTS     = $(if ($env:RDD_GRADLE_PROXY) { "-Dhttp.proxyHost=127.0.0.1 -Dhttp.proxyPort=$($env:RDD_GRADLE_PROXY) -Dhttps.proxyHost=127.0.0.1 -Dhttps.proxyPort=$($env:RDD_GRADLE_PROXY)" } else { "" })
 
     # ── 知识库位置（2026-10-01 新增）────────────────────────────────
     # 为什么放这里：文档原先散在 6+ 处硬编码，知识库一搬家（rdd架构 → rdd-docs\rdd架构）
