@@ -5,18 +5,41 @@
 
 > ⚠️ **含中文路径的 wrapper 一律写 node `.js`，不要用 `.ps1`**（PS 5.1 读 UTF-8 无 BOM 的 `.ps1` 会把中文路径读成乱码，`MODULE_NOT_FOUND`）。
 
+## 第 −0.5 条 · 写作格式不在这里（2026-10-19 拆出去）
+
+**本文件只管「怎么干活」，不管「怎么写文档」。** 进哪个目录干活，先读那个目录的 `_格式规范.md`：
+
+| 你要写 | 读这份 |
+|---|---|
+| 任意目录规划 / 什么该放哪 | `D:\rdd\docs\rdd-docs\rdd架构\目录规范.md` |
+| 先判「写哪一类」 | `…\rdd架构\_格式规范.md` |
+| 项目大事记 | `…\rdd架构\项目历史\_格式规范.md` |
+| 模块架构（含代码↔意图绑定） | `…\rdd架构\模块架构\_格式规范.md` |
+| 红线 tag 回退点 | `…\rdd架构\红线回退\_格式规范.md` |
+| 零散的今天干了啥/下一步 | `…\rdd架构\杂项记录\_格式规范.md` |
+| 起停/端口/备份/救火 | `…\rdd架构\运维\_格式规范.md` |
+| 跨模块的代码解释 | `…\rdd架构\代码解释\_格式规范.md` |
+| 编号文档（NN-xxx） | `…\rdd架构\自编译统一版\_格式规范.md` |
+| harness（registry / 时间锁 / skill） | `D:\rdd\harness\rdd-harness\_格式规范.md` |
+| 代码 / 提交信息 / 脚本头注释 | `D:\rdd\workspace\_格式规范.md` |
+| 给用户看的报告 | `…\rdd存放\_格式规范.md` |
+
+> 为什么拆：以前所有写作规则都堆在这个文件里，结果它越写越胖、换个目录干活的人不知道该按哪个格式写、
+> 规则一改就要动全局文件（已实测丢过 182 行，时间锁 `TL-2026-10-04-03`）。
+> **本文件只保留指针，不复制正文** —— 复制就是下一次漂移的种子。
+
 ## 第 0 条 · 什么时候才走 stage 流
 
 **用户明确说了要开 stage，才走 stage 路线。** 用户没说 → 按普通任务直接做，不要自己套。
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
+node "D:\rdd\workspace\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
 ```
 
 > ### ★ 四阶段流水线 / 阶段必读 / 机器门 / 完成动作 —— **全在 stage.md，本文件不承载**
 >
 > ```text
-> E:\新建文件夹\rddharness\stage.md
+> D:\rdd\harness\rdd-harness\stage.md
 > ```
 >
 > **开 stage 之前不必读它，不开 stage 永远不要读它。**
@@ -28,7 +51,7 @@ node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目�
 ### 1.1 编译只有一个通道（手写 gradle / 手动拷 jar 已被 permission deny，绕不过去）
 
 ```powershell
-& "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
+& "D:\rdd\workspace\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
 ```
 
 - `-Module`：`plugins:rdd` / `plugins:learner` / `plugins:acx` / `plugins:experience` / `plugins:camera` / `core:neoforge`
@@ -101,7 +124,7 @@ g --files 一下 read[] 里的每个路径即可，别照抄不存在的命令�
 
 | 叫法 | 指什么 | 状态 |
 |---|---|---|
-| **live** | `E:\.minecraft\versions\The Best of Twilight Forest` | ✅ **唯一在用** —— 用户口中的「live」就是它 |
+| **live** | `D:\rdd\mc\The Best of Twilight Forest` | ✅ **唯一在用** —— 用户口中的「live」就是它 |
 | ~~gpt~~ | **同一个目录**，只是脚本参数名（`config.ps1` 的 `ValidateSet('test','gpt')`） | 别当成另一个实例 |
 | ~~test~~ | `rdd-selfcompile\instances\test` | ❌ **已停用**，不计入任何债 |
 
@@ -126,7 +149,7 @@ g --files 一下 read[] 里的每个路径即可，别照抄不存在的命令�
 
 ### ⚠ 套娃仓库（本工作区有 6 个 git 仓库）
 
-外层 `E:\restart developing doer` 有一个，另有 5 个套娃：`minecraft-numen`（真源）、
+外层 `D:\rdd\workspace` 有一个，另有 5 个套娃：`minecraft-numen`（真源）、
 `rdd-selfcompile\ai-bridge`、`rdd-monitor-publish-20260913`、`mc-openclaw-controller`、`voyager`。
 
 **外层 `.gitignore` 排掉了它们**（理由：提交只会存成 gitlink 指针，克隆外层拿不到内容）。
@@ -157,16 +180,17 @@ HEAD / 脏项 / 推没推 / 有没有远程 / 是不是浅克隆）。**跨仓�
 
 ---
 
-## 第 4 条 · AI 工程脚手架 RDD Harness（`E:\新建文件夹\rddharness\`）
+## 第 4 条 · AI 工程脚手架 RDD Harness（`D:\rdd\harness\rdd-harness\`）
 
 **= 工具注册表 + 编程规范 + 两段门禁 + 时间锁。** 独立 git 仓库 `nuomi2422/rdd-harness`（私有）。
 
 ```powershell
-node "E:\新建文件夹\rddharness\bin\harness-gate.js" preflight --since <今天> --keyword <模块> --head <HEAD>
-node "E:\新建文件夹\rddharness\bin\harness-gate.js" postflight --since <今天> --keyword <模块> --head <HEAD>
+node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" selftest
+node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" preflight --since <今天> --keyword <模块> --head <HEAD>
+node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" postflight --since <今天> --keyword <模块> --head <HEAD>
 ```
 
-- **`registry.json`** = 唯一真源（61 工具 / 12 项 preflight / 11 项 postflight / 6 条时间锁 / 编号规则 / 9 个已知 bug）
+- **`registry.json`** = 唯一真源（74 工具 / 13 项 preflight / 12 项 postflight / 10 条时间锁 / 编号规则 / 10 个已知 bug）
 - **`standards.md`** = 编程规范唯一真源（8 域 40 条带 id）；`rdd-docs\…\01-工程规范.md` 是它的镜像
 - **`进游戏前必读-游戏内能力清单.md`** = **进游戏之前必读一遍**（游戏里有哪些能力 + 正确调用姿势 + 坑）
 - **`stage.md`** = ★ stage 流（**只在开 stage 时读**）
@@ -174,43 +198,70 @@ node "E:\新建文件夹\rddharness\bin\harness-gate.js" postflight --since <今
 
 > **总结 / 复盘 / 经验文档一律写 `rdd-docs\rdd架构\`，不写进 harness 目录。**
 
+### 4.1 进游戏 / 退游戏的标准动作（2026-10-19 明确）
+
+| 时机 | 必做 |
+|---|---|
+| **进游戏前** | ①读能力清单 ②`preflight` → `BLOCK=0` ③**建验证卡（判据先写死）**到 `rdd架构\实机验证\YYYY-MM.md` ④起游戏 |
+| **退游戏后** | ①`postflight` ②回填验证卡（结果/**原因**/复现） ③`杂项记录\` 加一行 ④确认 java 进程归零 ⑤新坑写记忆库 |
+
+> ⚠️ 只编译没进游戏 = 🟡「已写码未实测」，**不是** ✅ 已完成。
+> ⚠️ 验证卡**不许验完再补判据** —— 那是拿结果改标准。
+
 **三份知识/资产库各管一段**：
 
 | 库 | 远程 | 装什么 |
 |---|---|---|
-| `E:\新建文件夹\rdd-docs\` | `nuomi2422/rdd-docs` | **设计+规范+叙事的真源**（70 份编号文档）+ 用户要看的东西（`rdd存放\`） |
-| `E:\新建文件夹\rddharness\` | `nuomi2422/rdd-harness` | **注册表 / 规范契约 / 门禁 / 时间锁 / stage 流 / 实测档案** |
+| `D:\rdd\docs\rdd-docs\` | `nuomi2422/rdd-docs` | **设计+规范+叙事的真源**（70 份编号文档 + 七类活文档）+ 用户要看的东西（`rdd存放\`） |
+| `D:\rdd\harness\rdd-harness\` | `nuomi2422/rdd-harness` | **注册表 / 规范契约 / 门禁 / 时间锁 / stage 流 / 实测档案** |
 | 外层 + 5 个套娃 | 各自 | 代码 |
 
 ---
 
 ## 第 5 条 · 交接与资产
 
-- **接手先看**：`E:\新建文件夹\rdd-docs\rdd架构\self-compile-handoff.md`
+- **接手先看**：`D:\rdd\docs\rdd-docs\rdd架构\self-compile-handoff.md`
 - **换人接手**：`node stager\bin\stager.js swap "<你的名字>"` → `stager ctx --full`
-- **规则正文全在** `E:\新建文件夹\rdd-docs\rdd架构\自编译统一版\`
+- **规则正文全在** `D:\rdd\docs\rdd-docs\rdd架构\自编译统一版\`
 - 想解决 X 该读哪份 → `50-按主题导航.md` ｜ 那天他究竟做了什么 → `51-研发叙事时间线.md`
 - **文档里的行号会漂** —— 想知道准不准，跑
-  `node rdd-selfcompile\scripts\verify-tools\check-doc-anchor-drift.js --docs "E:\新建文件夹\rdd-docs\rdd架构" --src "E:\restart developing doer\minecraft-numen"`
+  `node rdd-selfcompile\scripts\verify-tools\check-doc-anchor-drift.js --docs "D:\rdd\docs\rdd-docs\rdd架构" --src "D:\rdd\workspace\minecraft-numen"`
 
 ### ★ 用户只看这一个地方
 
 ```text
-E:\新建文件夹\rdd-docs\rdd存放\
+D:\rdd\docs\rdd-docs\rdd存放\
 ```
 
 ### 全目录分工（别搞混）
 
 | 目录 | 谁用 |
 |---|---|
-| `E:\新建文件夹\rdd-docs\rdd存放\` | **用户** —— 要看、要用、要点的，**全部放这里** |
-| `E:\新建文件夹\rdd-docs\rdd架构\` | AI —— 设计+规范+叙事的真源 |
-| `E:\新建文件夹\rddharness\` | AI —— 注册表 / 门禁 / stage 流（**不放总结**） |
+| `D:\rdd\docs\rdd-docs\rdd存放\` | **用户** —— 要看、要用、要点的，**全部放这里** |
+| `D:\rdd\docs\rdd-docs\rdd架构\` | AI —— 设计+规范+叙事的真源 |
+| `D:\rdd\harness\rdd-harness\` | AI —— 注册表 / 门禁 / stage 流（**不放总结**） |
 | `rdd-selfcompile\report\` | AI —— 外脑审稿原文（W 池回复也归档到这） |
 | `rdd-selfcompile\scripts\` | AI —— 闭环真源，**改动要用户批准** |
 | `rdd-selfcompile\scripts\verify-tools\` | AI —— 验证工具 |
 | `rdd-selfcompile\mutations\` | AI —— 每次变异的临时工作区（**用户别翻**） |
-| `stager\` | AI —— 阶段状态机 |
+| `stager\` | AI —— 阶段状态机（**桌宠源码在 `stager\pet\`，harness 里那批 `.bat` 只是启动台副本**） |
+| `D:\rdd\tools\mcp-memory\` | AI —— MCP 记忆库（库文件在 `rdd架构\_memory\memory.jsonl`） |
+
+### 七类文档在哪（2026-10-19 建，**都是文件夹**，别再各写各的）
+
+| 要写 | 去哪 |
+|---|---|
+| 项目大事记（时间/为什么/代价） | `rdd架构\项目历史\`（`YYYY-MM至MM-主题.md`，追加） |
+| 某模块的架构全景 | `rdd架构\模块架构\<模块>.md` |
+| 红线 tag 回退点 | `rdd架构\红线回退\索引-按红线.md`（追加） |
+| 零散的今天干了啥/下一步 | `rdd架构\杂项记录\YYYY-MM.md`（`#NNN`，追加） |
+| 起停/端口/备份/救火 | `rdd架构\运维\总览.md` |
+| 跨模块的代码↔意图绑定 | `rdd架构\代码解释\`（模块内的写模块文档 §8） |
+| **实机验证（进游戏）** | `rdd架构\实机验证\YYYY-MM.md`（判据/原因/数据/结果/复现，**进游戏前建卡**） |
+
+> 每个文件夹里都有自己的 `_格式规范.md`；**进目录先读它**，别回头翻本文件。
+> 「定时写文档」的真实含义：**上面每个事件发生时就写**（完成一件事 → 杂项记录；
+> 退游戏 → 验证卡；踩坑 → 时间锁 + 记忆库），不是按闹钟写。
 
 > `rdd-selfcompile\给用户\` 已废弃（内容已归到 `rdd存放`）。
 > `rdd架构\特殊模式\` 已废弃：原目录移到 `_废弃-特殊模式-20260930\`（68 个文件都在，没删），
