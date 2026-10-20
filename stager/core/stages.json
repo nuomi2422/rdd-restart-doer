@@ -41,6 +41,7 @@
     "plan": "计划书（GPT-6 出 → opencode 整合 → GPT-6 复核，三轮定稿）",
     "arch": "★最终架构文档（定稿后冻结，所有 AI 必读，防跑偏）",
     "review": "互审纪要（W 池 + Codex 审稿原文）",
+    "contract": "交付契约（本轮承诺做到什么、判据是什么；STAGER.md 的关档底线要求它与 evidence 同时在案）",
     "code": "实现说明（改了什么、怎么调的、入口出口）",
     "evidence": "验证证据（命令 + 关键输出 + 时间戳 + 画面/日志路径）",
     "experience": "工程经验（要灌进 memory MCP 的条目）",
