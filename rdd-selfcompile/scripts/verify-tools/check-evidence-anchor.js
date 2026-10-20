@@ -42,6 +42,15 @@ const EXIT_USAGE = 3;
 
 const DEFAULT_CARDS = 'D:\\rdd\\docs\\rdd-docs\\rdd架构\\实机验证';
 const DEFAULT_MONITOR = 'D:\\rdd\\mc\\The Best of Twilight Forest\\config\\numen\\monitor';
+// 证据不只躺在 monitor 里：
+//   report\         ← deploy-ledger.jsonl（H4 部署流水）、w-replies 等
+//   mutations\      ← 每次变异的 phase-*.json（含 jar sha）
+// 只搜 monitor 会把「引用部署流水」判成 MISSING_FILE —— 假警报比没检查更糟，
+// 它会教人忽略告警（2026-10-20 实测踩到）。
+const DEFAULT_EXTRA_ROOTS = [
+  'D:\\rdd\\workspace\\rdd-selfcompile\\report',
+  'D:\\rdd\\workspace\\rdd-selfcompile\\mutations',
+];
 
 // 引文最短长度：太短的（如 `numen_context`）不当作「原文证据」来核对，
 // 否则满屏假阳性。要求够长且带中文/数量符，才说明是真正的取证片段。
@@ -60,11 +69,12 @@ const HELP = `用法：
 退出码：0 全 OK ／ 2 有确定问题 ／ 3 用法或环境错`;
 
 function parseArgs(argv) {
-  const o = { cards: DEFAULT_CARDS, monitor: DEFAULT_MONITOR, card: null, verbose: false, selftest: false, json: false, help: false };
+  const o = { cards: DEFAULT_CARDS, monitor: DEFAULT_MONITOR, extra: [], card: null, verbose: false, selftest: false, json: false, help: false };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
     if (a === '--cards') o.cards = argv[++i];
     else if (a === '--monitor') o.monitor = argv[++i];
+    else if (a === '--extra') o.extra.push(argv[++i]);
     else if (a === '--card') o.card = argv[++i];
     else if (a === '--verbose' || a === '-v') o.verbose = true;
     else if (a === '--selftest') o.selftest = true;
@@ -266,6 +276,16 @@ function main() {
   }
 
   const idx = indexJsonl(opt.monitor);
+  // 把额外根（report\、mutations\）也建进索引，否则引用部署流水会假警报
+  const extraRoots = opt.extra.length ? opt.extra : DEFAULT_EXTRA_ROOTS;
+  for (const r of extraRoots) {
+    if (!fs.existsSync(r)) continue;
+    const sub = indexJsonl(r);
+    for (const [k, v] of sub) {
+      if (!idx.has(k)) idx.set(k, []);
+      for (const p of v) if (!idx.get(k).includes(p)) idx.get(k).push(p);
+    }
+  }
   let cards = fs.readdirSync(opt.cards).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
   if (opt.card) cards = cards.filter((f) => f === opt.card);
   if (cards.length === 0) { console.error('[env] 没找到可查的卡'); return EXIT_USAGE; }

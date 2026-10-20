@@ -153,9 +153,22 @@ if ($Rounds -gt 0) {
         }
     } | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath $reviewFile -Encoding UTF8
 
+    # 直接生成审核包（只读产物，不含自评）—— 让审核者拿到的不是「一句话请求」，
+    # 而是一份能立刻判断的材料：判据 + 验证卡 + 部署流水 + 代码提交 + 证据坐标检查。
+    $packPath = ""
+    $reviewer = Join-Path $PSScriptRoot "verify-tools\review-batch.js"
+    if ((Test-Path $reviewer) -and $env:RDD_BATCH_ID) {
+        $packOut = & node $reviewer --batch $env:RDD_BATCH_ID 2>&1
+        $packOut | Select-Object -Last 4 | ForEach-Object { Write-Output "  $_" }
+        $packPath = ($packOut | Where-Object { $_ -match '\.md$' } | Select-Object -First 1)
+    } elseif (-not $env:RDD_BATCH_ID) {
+        Write-Output "  ⚠ 没传 -BatchId，跳过审核包生成（批次号是审核包的主键，不许猜）"
+    }
+
     Write-Output ""
     Write-Output "════════ 多轮模式：本轮结束，还剩 $nextRound 轮 ════════"
-    Write-Output "  ★ 换轮前先开审核（提示已落盘：$reviewFile）"
+    Write-Output "  ★ 换轮前先开审核（请求已落盘：$reviewFile）"
+    if ($packPath) { Write-Output "  ★ 审核包已生成：$($packPath.Trim())" }
     Write-Output "     审什么：批次卡判据 vs 实机证据 vs 代码绑定，出「作品 bug / harness 债」两类结论"
     Write-Output "     为什么换轮前审：带着未发现的偏差进下一轮，偏差会复利"
     Write-Output "  ▶ 下一轮：run-mutation.ps1 -Round $($Round + 1) -Rounds $nextRound $(if ($BatchId) { "-BatchId $BatchId" })"
