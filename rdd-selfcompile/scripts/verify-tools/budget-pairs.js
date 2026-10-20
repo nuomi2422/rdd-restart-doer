@@ -113,8 +113,9 @@ function main(argv) {
       max: ratios.length ? ratios[ratios.length - 1] : null,
       min: ratios.length ? ratios[0] : null,
     },
-    // 想把 P90 压到 TARGET_P90，当前 1.5 的系数应当乘多少
+    // 想把 P90 压到 TARGET_P90，budget-policy.json 的 estimateMultiplier 该取多少
     suggestedFactorMultiplier: ratios.length ? Number(((TARGET_P90 / pct(ratios, 90)) * 1).toFixed(3)) : null,
+    suggestedEstimateMultiplier: ratios.length ? Number((TARGET_P90 / pct(ratios, 90)).toFixed(3)) : null,
     sampleOk: pairs.length >= 30,
     p90Ok: ratios.length ? pct(ratios, 90) <= TARGET_P90 : false,
   };
@@ -128,8 +129,11 @@ function main(argv) {
     if (out.pairs) {
       console.log(`est/actual 比值：min=${out.ratio.min.toFixed(2)}  P50=${out.ratio.median.toFixed(2)}` +
         `  P90=${out.ratio.p90.toFixed(2)}  P95=${out.ratio.p95.toFixed(2)}  max=${out.ratio.max.toFixed(2)}`);
-      console.log(`要把 P90 压到 ${TARGET_P90}：估算系数应乘 ${out.suggestedFactorMultiplier}` +
-        `（当前 LIMIT_SAFETY_FACTOR=1.5 → 建议 ${(1.5 * out.suggestedFactorMultiplier).toFixed(2)}）`);
+      // 2026-10-21 改判：校准旋钮是 budget-policy.json 的 estimateMultiplier（热重载），
+      // 不是 CompactSplit.LIMIT_SAFETY_FACTOR（那把尺同时管 replay 窗口与压缩闸，不参与预算判额）。
+      console.log(`要把 P90 压到 ${TARGET_P90}：把 budget-policy.json 的 "estimateMultiplier" 设为 ` +
+        `${out.suggestedEstimateMultiplier}（当前未配置 = 1.0）`);
+      console.log(`（历史口径备查：CompactSplit.LIMIT_SAFETY_FACTOR=1.5 不参与预算判额，别改它来调预算）`);
       console.log(`S100：样本 ${out.sampleOk ? 'OK' : '不足'} / P90 ${out.p90Ok ? 'OK' : '超标'}`);
     }
   }
