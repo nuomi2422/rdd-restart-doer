@@ -61,3 +61,9 @@ rdd-selfcompile/scripts/*.state.*.json
 # ── checkpoint 快照（2026-10-18 清理：85MB 本机数据快照不当源码入库）──
 checkpoint-*/
 AGENTS.backup/
+
+# ── 临时产物（2026-10-21 清账时发现未跟踪）────────────────────────────
+# .tmp/ 是会话临时脚本/探针/解包（AGENTS.md 里写明「随便改，可删」）；
+# .tmp-agents-msg.txt 是一次性消息草稿。两者都属运行产物，不该入库。
+.tmp/
+.tmp-*
