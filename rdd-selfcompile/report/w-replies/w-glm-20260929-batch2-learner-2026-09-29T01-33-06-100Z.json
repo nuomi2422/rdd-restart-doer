@@ -1,7 +1,7 @@
 # W 层外脑原始回复 · glm · 2026-09-29（第二批 v1 学习者架构审查）
 
 - 平台：glm（网页免费模型，playwright 直驱 w-brain-drive.js）
-- 原始文件：E:\新建文件夹\rdd架构\特殊模式\_w-replies\glm-2026-09-29T01-33-06-100Z.json
+- 原始文件：D:\rdd\extras\rdd架构\特殊模式\_w-replies\glm-2026-09-29T01-33-06-100Z.json
 - 抓取方式：node w-brain-drive.js ask <plat> "<问题>" / askall
 - 字符数：860
 

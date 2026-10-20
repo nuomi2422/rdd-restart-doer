@@ -1,8 +1,8 @@
 'use strict';
 // 合并后自检：全局卡 vs 工作区 B 版，条款齐全 + 无残留矛盾措辞
 const fs = require('fs');
-const G = 'C:/Users/lenovo/.config/opencode/AGENTS.md';
-const B = 'E:/restart developing doer/AGENTS.md';
+const G = 'C:/Users/admin/.config/opencode/AGENTS.md';
+const B = 'D:/rdd/workspace/AGENTS.md';
 const g = fs.readFileSync(G, 'utf8');
 const b = fs.readFileSync(B, 'utf8');
 

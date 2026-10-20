@@ -1,7 +1,7 @@
 {
   "tag": "deepseek",
   "meta": {
-    "q": "--file E:\\restart developing doer\\rdd-selfcompile\\report\\w-question-test.txt",
+    "q": "--file D:\\rdd\\workspace\\rdd-selfcompile\\report\\w-question-test.txt",
     "url": "https://chat.deepseek.com/a/chat/s/9e6bdb91-b918-4346-a2ce-e0ebfac46a69"
   },
   "text": "请把文件内容直接粘贴到对话里，或者上传该文件，我就可以帮你查看、分析或处理。",

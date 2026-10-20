@@ -11,7 +11,7 @@
 ## 第 0 条 · 硬门（任何工程任务的第一动作，不许跳过）
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
+node "D:\rdd\workspace\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
 ```
 
 **开工前必须报 stage。** 没开 stage 就动手 = 这一轮作废。
@@ -20,7 +20,7 @@ node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目�
 没被注入就手动跑一次：
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" ctx
+node "D:\rdd\workspace\stager\bin\stager.js" ctx
 ```
 
 `ctx` 里有三样东西，**每次动手前都要看**：
@@ -57,9 +57,9 @@ node "E:\restart developing doer\stager\bin\stager.js" ctx
 ### ① 计划统筹 · 必读
 
 ```
-E:\新建文件夹\rdd架构\自编译统一版\10-总流程与双模式.md
-E:\新建文件夹\rdd架构\自编译统一版\01-工程规范.md
-E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+D:\rdd\extras\rdd架构\自编译统一版\10-总流程与双模式.md
+D:\rdd\extras\rdd架构\自编译统一版\01-工程规范.md
+D:\rdd\extras\rdd架构\自编译统一版\30-主要功能不回退清单.md
 ```
 
 **★ 目标分流（先判，判完写进目标书 `stager put --kind goal`）**
@@ -127,15 +127,15 @@ Codex 是 read-only 沙箱问答，比 GPT-6 便宜，**拿不准先问它**。
 ### ② 编码实现 · 必读
 
 ```
-E:\新建文件夹\rdd架构\自编译统一版\01-工程规范.md   （八项全表）
-E:\新建文件夹\rdd架构\自编译统一版\11-模块化回滚.md
-E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+D:\rdd\extras\rdd架构\自编译统一版\01-工程规范.md   （八项全表）
+D:\rdd\extras\rdd架构\自编译统一版\11-模块化回滚.md
+D:\rdd\extras\rdd架构\自编译统一版\30-主要功能不回退清单.md
 ```
 
 **入口只有一个（手写 gradle / 手动拷 jar 已被 permission deny，绕不过去）：**
 
 ```powershell
-& "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
+& "D:\rdd\workspace\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
 ```
 
 - `-Module`：`plugins:rdd` / `plugins:learner` / `plugins:ac` / `plugins:experience` / `core:neoforge`
@@ -148,15 +148,15 @@ E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.m
 ### ③ 游戏验证 · 必读（**这一阶段规范最多**）
 
 ```
-E:\新建文件夹\rdd架构\自编译统一版\12-进游戏验证工具集.md    ← 工具/脚本全在这
-E:\新建文件夹\rdd架构\自编译统一版\04-进游戏巡检规范.md    ← 四层监察
-E:\新建文件夹\rdd架构\自编译统一版\13-监测台与巡检.md
+D:\rdd\extras\rdd架构\自编译统一版\12-进游戏验证工具集.md    ← 工具/脚本全在这
+D:\rdd\extras\rdd架构\自编译统一版\04-进游戏巡检规范.md    ← 四层监察
+D:\rdd\extras\rdd架构\自编译统一版\13-监测台与巡检.md
 ```
 
 **开游戏**
 
 ```powershell
-& "E:\restart developing doer\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 120
+& "D:\rdd\workspace\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 120
 ```
 
 - **默认 2 小时**
@@ -181,8 +181,8 @@ E:\新建文件夹\rdd架构\自编译统一版\13-监测台与巡检.md
 **★ 验证自己的剧本（OpenClaw 路线）**
 
 ```powershell
-node "E:\restart developing doer\mc-openclaw-controller\scripts\server.js"    # 8080
-node "E:\restart developing doer\mc-openclaw-controller\scripts\oc-drive.js"   # 键鼠/感知/截图
+node "D:\rdd\workspace\mc-openclaw-controller\scripts\server.js"    # 8080
+node "D:\rdd\workspace\mc-openclaw-controller\scripts\oc-drive.js"   # 键鼠/感知/截图
 ```
 
 1. **自己用创造模式** + **用使命**（command/goal）**搭建环境**
@@ -212,7 +212,7 @@ node "E:\restart developing doer\mc-openclaw-controller\scripts\oc-drive.js"   #
 **★ 哪里不方便就自己写工具（统一放一个文件夹）**
 
 ```text
-E:\restart developing doer\rdd-selfcompile\scripts\verify-tools\
+D:\rdd\workspace\rdd-selfcompile\scripts\verify-tools\
 ```
 
 | 规矩 | 说明 |
@@ -230,9 +230,9 @@ E:\restart developing doer\rdd-selfcompile\scripts\verify-tools\
 ### ④ 记录收口 · 必读
 
 ```
-E:\新建文件夹\rdd架构\自编译统一版\06-检查清单.md      ← 收工段逐条打勾
-E:\新建文件夹\rdd架构\自编译统一版\01-工程规范.md      ← 第 8 条：写工程经验
-E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.md
+D:\rdd\extras\rdd架构\自编译统一版\06-检查清单.md      ← 收工段逐条打勾
+D:\rdd\extras\rdd架构\自编译统一版\01-工程规范.md      ← 第 8 条：写工程经验
+D:\rdd\extras\rdd架构\自编译统一版\30-主要功能不回退清单.md
 ```
 
 **① 记录经验 → 灌进 memory MCP**
@@ -248,9 +248,9 @@ E:\新建文件夹\rdd架构\自编译统一版\30-主要功能不回退清单.m
 **④ 机器门（两个都要过）**
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" check
-node "E:\restart developing doer\rdd-selfcompile\scripts\loop-gate.js" --since <今天> --keyword <模块> --head <本轮HEAD>
-node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
+node "D:\rdd\workspace\stager\bin\stager.js" check
+node "D:\rdd\workspace\rdd-selfcompile\scripts\loop-gate.js" --since <今天> --keyword <模块> --head <本轮HEAD>
+node "D:\rdd\workspace\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
 ```
 
 `flow-gate` 输出 `VERDICT=NOT_DONE` → **不许收工、不许上报完成**。
@@ -375,7 +375,7 @@ W 层用 node scripts\w-brain-drive.js askall "<问题>"  →  rdd架构\brain-r
 | `mc-openclaw-controller\` | OpenClaw **客户端玩家控制器**（8080，键鼠/感知/截图）。**不经 Numen MCP → 同伴 AI 照常跑** | `scripts\server.js` + `oc-drive.js` |
 | `gradle-9.2.0\` | 离线 Gradle 发行版 | `gradle-9.2.0\bin\gradle.bat` |
 
-**真正的规则正文在** `E:\新建文件夹\rdd架构\自编译统一版\`（`INDEX.md` → `README.md`）。
+**真正的规则正文在** `D:\rdd\extras\rdd架构\自编译统一版\`（`INDEX.md` → `README.md`）。
 本文件是**可执行的那一份**：阶段 + 门禁 + 必读 + 判据。正文细节去那 39 份里查。
 
 ---
@@ -385,7 +385,7 @@ W 层用 node scripts\w-brain-drive.js askall "<问题>"  →  rdd架构\brain-r
 **凡是「用户要看」或「用户要用」的，一律放这一个文件夹：**
 
 ```text
-E:\restart developing doer\rdd-selfcompile\给用户\
+D:\rdd\workspace\rdd-selfcompile\给用户\
 ├── 报告\    ← 这轮做完的总结报告
 ├── 工具\    ← 给用户用的工具（双击能跑那种）
 ├── 截图\    ← 验证过程的画面证据
@@ -404,7 +404,7 @@ E:\restart developing doer\rdd-selfcompile\给用户\
 | 报告要写人话 | 用户要的是「结论 + 怎么用」，不是内部术语堆砌 |
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" publish "<文件>" --as report|tool|shot|doc --title "<标题>"
+node "D:\rdd\workspace\stager\bin\stager.js" publish "<文件>" --as report|tool|shot|doc --title "<标题>"
 ```
 
 ### 全目录分工（别搞混）
@@ -445,7 +445,7 @@ node "E:\restart developing doer\stager\bin\stager.js" publish "<文件>" --as r
 
 ## 第 10 条 · 交接与资产
 
-- **接手先看**：`E:\新建文件夹\rdd架构\self-compile-handoff.md`
+- **接手先看**：`D:\rdd\extras\rdd架构\self-compile-handoff.md`
 - **stager 自己的交接**：`stager\STAGER.md`（给 AI）+ `stager\README.md`（给人）
 - **换人接手**：`stager swap "<你的名字>"` → `stager ctx --full`（把历史文档全文注入给你）
 - **桌宠**：`stager\启动桌宠.bat` 或 `stager pet`；点一下报「阶段 (n/4) / 第几轮 / 轮回几次 / 人次 / 门禁」

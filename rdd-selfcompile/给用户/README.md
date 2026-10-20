@@ -28,7 +28,7 @@
 **AI 放东西进来时应该**：用 `stager publish`（会自动登记到 `INDEX.md`），不要手写。
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" publish "<文件>" --as report|tool|shot|doc --title "<标题>"
+node "D:\rdd\workspace\stager\bin\stager.js" publish "<文件>" --as report|tool|shot|doc --title "<标题>"
 ```
 
 ## 索引

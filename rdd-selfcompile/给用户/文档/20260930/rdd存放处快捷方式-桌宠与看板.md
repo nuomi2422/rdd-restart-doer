@@ -1,6 +1,6 @@
 # rdd 存放处新增的快捷方式（2026-09-30）
 
-放在 **`E:\restart developing doer\rdd-selfcompile\`** 根目录，双击就能用。
+放在 **`D:\rdd\workspace\rdd-selfcompile\`** 根目录，双击就能用。
 
 ## 桌宠小人
 
@@ -9,7 +9,7 @@
 | **`stager-pet.bat`** | **起桌宠**。已经在跑就报「已在运行，不重复启动」，**不会叠出两只** |
 | **`stop-stager-pet.bat`** | 关桌宠 |
 
-配套实现：`E:\restart developing doer\stager\pet\pet-launch.ps1`
+配套实现：`D:\rdd\workspace\stager\pet\pet-launch.ps1`
 
 ```
 点它   = 看阶段 / 轮次 / 轮回 / 人次 / 门禁
@@ -57,7 +57,7 @@
 
 ```powershell
 # 错的 —— 桌宠静默起不来
-Start-Process powershell.exe -ArgumentList @('-File', 'E:\restart developing doer\stager\pet\start-pet.ps1')
+Start-Process powershell.exe -ArgumentList @('-File', 'D:\rdd\workspace\stager\pet\start-pet.ps1')
 #                                    从 "restart" 那里就断了 ↓
 ```
 

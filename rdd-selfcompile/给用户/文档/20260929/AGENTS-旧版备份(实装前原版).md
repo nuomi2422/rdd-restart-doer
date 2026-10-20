@@ -1,4 +1,4 @@
-# 工作区规则薄壳 · E:\restart developing doer
+# 工作区规则薄壳 · D:\rdd\workspace
 
 ## ★★★ 开工第 0 件事（硬门 · 2026-09-29 加 · 不改这里就等于没开工）★★★
 
@@ -7,18 +7,18 @@
 
 ```text
 ① 本任务走的是【自编译闭环】，入口只有一个（禁止手写 gradle / 手动拷 jar）：
-     & "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "你的需求"
+     & "D:\rdd\workspace\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "你的需求"
    （单轮：new-mutation → gen-code → build-jar → deploy → verify → verdict.json；
      止损循环用 -MaxAttempts N；只编译不跑游戏用 -SkipLaunch -SkipMcp）
 
 ② 收工前必须让机器门放行（不过 = 不许说"走完流程了"）：
-     node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
+     node "D:\rdd\workspace\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
    → 输出 VERDICT=NOT_DONE 就回去补，别上报完成。
 ```
 
 **为什么写在这里**：这条曾反复被绕过（AI 只"读过"文档，不"走"流程）。**读 §开工必读 ≠ 走了流程。**
 
-> ★ **接手先看交接**：`E:\新建文件夹\rdd架构\self-compile-handoff.md`
+> ★ **接手先看交接**：`D:\rdd\extras\rdd架构\self-compile-handoff.md`
 > （当前状态 / 红线锚点 / 待办与未验证 / 正确流程 / 踩坑清单 / 文档索引 —— 不靠口头上下文即可接手）
 
 ---
@@ -30,11 +30,11 @@
 
 ## 开工必读（按序，缺一不可）
 
-1. **全局规则卡（真身·全文读）**：`C:\Users\lenovo\.config\opencode\AGENTS.md`
+1. **全局规则卡（真身·全文读）**：`C:\Users\admin\.config\opencode\AGENTS.md`
    含：〇-a 开工第一句硬门（开口自报）/ 一·九步流九规范 / 二·关 MCP 止投 / 三·分工链 / 四·记录改动 / 七·暗号索引 / 八·外脑 / 九·维护体检 / 十·监测台 / 末尾完成检查索引。
 2. **本薄壳**（工作区地图 + 运行时要点，即本文件）。
 3. **统一版必读 4 份（★ 少一份 = 无授权；其余 18 份按需才开，绝不整目录全读）**：
-   `E:\新建文件夹\rdd架构\自编译统一版\INDEX.md` → `README.md` → `01-工程规范.md` → `10-总流程与双模式.md`
+   `D:\rdd\extras\rdd架构\自编译统一版\INDEX.md` → `README.md` → `01-工程规范.md` → `10-总流程与双模式.md`
 4. **★ 收工必读 + 必跑（验收门）**：`06-检查清单.md` —— 开工/过程/收工/进游戏四段**逐条勾**。
    **收工第 1 条 = 跑机器门**（只认盘上实物，**不认"读过文档"**）：
    `node rdd-selfcompile\scripts\flow-gate.js --since <今天> --active <开工时的 store active>`
@@ -63,8 +63,8 @@
 
 ## 运行时要点（省得每次重查）
 
-- **构建环境**：`JAVA_HOME=E:\jdk21\jdk-21.0.11+10`、`GRADLE=E:\restart developing doer\gradle-9.2.0\bin\gradle.bat`、代理 `127.0.0.1:7897`（真源：`rdd-selfcompile\scripts\config.ps1`）
-- **双实例**：默认 `test`（隔离，MCP 8765 / 监测台 8777 / `rdd-selfcompile\instances\test`）；`gpt` = 生产（`E:\.minecraft\versions\The Best of Twilight Forest`，监测台 8776），**必须显式 `-Instance gpt`**
+- **构建环境**：`JAVA_HOME=D:\rdd\tools\jdk21\jdk-21.0.11+10`、`GRADLE=D:\rdd\workspace\gradle-9.2.0\bin\gradle.bat`、代理 `127.0.0.1:7897`（真源：`rdd-selfcompile\scripts\config.ps1`）
+- **双实例**：默认 `test`（隔离，MCP 8765 / 监测台 8777 / `rdd-selfcompile\instances\test`）；`gpt` = 生产（`D:\rdd\mc\The Best of Twilight Forest`，监测台 8776），**必须显式 `-Instance gpt`**
 - **单轮闭环**：`& rdd-selfcompile\scripts\run-mutation.ps1 -Requirement "…"`；止损循环加 `-MaxAttempts N`；`-SkipLaunch -SkipMcp` 只编译+部署
 - **长任务前提**（断一不可）：① watchdog `every-10min-drive.ps1` 在跑，`scripts\drive-heartbeat.log` 末行递增 ② 监测台 8776 在跑 ③ **关 MCP 止投**（免费 AI 只读观察，不投 enqueue/mine/goto/attack/build）
 - **MC 时长铁律**：用户在线 **≤10 分钟/次**，不在 **≤60 分钟/次**（`launch-mc.ps1 -AutoStopMinutes 10|60`）
@@ -94,5 +94,5 @@
 
 ## ▶ STAGER 阶段管理器（自动）
 
-**每个会话开工前先跑**：`node "E:\restart developing doer\stager\bin\stager.js" ctx`
-有输出就照着当前阶段做，做完 `next`（过不了门禁就按提示补文档）。细则见 `E:\restart developing doer\stager\STAGER.md`。
+**每个会话开工前先跑**：`node "D:\rdd\workspace\stager\bin\stager.js" ctx`
+有输出就照着当前阶段做，做完 `next`（过不了门禁就按提示补文档）。细则见 `D:\rdd\workspace\stager\STAGER.md`。

@@ -26,8 +26,8 @@ import 整个模块直接 `SyntaxError: Identifier 'fingerprintOf' has already b
 
 ## 坑 3：同一份事实只能有一个家 —— AGENTS.md 已被 opencode 每轮自动注入
 
-`E:\restart developing doer\AGENTS.md` 里的内容会作为项目指令**每轮自动进上下文**
-（会话里能看到 `Instructions from: E:\restart developing doer\AGENTS.md`）。
+`D:\rdd\workspace\AGENTS.md` 里的内容会作为项目指令**每轮自动进上下文**
+（会话里能看到 `Instructions from: D:\rdd\workspace\AGENTS.md`）。
 所以 AGENTS.md **本身就是索引**：阶段、必读清单、门禁、命令入口它都已经写了。
 `stages.json` 的 `ai[]` 再抄一遍 = **每轮双份**，纯烧 context，且两份必然漂移。
 

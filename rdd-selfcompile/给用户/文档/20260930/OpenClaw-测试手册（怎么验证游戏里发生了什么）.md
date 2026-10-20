@@ -1,14 +1,14 @@
 # OpenClaw 测试手册 · 我是怎么验证游戏里发生了什么的
 
 > 2026-09-30 · 你可以直接复制去任何地方用
-> 全部命令都在 `E:\restart developing doer\mc-openclaw-controller\scripts\` 下
+> 全部命令都在 `D:\rdd\workspace\mc-openclaw-controller\scripts\` 下
 
 ---
 
 ## 0. 三条命令就够日常用了
 
 ```powershell
-cd "E:\restart developing doer\mc-openclaw-controller\scripts"
+cd "D:\rdd\workspace\mc-openclaw-controller\scripts"
 
 node oc-send.js --probe            # 状态：血/饥饿/位置/背包（一句话，2 秒）
 node oc-send.js --shot             # 截一张图
@@ -51,16 +51,16 @@ node oc-send.js --probe
 
 ```powershell
 # ① OpenClaw server（先起它！）
-cd "E:\restart developing doer\mc-openclaw-controller\scripts"
-Start-Process -FilePath "D:\nodejs\node.exe" -ArgumentList "server.js" `
-  -WorkingDirectory "E:\restart developing doer\mc-openclaw-controller\scripts" `
+cd "D:\rdd\workspace\mc-openclaw-controller\scripts"
+Start-Process -FilePath "D:\rdd\tools\node\node.exe" -ArgumentList "server.js" `
+  -WorkingDirectory "D:\rdd\workspace\mc-openclaw-controller\scripts" `
   -WindowStyle Minimized `
   -RedirectStandardOutput "$env:TEMP\oc-server.out.txt" `
   -RedirectStandardError  "$env:TEMP\oc-server.err.txt"
 Start-Sleep 6
 
 # ② 游戏（gpt 存档；不传 -Instance 时默认就是 gpt）
-& "E:\restart developing doer\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 40
+& "D:\rdd\workspace\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 40
 
 # ③ 等加载完（1-2 分钟），然后确认
 Start-Sleep 150
@@ -69,7 +69,7 @@ node oc-send.js --probe
 
 > ⚠️ **实例管理不要手写路径**（曾把"检查 test"和"启动 gpt"搞成两个实例，命令卡了很久）：
 ```powershell
-. "E:\restart developing doer\rdd-selfcompile\scripts\mc-instance.ps1"
+. "D:\rdd\workspace\rdd-selfcompile\scripts\mc-instance.ps1"
 Stop-RddMcInstance -Instance gpt                      # 只停这一个
 Test-RddMcRunning -Instance gpt                       # 查这一个
 Ensure-RddMcRunning -Instance gpt -AutoStopMinutes 30  # 幂等：已在跑就直接返回
@@ -100,10 +100,10 @@ node oc-send.js --cmd "/gamemode creative"   # 发游戏指令（会自己开聊
 ```powershell
 # 一次完成"抢焦点 + 发按键"（分两步做会失败：第二个进程一启动就把前台抢走）
 powershell -NoProfile -ExecutionPolicy Bypass `
-  -File "E:\restart developing doer\mc-openclaw-controller\scripts\oc-walk.ps1" -Key w -Ms 2000
+  -File "D:\rdd\workspace\mc-openclaw-controller\scripts\oc-walk.ps1" -Key w -Ms 2000
 
 # 只看/抢焦点本身
-. "E:\restart developing doer\rdd-selfcompile\scripts\mc-focus.ps1"
+. "D:\rdd\workspace\rdd-selfcompile\scripts\mc-focus.ps1"
 Get-MinecraftWindowTitles      # 游戏窗口标题（默认关键字 "minecraft"）
 Focus-MinecraftWindow         # 抢
 Test-MinecraftFocused         # $true 才算成功
@@ -143,7 +143,7 @@ node oc-send.js --chat "/gamemode creative" # ❌ 会把文字打进游戏画面
 
 **局限**：最快约 1.4s/帧（实测 6 帧 7.5s）→ **抓不到 tick 级手部动作**；无音频。
 
-截图落盘：`E:\.minecraft\versions\The Best of Twilight Forest\screenshots\`
+截图落盘：`D:\rdd\mc\The Best of Twilight Forest\screenshots\`
 
 ---
 
@@ -206,7 +206,7 @@ node <mc-call> get_self_status '{"companion":"<uuid>"}'    # 同伴位置（MCP 
 
 - **server**：`127.0.0.1:8080`，端点 `/minecraft`（游戏）、`/control`（控制）
 - **游戏窗口标题**：`Minecraft NeoForge* 1.21.1 - <存档名>`
-- **实例**：默认 **gpt**（`E:\.minecraft\versions\The Best of Twilight Forest`）；test 在 `rdd-selfcompile\instances\test`
+- **实例**：默认 **gpt**（`D:\rdd\mc\The Best of Twilight Forest`）；test 在 `rdd-selfcompile\instances\test`
 - **mod**：`mc-openclaw-controller\neoforge-mod\build\libs\minecraft-client-controller-neoforge-1.0.0.jar`
 - **单驾驶员**：OpenClaw 操控**玩家**，RDD 操控**同伴**。同时动同一实体会互相干扰 —— 一次只让一个动
 - **RDD 暂停开关**（防误伤实验）：建 `config\numen\rdd-pause-disabled.flag` = 禁用暂停；删掉 = 恢复（不用重编）
@@ -217,14 +217,14 @@ node <mc-call> get_self_status '{"companion":"<uuid>"}'    # 同伴位置（MCP 
 
 ```powershell
 # 一次性准备
-cd "E:\restart developing doer\mc-openclaw-controller\scripts"
+cd "D:\rdd\workspace\mc-openclaw-controller\scripts"
 
 # 启动（顺序：server → 游戏）
-Start-Process -FilePath "D:\nodejs\node.exe" -ArgumentList "server.js" `
-  -WorkingDirectory "E:\restart developing doer\mc-openclaw-controller\scripts" `
+Start-Process -FilePath "D:\rdd\tools\node\node.exe" -ArgumentList "server.js" `
+  -WorkingDirectory "D:\rdd\workspace\mc-openclaw-controller\scripts" `
   -WindowStyle Minimized -RedirectStandardOutput "$env:TEMP\oc.out.txt" -RedirectStandardError "$env:TEMP\oc.err.txt"
 Start-Sleep 6
-& "E:\restart developing doer\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 40
+& "D:\rdd\workspace\rdd-selfcompile\scripts\launch-mc.ps1" -Instance gpt -AutoStopMinutes 40
 Start-Sleep 150
 
 # 日常

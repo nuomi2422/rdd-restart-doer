@@ -1,7 +1,7 @@
 # B1 进游戏验证证据（ExperienceStore 读层修复）
 
 - 日期：2026-10-02 17:01–17:10
-- 实例：live（= gpt = `E:\.minecraft\versions\The Best of Twilight Forest`）
+- 实例：live（= gpt = `D:\rdd\mc\The Best of Twilight Forest`）
 - 代码：`minecraft-numen` commit `f98f90cf`（分支 redline-1）→ 部署进 `numen-plugin-experience-1.21.1-0.1.3-dev.jar`（16:54:15，69,195 字节）
 - 部署通道：`run-mutation.ps1 -Module plugins:experience -SkipLaunch -SkipMcp`（**不是** `experience-core`：`ExperienceStore` 被 `plugins/experience/build.gradle` 以 `from(project(':experience-core').sourceSets.main.output)` 内嵌进插件 fat jar，live mods 里没有独立 `experience-core` jar）
 - 部署核验：live jar 内 `ExperienceStore.class` 常量池含 11/11 新特征串（`LoadStats`/`migrateLegacyShape`/`pre-migrate`/`loadStats`/`needsMigrate`/`degraded`/`is not line-delimited`/`failed to parse`/`statLegacy`/`statFailed`/`statLine`）

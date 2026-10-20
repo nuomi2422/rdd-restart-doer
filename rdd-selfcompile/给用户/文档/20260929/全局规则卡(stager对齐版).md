@@ -1,7 +1,7 @@
 # opencode · RDD 工作规则（2026-09-29 · stager 对齐版）
 
-> **本文件是索引，不是教材。** 细则全在 `E:\新建文件夹\rdd架构\自编译统一版\`，按需查，别通读。
-> **可执行的那一份**在工作区 `E:\restart developing doer\AGENTS.md`（B 版）—— 阶段/门禁/必读/判据都在那。
+> **本文件是索引，不是教材。** 细则全在 `D:\rdd\extras\rdd架构\自编译统一版\`，按需查，别通读。
+> **可执行的那一份**在工作区 `D:\rdd\workspace\AGENTS.md`（B 版）—— 阶段/门禁/必读/判据都在那。
 > 本文件**不得与它矛盾**；有冲突以工作区 B 版为准。
 > 备份：`AGENTS.backup\AGENTS-20260929-230609-pre-stager-align.md`（本次改之前）。
 
@@ -12,7 +12,7 @@
 ### 0.0 ★ 第一动作：开 stage（不许跳过）
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
+node "D:\rdd\workspace\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
 ```
 
 **没开 stage 就动手 = 这一轮作废。** 开完 `stager ctx` 会自动把
@@ -35,7 +35,7 @@ node "E:\restart developing doer\stager\bin\stager.js" start "<用户原话目�
 ### 0.2 改代码/进游戏 → 闭环入口只有一个
 
 ```powershell
-& "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
+& "D:\rdd\workspace\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
 ```
 
 **禁止**手写 gradle、**禁止**手动拷 jar（`permission.bash` 已 deny，绕不过去）。
@@ -54,7 +54,7 @@ stager 管： ① 计划统筹 → ② 编码实现 → ③ 游戏验证 → ④
                         全过：stager close --status done → 关档
 ```
 
-**阶段定义是数据驱动的**：`E:\restart developing doer\stager\core\stages.json`
+**阶段定义是数据驱动的**：`D:\rdd\workspace\stager\core\stages.json`
 （改流程只改这个 JSON，不改代码；每阶段的 `read[]` 就是"本阶段必读"）
 
 **两个并行职责**：**A** 游戏里穷举能力→修复（回②）｜**B** 模块补全（回①）
@@ -162,7 +162,7 @@ stager 管： ① 计划统筹 → ② 编码实现 → ③ 游戏验证 → ④
 
 ### 3.5 哪里不方便就自己写工具
 
-**统一放一个文件夹**：`E:\restart developing doer\rdd-selfcompile\scripts\verify-tools\`
+**统一放一个文件夹**：`D:\rdd\workspace\rdd-selfcompile\scripts\verify-tools\`
 规矩见该目录 `README.md`：一个工具 = `<名>.ps1/.js` + 同名 `.md`；不许动 `scripts\` 根目录（闭环真源）；参数化；退出码有意义；`.ps1` 必须 UTF-8 BOM。
 
 ---
@@ -171,11 +171,11 @@ stager 管： ① 计划统筹 → ② 编码实现 → ③ 游戏验证 → ④
 
 ```powershell
 # ① 阶段门禁（stager 管：当前阶段该交的东西交了没）
-node "E:\restart developing doer\stager\bin\stager.js" check
+node "D:\rdd\workspace\stager\bin\stager.js" check
 # ② 九步流硬门禁（20 项：六步 + 记忆/外脑/巡检/清单）
-node "E:\restart developing doer\rdd-selfcompile\scripts\loop-gate.js" --since <今天> --keyword <模块> --head <本轮HEAD>
+node "D:\rdd\workspace\rdd-selfcompile\scripts\loop-gate.js" --since <今天> --keyword <模块> --head <本轮HEAD>
 # ③ 自编译闭环门
-node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
+node "D:\rdd\workspace\rdd-selfcompile\scripts\flow-gate.js" --since <今天> --active <开工时的 store active>
 ```
 
 **为什么 ② 比 ③ 严**：每项要求 **mtime 新 + 正文含本轮签名**。
@@ -210,7 +210,7 @@ node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <
 
 ## 6 · 东西放哪（用户随时要看/要用的）
 
-**一律放** `E:\restart developing doer\rdd-selfcompile\给用户\`（报告/工具/截图/文档 + `INDEX.md`），
+**一律放** `D:\rdd\workspace\rdd-selfcompile\给用户\`（报告/工具/截图/文档 + `INDEX.md`），
 用 `stager publish <文件> --as report|tool|shot|doc --title "<标题>"` 放（自动登记索引）。
 **不许**放 `mutations\`（61 个变异目录）、**不许**放 `%TEMP%`、**不许**放 `report\`（那是审稿原文）。
 
@@ -220,9 +220,9 @@ node "E:\restart developing doer\rdd-selfcompile\scripts\flow-gate.js" --since <
 
 ## 7 · 交接与新资产
 
-- **接手先看**：`E:\新建文件夹\rdd架构\self-compile-handoff.md`（不靠口头上下文即可接手）
+- **接手先看**：`D:\rdd\extras\rdd架构\self-compile-handoff.md`（不靠口头上下文即可接手）
 - **细则索引**：`自编译统一版\INDEX.md` → `README.md` → `01-工程规范` → `10-总流程` → `06-检查清单`
-- **★ stager 自己的交接**：`E:\restart developing doer\stager\STAGER.md`（给 AI）+ `README.md`（给人）
+- **★ stager 自己的交接**：`D:\rdd\workspace\stager\STAGER.md`（给 AI）+ `README.md`（给人）
 - **暗号**：运行模式只有 **1=人工 / 2=自动/离线**；能力暗号另有 `数字1~4`（`skills/` 目录）
 - **本轮新资产**（2026-09-29）：
   | 资产 | 干什么 |
