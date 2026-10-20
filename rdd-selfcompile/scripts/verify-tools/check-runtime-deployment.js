@@ -55,26 +55,29 @@ function git(repo, args) {
   } catch (e) { return ''; }
 }
 
-/** 该目录最后一次改 main 源码的提交时间（null = 从没改过 / 目录不存在） */
+/**
+ * 该目录最后一次改「会进 jar 的源码」的提交时间（null = 从没改过 / 目录不存在）。
+ *
+ * <p><b>2026-10-21 扩了视野</b>（#099 的债）：原来只认 `src/main/java`，于是
+ * `api/common/src/client/java`（整个客户端大脑 `EntityAgentLoop`）的改动**不在判据里** ——
+ * 实测：改完 `EntityAgentLoop` 跑本检查，仍然报 `VERDICT=DEPLOYED`。那是最坏的一种假绿：
+ * 判据本身漏了一块，而报告说「已部署」。
+ *
+ * <p>现在认任何 `src/<sourceSet>/java`（main / client / 以及将来新增的源集）。
+ */
 function lastMainChange(repo, dir) {
-  // --name-only 拿文件列表，只认 src/main/java
-  const raw = git(repo, ['log', '--format=%H|%ct', '--name-only', '-n', '30', '--', dir]);
-  if (!raw) return null;
-  let cur = null;
-  for (const line of raw.split(/\r?\n/)) {
-    const m = line.match(/^([0-9a-f]{40})\|(\d+)$/);
-    if (m) { cur = { sha: m[1], ts: parseInt(m[2], 10) * 1000 }; continue; }
-    if (!cur) continue;
-    if (/src[\\/]main[\\/]java/.test(line)) return cur;   // 第一个动过 main 的提交
-  }
-  // 30 条里没出现 main 改动 → 再往前翻
-  const raw2 = git(repo, ['log', '--format=%H|%ct', '--name-only', '-n', '200', '--', dir]);
-  cur = null;
-  for (const line of (raw2 || '').split(/\r?\n/)) {
-    const m = line.match(/^([0-9a-f]{40})\|(\d+)$/);
-    if (m) { cur = { sha: m[1], ts: parseInt(m[2], 10) * 1000 }; continue; }
-    if (!cur) continue;
-    if (/src[\\/]main[\\/]java/.test(line)) return cur;
+  const LOOKS_LIKE_SOURCE = /src[\\/][^\\/]+[\\/]java[\\/]/;
+  const passes = [['-n', '30'], ['-n', '200']];
+  for (const extra of passes) {
+    const raw = git(repo, ['log', '--format=%H|%ct', '--name-only', ...extra, '--', dir]);
+    if (!raw) continue;
+    let cur = null;
+    for (const line of raw.split(/\r?\n/)) {
+      const m = line.match(/^([0-9a-f]{40})\|(\d+)$/);
+      if (m) { cur = { sha: m[1], ts: parseInt(m[2], 10) * 1000 }; continue; }
+      if (!cur) continue;
+      if (LOOKS_LIKE_SOURCE.test(line)) return cur;   // 第一个动过源码集的提交
+    }
   }
   return null;
 }
@@ -126,7 +129,7 @@ function main() {
   console.log('');
   console.log('════ 运行时部署检查（源码改了 vs jar 部署了没）════');
   console.log(`源码仓库 : ${src}`);
-  console.log(`判据     : 该模块最后一次改 **src/main/java** 的提交时间 vs jar LastWriteTime`);
+  console.log(`判据     : 该模块最后一次改**源码集**（src/*/java，含 client）的提交时间 vs jar LastWriteTime`);
   console.log(`           （只改测试 → 不算债；这是第一版的错判点）`);
   console.log('');
 

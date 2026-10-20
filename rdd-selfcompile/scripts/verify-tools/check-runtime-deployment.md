@@ -1,6 +1,6 @@
 # check-runtime-deployment · 源码改了，jar 部署了吗
 
-> **干什么**：比对「该模块最后一次改 `src/main/java` 的提交时间」与
+> **干什么**：比对「该模块最后一次改**源码集**（`src/*/java`，含 `src/client/java`）的提交时间」与
 > 「部署到实例的 jar 的 `LastWriteTime`」。jar 更早 = **源码领先运行时** = 假完成。
 >
 > **为什么需要**：2026-10-01 出了一次真实的假完成 ——
@@ -33,7 +33,7 @@ node .\check-runtime-deployment.js --src "<minecraft-numen 路径>" --mods "<mod
 | `learner` 领先 0 小时 | 提交后 3 分钟就构建了，**在 30 分钟容差内** |
 | `AC jar 比源码新 584h` | jar 是复制过去的，保留了旧时间戳（无害） |
 
-**所以核心判据必须是「最后一次改 `src/main/java` 的提交」**，不是「最后一次提交」。
+**所以核心判据必须是「最后一次改源码集的提交」**，不是「最后一次提交」。（2026-10-21 扩过视野：原来只认 `src/main/java`，导致 `api/common/src/client/java` —— 整个客户端大脑 `EntityAgentLoop` —— 的改动不在判据里，改完仍报 DEPLOYED。实测旧判据在 `api/common` 上取到 10-09 的提交，新判据取到 10-20 的 `af0889e6`。）
 这个区分是本工具的全部价值 —— 分错了就会让人去部署根本不用部署的东西。
 
 ## 它能证明什么、不能证明什么
