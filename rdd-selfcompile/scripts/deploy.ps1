@@ -1,4 +1,4 @@
-﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE
@@ -30,14 +30,27 @@ if (Test-Path $dest) {
 Copy-Item $jar.FullName $dest -Force
 $sha = (Get-FileHash $dest -Algorithm SHA256).Hash
 
+# ── H4 部署流水（2026-10-20 #087 起）─────────────────────────────
+# 为什么加：12 个 jar sha 原先散在 12 处 #0xx 记录里，口头汇报「11 次部署」
+# 无据可核；而 sha 是「现网到底跑的是哪版代码」的唯一机器可读锚。
+# 现在每次部署自动追加一行：时间 | sha | 批次号 | mutation | 实例 | 目标路径。
+# 批次号从环境变量 RDD_BATCH_ID 取（run-mutation.ps1 -BatchId 传入）；
+# 没传就写 "-"（不许猜，猜出来的批次号比没有更坏）。
+$ledger = Join-Path $global:RDD_SC.SC_REPORT "deploy-ledger.jsonl"
+if (-not (Test-Path $global:RDD_SC.SC_REPORT)) { New-Item -ItemType Directory -Path $global:RDD_SC.SC_REPORT -Force | Out-Null }
+$ledgerRow = @{ at = (Get-Date).ToUniversalTime().ToString("o"); sha = $sha; batch = $(if ($env:RDD_BATCH_ID) { $env:RDD_BATCH_ID } else { "-" }); mutation = $MutationId; instance = $global:RDD_SC.SC_INSTANCE; jar = $jar.Name; dest = $dest } | ConvertTo-Json -Compress
+Add-Content -LiteralPath $ledger -Value $ledgerRow -Encoding UTF8
+
 $result = @{
     success = $true
     stage = "deploy"
     deployedTo = $dest
     instance = $global:RDD_SC.SC_INSTANCE
     sha256 = $sha
+    batch = $(if ($env:RDD_BATCH_ID) { $env:RDD_BATCH_ID } else { "-" })
     state = "DEPLOYED_EXPERIMENT"
 }
 Write-ResultJson (Join-Path $dir "phase-deploy.json") $result
 Write-Output "DEPLOY_OK"
+Write-Output "LEDGER_OK $sha batch=$env:RDD_BATCH_ID"
 exit 0

@@ -1,4 +1,4 @@
-﻿# Self-Compile 单轮闭环编排器
+# Self-Compile 单轮闭环编排器
 # 用法: .\scripts\run-mutation.ps1 [-Requirement "xxx"] [-SkipLaunch] [-SkipMcp]
 param(
     [string]$Requirement = "示例：注册一个 selfcompile_probe 工具，只读返回同伴状态",
@@ -11,17 +11,24 @@ param(
     [int]$AutoStopMinutes = 120,
     # 采集 verify 要求的五件证据；不开则 verify 必然 UNVERIFIED。
     [switch]$CollectEvidence,
-    [string]$EvidenceTool = ""
+    [string]$EvidenceTool = "",
+    # H4（2026-10-20 #087）：批次号，写进 deploy-ledger.jsonl。
+    # 为什么要有它：sha 只说明「部署了哪份代码」，批次号才说明「这次部署属于哪个批次」，
+    # 两者一起才能回答「G4a 的每次部署分别落在哪个 sha 上」。没传就留空，
+    # deploy.ps1 会记 "-"（不许猜，猜出来的批次号比没有更坏）。
+    [string]$BatchId = ""
 )
 
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 if (-not [string]::IsNullOrWhiteSpace($Module)) { $env:RDD_SELF_COMPILE_MODULE = $Module }
+if (-not [string]::IsNullOrWhiteSpace($BatchId)) { $env:RDD_BATCH_ID = $BatchId }
 . "$PSScriptRoot\config.ps1"
 
 Write-Output "=== Self-Compile 单轮闭环 ==="
 Write-Output "需求: $Requirement"
 Write-Output "实例: $($global:RDD_SC.SC_INSTANCE) ($($global:RDD_SC.MC_GAME_DIR))"
 Write-Output "构建模块: $($global:RDD_SC.PLUGIN_MODULE)"
+if (-not [string]::IsNullOrWhiteSpace($BatchId)) { Write-Output "批次号: $BatchId（将写进 deploy-ledger.jsonl）" }
 
 # 1. 创建 mutation 工作区
 $id = & "$PSScriptRoot\new-mutation.ps1" -Requirement $Requirement -Instance $Instance
