@@ -9,8 +9,12 @@ const http = require('http');
 const fs = require('fs');
 
 const cfgPath = process.env.NUMEN_MCP_CONFIG ||
-  'E:\\.minecraft\\versions\\The Best of Twilight Forest\\config\\numen\\mcp_server.json';
-const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf8'));
+  'D:\\rdd\\mc\\The Best of Twilight Forest\\config\\numen\\mcp_server.json';
+// 2026-10-19: 去掉可能的 UTF-8 BOM 再 parse。PowerShell 5.1 的 Set-Content -Encoding UTF8
+// 会写出带 BOM 的文件，而 JSON.parse 不接受 BOM —— 一处 BOM 就能让整条 MCP 链路报
+// "Unexpected token '﻿'"。本项目其它脚本（mc-watch.js）本来就 strip BOM，这里保持一致。
+const cfgText = fs.readFileSync(cfgPath, 'utf8').replace(/^\uFEFF/, '');
+const cfg = JSON.parse(cfgText);
 const HOST = process.env.NUMEN_MCP_HOST || cfg.host || '127.0.0.1';
 const PORT = parseInt(process.env.NUMEN_MCP_PORT || cfg.port || '8765', 10);
 const TOKEN = process.env.NUMEN_MCP_TOKEN || cfg.token;

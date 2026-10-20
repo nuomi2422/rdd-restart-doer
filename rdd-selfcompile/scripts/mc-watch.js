@@ -12,10 +12,10 @@ const { execFileSync, spawnSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
-const NODE = 'D:\\nodejs\\node.exe';
-const NCLI = 'E:\\restart developing doer\\rdd-selfcompile\\scripts\\numen-mcp.js';
-const MON = 'E:\\.minecraft\\versions\\The Best of Twilight Forest\\config\\numen\\monitor';
-const OC = 'E:\\restart developing doer\\mc-openclaw-controller\\scripts';
+const NODE = 'D:\\rdd\\tools\\node\\node.exe';
+const NCLI = 'D:\\rdd\\workspace\\rdd-selfcompile\\scripts\\numen-mcp.js';
+const MON = 'D:\\rdd\\mc\\The Best of Twilight Forest\\config\\numen\\monitor';
+const OC = 'D:\\rdd\\workspace\\mc-openclaw-controller\\scripts';
 const argv = process.argv.slice(2);
 const has = (n) => argv.includes('--' + n);
 
@@ -114,7 +114,7 @@ if (has('move')) {
 
 // 6) optional: the companion's own words (highest-yield bug source)
 if (has('talk')) {
-  const r = spawnSync(NODE, ['E:\\restart developing doer\\rdd-selfcompile\\scripts\\ai-talk.js', '8'], { encoding: 'utf8' });
+  const r = spawnSync(NODE, ['D:\\rdd\\workspace\\rdd-selfcompile\\scripts\\ai-talk.js', '8'], { encoding: 'utf8' });
   try {
     const j = JSON.parse((r.stdout || '{}').replace(/^\uFEFF/, ''));
     out.talk = (j.lines || []).slice(-3).map(l => l.s.slice(0, 160));
@@ -122,11 +122,16 @@ if (has('talk')) {
 }
 
 // 7) optional: eyes
+// 2026-10-19: watch-ai.js 已重写（见 TL-2026-10-03-02）。--from-rdd 被硬拒（exit 2），
+// 同伴名必须来自 --companion 或 Numen MCP；截图路径由 --out 指定并在回执里回读。
 if (has('shot')) {
-  const r = spawnSync(NODE, [path.join(OC, 'watch-ai.js'), '--from-rdd', '--dist', '6'], { encoding: 'utf8' });
+  const outPng = path.join(process.env.TEMP || '.', 'rdd-ai-watch.png');
+  const r = spawnSync(NODE, [path.join(OC, 'watch-ai.js'), '--dist', '6', '--out', outPng], { encoding: 'utf8' });
   try {
     const j = JSON.parse((r.stdout || '{}').replace(/^\uFEFF/, ''));
-    out.shot = { dist: j.dist, file: 'C:\\Users\\lenovo\\AppData\\Local\\Temp\\opencode\\ai-watch.png' };
+    out.shot = j && j.ok !== false
+      ? { companion: j.companion, dist: j.dist, file: j.file || j.screenshot || outPng, degraded: j.degraded === true }
+      : { error: (j && (j.error || j.message)) || 'capture failed', exit: r.status };
   } catch { out.shot = 'capture failed'; }
 }
 

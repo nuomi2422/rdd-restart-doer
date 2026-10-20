@@ -13,9 +13,29 @@
 const fs = require('fs');
 const path = require('path');
 
-const G = 'C:/Users/lenovo/.config/opencode/AGENTS.md';
-const B = 'E:/restart developing doer/AGENTS.md';
-const H = 'E:/新建文件夹/rddharness';
+const G = 'C:/Users/admin/.config/opencode/AGENTS.md';
+const B = 'D:/rdd/workspace/AGENTS.md';
+const H = 'D:/rdd/harness/rdd-harness';
+
+// ── 2026-10-19：全局卡缺失不再抛 ENOENT 栈 ────────────────────────────────
+// 症状：换机后 `~/.config/opencode/AGENTS.md` 不存在，本脚本 readFileSync 直接崩，
+//       P11 因此报 BLOCK —— 看起来像「规则打架」，其实是「文件没装」。
+// 这属于「门禁自己的缺陷长得像债」那一族（bug-9/10 同类第 8 例）。
+// 契约改成：缺全局卡 → 明确 SKIP + 给装法 + exit 3（环境错，不是债）。
+const SKIP_EXIT = 3;
+if (!fs.existsSync(G)) {
+  console.log('全局卡   （不存在）');
+  console.log('外层 B 版 ' + (fs.existsSync(B) ? fs.readFileSync(B, 'utf8').length + ' 字符' : '（也不存在）'));
+  console.log('');
+  console.log('  SKIP  全局指针卡缺失：' + G);
+  console.log('        这不是「规则打架」，是这台机器还没装全局卡（换机/新用户常见）。');
+  console.log('        装法：把基准版复制过去 ——');
+  console.log('          copy "D:\\rdd\\docs\\rdd-docs\\rdd存放\\20260929-第二批-断线修复与硬门禁\\01-全局规则卡(改动后)\\AGENTS.md" "%USERPROFILE%\\.config\\opencode\\AGENTS.md"');
+  console.log('        不装也不影响 DSH 侧干活 —— DSH 读的是外层 AGENTS.md + 各目录 _格式规范.md。');
+  console.log('        装完重跑本脚本即可转 PASS。');
+  process.exit(SKIP_EXIT);
+}
+
 const g = fs.readFileSync(G, 'utf8');
 const b = fs.readFileSync(B, 'utf8');
 const stage = fs.readFileSync(path.join(H, 'stage.md'), 'utf8');
@@ -40,12 +60,12 @@ else { fail.push('外层有 ' + miss.length + ' 条 H2 在全局卡里找不到�
 
 // ② 指针卡指向的文件必须存在
 const POINTERS = [
-  'E:/新建文件夹/rddharness/stage.md',
-  'E:/新建文件夹/rddharness/进游戏前必读-游戏内能力清单.md',
-  'E:/新建文件夹/rddharness/registry.json',
-  'E:/新建文件夹/rddharness/standards.md',
-  'E:/新建文件夹/rddharness/bin/harness-gate.js',
-  'E:/restart developing doer/AGENTS.md',
+  'D:/rdd/harness/rdd-harness/stage.md',
+  'D:/rdd/harness/rdd-harness/进游戏前必读-游戏内能力清单.md',
+  'D:/rdd/harness/rdd-harness/registry.json',
+  'D:/rdd/harness/rdd-harness/standards.md',
+  'D:/rdd/harness/rdd-harness/bin/harness-gate.js',
+  'D:/rdd/workspace/AGENTS.md',
 ];
 const noPoint = POINTERS.filter((p) => !fs.existsSync(p));
 const notNamed = POINTERS.filter((p) => {
