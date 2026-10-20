@@ -121,8 +121,15 @@ function check(md, opts) {
   const rows = openRows(section);
   info.openRows = rows.length;
   const doneIds = [];
+  const DONE_WORD = /PASS|完成|收口|落地/;
   for (const line of md.split(/\r?\n/)) {
     if (!/^\|/.test(line.trim()) || !line.includes('✅')) continue;
+    // 只认「主体里说了完成」的 ✅ 行。反例（2026-10-21 实测假阳性）：
+    // `| … | #097 | **G4c 校准从「改常量」改成「配置旋钮」** | ✅ 已完成 |`
+    // —— 这条 ✅ 说的是「校准这件子任务做完了」，不是「G4c 批次做完了」；
+    // 只要主体里出现批次号就当成「批次已完成」，会把还挂着的 G4c 判成「表没刷新」。
+    const subject = cellsOf(line)[2] || '';
+    if (!DONE_WORD.test(subject)) continue;
     doneIds.push(...subjectIdsOfRow(line, 2));   // 记录表：日期|#NNN|内容|状态|下一步
   }
   const stale = [];
@@ -156,6 +163,7 @@ function check(md, opts) {
 function selftest() {
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'debt-rollup-'));
   let failed = 0;
+  let passed = 0;
   const expect = (name, md, opts, codes) => {
     const r = check(md, opts);
     const got = r.warn.map((w) => w.code).sort().join(',');
@@ -165,6 +173,7 @@ function selftest() {
       failed++;
       console.log(`  FAIL ${name}: want[${want}] got[${got}]`);
     } else {
+      passed++;
       console.log(`  ok   ${name}`);
     }
   };
@@ -199,6 +208,14 @@ function selftest() {
       '| 2026-10-20 | #001 | **G3e 批次** 完成 | ✅ 已完成 |');
   expect('完成批次还挂在 P0', stale, {}, ['COMPLETED_STILL_OPEN']);
 
+  // 2026-10-21 假阳性回归：✅ 行只是在讲「某个以批次号命名的子任务」做完了，
+  // 主体没有「完成/PASS/收口/落地」字样 → 不该把这个批次标成已完成。
+  const subTaskOnly = healthy.replace('| **P0** | **G3e-2 宿主 issuer** | 冻结闸生效 | AI |',
+    '| **P0** | **G3e 批次：安全点** | 旧凭据被拒 | AI |')
+    .replace('| 2026-10-20 | #001 | **G3e 批次**，未完 | ⬜ 未完成 |',
+      '| 2026-10-20 | #002 | **G3e 校准子任务**改好了 | ✅ 已完成 |');
+  expect('✅ 只是在讲子任务，不该算批次完成', subTaskOnly, {}, []);
+
   const noH = healthy.replace('### H · harness 自身维护项', '### 其它');
   expect('缺 H 小节', noH, {}, ['H_SECTION_MISSING']);
 
@@ -212,7 +229,7 @@ function selftest() {
     console.log(`SELFTEST_FAIL ${failed} 条`);
     return EXIT_FAIL_CODE;
   }
-  console.log('SELFTEST_OK 7/7');
+  console.log(`SELFTEST_OK ${passed}/${passed + failed}`);
   return EXIT_OK_CODE;
 }
 
