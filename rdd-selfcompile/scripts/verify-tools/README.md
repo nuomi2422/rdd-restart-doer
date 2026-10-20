@@ -28,6 +28,8 @@
 |---|---|---|
 | `check-doc-anchor-drift.js` + `.md` | 扫文档里的 `Foo.java:123` 行号锚点和「N 行」体量锚点，跟真实源码比对，**给出新行号** | `node check-doc-anchor-drift.js --docs <md目录> --src <源码根>` 退出码 0/2/3 |
 | `check-runtime-deployment.js` + `.md` | 查「源码改了但没编译部署」—— 该模块最后一次改 `src/main/java` 的提交时间 vs 部署 jar 的 `LastWriteTime`。**查的是事实（时间戳），不是声明（文档写了什么）** | `node check-runtime-deployment.js` 退出码 0/2/3 |
+| `check-debt-rollup.js` + `.md` | 查「债账有没有真的进 `杂项记录` 的下一步表」：表没刷新、完成批次还挂 P0、H 段缺失、本批未进表 → WARN。**H1 试金石（三值化自己浮进表）的机检版** | `node check-debt-rollup.js --json`（门禁 Q15）/ `--selftest` 7/7 |
+| `budget-pairs.js` + `.md` | 预算「估算 vs 实际」配对统计（`budget_reserve` ↔ `budget_settle` 按 requestId 配对），给 `est/actual` 的 P50/P90/P95 与建议系数。**G4c 开闸前置 S100 的测量工具**（样本≥30 对、P90≤1.3） | `node budget-pairs.js --since <ISO> --json` 退出码 0/2/3 |
 
 ---
 
