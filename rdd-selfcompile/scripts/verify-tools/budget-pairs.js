@@ -42,7 +42,7 @@ function listContextFiles(dir) {
     .map((f) => path.join(dir, f));
 }
 
-function readEvents(files, since) {
+function readEvents(files, since, until) {
   const reserves = new Map();
   const settles = [];
   for (const file of files) {
@@ -52,6 +52,7 @@ function readEvents(files, since) {
       let e;
       try { e = JSON.parse(line); } catch { continue; }
       if (since && e.timestamp < since) continue;
+      if (until && e.timestamp > until) continue;
       const d = e.data || {};
       if (e.type === 'budget_reserve') {
         reserves.set(d.requestId, { est: d.estimatedTokens, status: d.status, role: d.role, ts: e.timestamp });
@@ -72,13 +73,34 @@ function pct(sorted, p) {
 function main(argv) {
   const monitor = argOf(argv, '--monitor') || DEFAULT_MONITOR;
   const since = argOf(argv, '--since');
+  const until = argOf(argv, '--until');
   const files = listContextFiles(monitor);
   if (!files.length) {
     console.error(`没找到 context*.jsonl：${monitor}`);
     return 3;
   }
 
-  const { reserves, settles } = readEvents(files, since);
+  const { reserves, settles } = readEvents(files, since, until);
+
+  // S101（G4c 2.2）：按小时分桶看「额度 → 拒绝率」，用来选一个不会误伤的限额。
+  // 为什么必须分桶：不同小时的配置不同（40 万会打满、500 万不会），混在一起算出来的是假基线。
+  if (argv.includes('--windows')) {
+    const buckets = new Map();
+    for (const r of reserves.values()) {
+      const hour = String(r.ts).slice(0, 13);           // 2026-10-20T16
+      const b = buckets.get(hour) || { granted: 0, rejected: 0 };
+      if (r.status === 'granted') b.granted++; else b.rejected++;
+      buckets.set(hour, b);
+    }
+    console.log('小时桶\tgranted\trejected\t拒绝率');
+    for (const hour of [...buckets.keys()].sort()) {
+      const b = buckets.get(hour);
+      const total = b.granted + b.rejected;
+      const rate = total ? ((b.rejected / total) * 100).toFixed(0) + '%' : '-';
+      console.log(`${hour}Z\t${b.granted}\t\t${b.rejected}\t\t${rate}`);
+    }
+    return reserves.size ? 0 : 2;
+  }
 
   const pairs = [];
   let rejected = 0;

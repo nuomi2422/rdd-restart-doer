@@ -19,6 +19,8 @@ G4a/G4b 的估算偏高约 3 倍（`est=61487` / `actual=20154`）。影子期�
 ```powershell
 node budget-pairs.js                                  # 全部历史（含归档 context-*.jsonl）
 node budget-pairs.js --since 2026-10-21T00:00:00Z     # 只看某段时间（采样窗口）
+node budget-pairs.js --since <A> --until <B>          # 掐一个闭区间（跨配置切换时必须切开算）
+node budget-pairs.js --windows                        # 按小时分桶看「额度 → 拒绝率」（S101）
 node budget-pairs.js --json                           # 机读
 node budget-pairs.js --monitor <monitor 目录>
 ```
