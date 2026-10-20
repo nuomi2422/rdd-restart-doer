@@ -52,6 +52,19 @@ node .\check-runtime-deployment.js --src "<minecraft-numen 路径>" --mods "<mod
 > $c = [System.IO.File]::ReadAllBytes("$env:TEMP\jarx\<类路径>.class")
 > [System.Text.Encoding]::UTF8.GetString($c) -match "外层专用"
 > ```
+
+## 两种「假阳性」与修法（都是实测踩出来的）
+
+判据用「提交时间 vs jar mtime」做代理，代理会漏两种真实情形：
+
+| # | 情形 | 症状 | 修法（已落） |
+|---|---|---|---|
+| 1 | **客户端源码集不在视野里** | 改了 `api/common/src/client/java` 的 `EntityAgentLoop`，检查仍说 `DEPLOYED` | 判据从「只认 `src/main/java`」扩成 `src/<sourceSet>/java`（2026-10-21，#100） |
+| 2 | **先部署、后提交** | 部署用工作区构建，提交晚 3 小时 → mtime < 提交时间 → 报「源码领先 3 小时」，但 jar 里就是同一份代码（两次部署 sha 都是 `A7F54E13`，可重复构建下内容相同→部署脚本跳过拷贝→mtime 不更新） | 加「**内容证明**」：当前 jar 的 sha256 若在 `deploy-ledger.jsonl` 里有一条**晚于本次提交**的记录，就判 `OK` 并注明原因（2026-10-21，#108） |
+
+> 修法 2 不是放松判据：要求 **sha 完全相等** 且 **部署记录时间 ≥ 提交时间**；
+> 读不到流水一律按「没证明」处理，不假装 OK。
+> 教训：**判据用代理（时间戳）时，必须把代理会漏的真实顺序写下来**，否则每次都会有人（包括我）被它误伤。
 > 2026-10-01 RL-19 就是这么验出「jar 里是旧文案」的。
 
 ## ⚠️ 已知局限

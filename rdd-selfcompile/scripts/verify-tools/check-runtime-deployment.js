@@ -27,6 +27,9 @@ const EXIT_USAGE = 3;
 // jar 构建发生在 commit 之后几分钟是正常的，30 分钟内不算「没部署」
 const TOLERANCE_MS = 30 * 60 * 1000;
 
+// 部署流水（H4）：用来做「内容证明」——见 ledgerProvesRedeployed 的注释。
+const LEDGER = 'D:\\rdd\\workspace\\rdd-selfcompile\\report\\deploy-ledger.jsonl';
+
 const DEFAULT_SRC = 'D:\\rdd\\workspace\\minecraft-numen';
 // ★ 只扫 live（= gpt 实例 = D:\rdd\mc\The Best of Twilight Forest）。
 //   用户 2026-10-01 确认：现在只用 live，instances\test 已不再使用 → 不计入债。
@@ -82,8 +85,38 @@ function lastMainChange(repo, dir) {
   return null;
 }
 
-function fmt(ts) {
-  const d = new Date(ts);
+/**
+ * 「内容证明」：当前部署的 jar 的 sha256，是否在 deploy-ledger 里有一条 `at` 晚于提交时间的记录。
+ *
+ * <p>为什么需要它：`deploy.ps1` 遇到内容相同的 jar 会跳过拷贝（好设计——可重复构建下 sha 不变），
+ * 但这样一来 mtime 就停在**上一次**拷贝的时刻。而「先部署、后提交」的顺序会让
+ * mtime < 提交时间 → 判据说「源码领先 3 小时」，可 jar 里明明是同一份代码。
+ * 实测踩过两次（`…-s107` 与 `…-s107-redeploy` 两次部署 sha 都是 A7F54E13）。
+ *
+ * <p>判据不放松成「有记录就行」：必须 **sha 完全相等** 且 **记录时间 ≥ 提交时间**。
+ */
+function ledgerProvesRedeployed(jarFullPath, jarFileName, commitTs) {
+  try {
+    const crypto = require('crypto');
+    const sha = crypto.createHash('sha256').update(fs.readFileSync(jarFullPath)).digest('hex').toUpperCase();
+    if (!fs.existsSync(LEDGER)) return false;
+    const lines = fs.readFileSync(LEDGER, 'utf8').split(/\r?\n/).filter(Boolean);
+    for (const line of lines) {
+      let row;
+      try { row = JSON.parse(line); } catch { continue; }
+      if (!row || row.jar !== jarFileName) continue;
+      if (String(row.sha || '').toUpperCase() !== sha) continue;
+      const at = Date.parse(row.at);
+      if (!Number.isFinite(at)) continue;
+      if (at + TOLERANCE_MS >= commitTs) return true;
+    }
+    return false;
+  } catch {
+    return false;   // 读不到就按「没证明」处理，不假装 OK
+  }
+}
+
+function fmt(ts) {  const d = new Date(ts);
   const p = n => String(n).padStart(2, '0');
   return `${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
@@ -157,6 +190,14 @@ function main() {
         verdict = 'OK';
         const h = Math.round((jarTs - srcTs) / 3600000);
         detail = h >= 1 ? `jar 比源码还新 ${h}h` : 'jar 已包含最新 main 改动';
+      } else if (ledgerProvesRedeployed(full, f, srcTs)) {
+        // ★ 2026-10-21 补的第三条路（假阳性修复，见 check-runtime-deployment.md §「两种假阳性」）：
+        // mtime 只是「最后一次拷贝的时刻」，而部署脚本遇到**内容相同**的 jar 会跳过拷贝
+        // （可重复构建 + 同一份源码 = 同一个 sha）。于是「先部署、后提交」这种顺序会被判成
+        // 「源码领先 3 小时」，可 jar 里明明是同一份代码 —— 实测两次。
+        // 判据改成「内容证明」：当前 jar 的 sha256，在 deploy-ledger 里有一条**晚于本次提交**的记录。
+        verdict = 'OK';
+        detail = 'jar 内容与提交后重新部署的一致（sha 见 deploy-ledger；mtime 因内容相同未更新）';
       } else {
         const gapH = (srcTs - jarTs) / 3600000;
         verdict = 'STALE';
