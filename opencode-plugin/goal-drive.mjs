@@ -32,9 +32,9 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { createRequire } from 'node:module'
 
 const HERE = path.dirname(fileURLToPath(import.meta.url))
-const WORKSPACE = 'E:/restart developing doer'
+const WORKSPACE = 'D:/rdd/workspace'
 const GOAL_FILE = process.env.RDD_GOAL_STATE || path.join(WORKSPACE, 'stager', '.stager', 'goal.json')
-const GOAL_CLI = 'E:/新建文件夹/rddharness/bin/goal.js'
+const GOAL_CLI = 'D:/rdd/harness/rdd-harness/bin/goal.js'
 // ★ 日志跟着状态文件走（或用 RDD_GOAL_LOG 显式指定）。
 //   2026-10-07 实测踩到：日志路径写死时，探针把 goal.json 隔离到临时目录，
 //   但模拟出来的 kick-ok / error-resume-ok 全写进了**真实日志** ——

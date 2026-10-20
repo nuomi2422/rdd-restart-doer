@@ -1,6 +1,6 @@
 # rdd-selfcompile — 自变异系统单轮闭环（外部编排）
 
-> ⚠️ 系统**统一入口与更新登记**见 `E:\新建文件夹\rdd-docs\rdd架构\自变异系统v3\`（2026-09-25 建立）。
+> ⚠️ 系统**统一入口与更新登记**见 `D:\rdd\docs\rdd-docs\rdd架构\自变异系统v3\`（2026-09-25 建立）。
 > 本目录是**运行时真源脚本**；文档与索引在 v3。
 
 > 方向：主体是**外挂式 AI 编程工具**，通过启动/关闭游戏 + MCP 实际游玩验证 + 部署 jar 实现能力自我扩展。本目录是外部循环编排层，不进入 Numen 仓库。
@@ -8,7 +8,7 @@
 ## 目录
 
 ```text
-E:\restart developing doer\rdd-selfcompile\
+D:\rdd\workspace\rdd-selfcompile\
 ├── README.md
 ├── scripts\
 │   ├── config.ps1         公共配置（路径/端口/token）

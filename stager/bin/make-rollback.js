@@ -8,10 +8,10 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const ROOT = 'E:/restart developing doer';
-const ARCH = 'E:/新建文件夹/rdd-docs/rdd架构';
-const OUT = 'E:/新建文件夹/rdd-docs/rdd存放';
-const CFG = 'C:/Users/lenovo/.config/opencode';
+const ROOT = 'D:/rdd/workspace';
+const ARCH = 'D:/rdd/docs/rdd-docs/rdd架构';
+const OUT = 'D:/rdd/docs/rdd-docs/rdd存放';
+const CFG = 'C:/Users/admin/.config/opencode';
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
 const TAG = 'stager-working-' + STAMP;
 

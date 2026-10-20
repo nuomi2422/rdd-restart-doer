@@ -4,7 +4,7 @@
  *
  * 为什么要合而不是只留指针：
  *   - 全局卡 `~/.config/opencode/AGENTS.md` 在**每个会话**的系统提示里，不管在哪个 cwd
- *   - 工作区 `E:\restart developing doer\AGENTS.md` 只在这个工作区生效
+ *   - 工作区 `D:\rdd\workspace\AGENTS.md` 只在这个工作区生效
  *   - 之前全局卡只写"细则在工作区 B 版" → AI 换个目录就找不到规则 = 直接失效
  *
  * 合并规则：
@@ -17,13 +17,13 @@
 
 const fs = require('fs');
 const path = require('path');
-const G = 'C:/Users/lenovo/.config/opencode/AGENTS.md';
-const B = 'E:/restart developing doer/AGENTS.md';
+const G = 'C:/Users/admin/.config/opencode/AGENTS.md';
+const B = 'D:/rdd/workspace/AGENTS.md';
 const MARK_A = '\n<!-- ===== GLOBAL-ONLY:BEGIN ===== -->';
 const MARK_B = '<!-- ===== GLOBAL-ONLY:END ===== -->\n';
 
 // ── 备份（只备一次，同名不覆盖） ────────────────────────────────
-const bdir = path.join('C:/Users/lenovo/.config/opencode/AGENTS.backup');
+const bdir = path.join('C:/Users/admin/.config/opencode/AGENTS.backup');
 if (!fs.existsSync(bdir)) fs.mkdirSync(bdir, { recursive: true });
 const cur = fs.readFileSync(G, 'utf8');
 const stamp = new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14);
@@ -43,9 +43,9 @@ const header = [
   '# opencode · RDD 工作规则（B 版 · 全局已覆盖 · 2026-09-29）',
   '',
   '> **本文件是每个会话都在系统提示里的那一份**，任何工作目录的 AI 都能直接用 —— 不用切目录、不用找指针。',
-  '> 与工作区版同源（内容一致）：`E:\\restart developing doer\\AGENTS.md`（改那边 → 重跑 `stager\\bin\\merge-global.js` 同步过来）',
-  '> 细则正文：`E:\\新建文件夹\\rdd-docs\\rdd架构\\自编译统一版\\`（`INDEX.md` → `README.md` → `01-工程规范` → `10-总流程` → `06-检查清单`）',
-  '> 阶段状态机：`E:\\restart developing doer\\stager\\`（第 0 条那条就是它）',
+  '> 与工作区版同源（内容一致）：`D:\\rdd\\workspace\\AGENTS.md`（改那边 → 重跑 `stager\\bin\\merge-global.js` 同步过来）',
+  '> 细则正文：`D:\\rdd\\docs\\rdd-docs\\rdd架构\\自编译统一版\\`（`INDEX.md` → `README.md` → `01-工程规范` → `10-总流程` → `06-检查清单`）',
+  '> 阶段状态机：`D:\\rdd\\workspace\\stager\\`（第 0 条那条就是它）',
   '> 备份：`AGENTS.backup\\AGENTS-' + stamp + '-pre-global-merge.md`（合并之前那份）',
   '',
   '---',
@@ -81,8 +81,8 @@ const globalOnly = MARK_A + '\n\n' + [
   '|---|---|',
   '| 模式暗号 | **1=人工 / 2=自动 / 离线（2）** |',
   '| 能力暗号 | `数字1~4`（`skills/` 目录）：`1`=长任务轮询通关MC ｜ `4`=特殊模式工程闭环 |',
-  '| 技能 | `C:\\Users\\lenovo\\.config\\opencode\\skills`（含 `~/.agents/skills`、`~/.claude/skills`） |',
-  '| 接手先看 | `E:\\新建文件夹\\rdd-docs\\rdd架构\\self-compile-handoff.md`（不靠口头上下文即可接手） |',
+  '| 技能 | `C:\\Users\\admin\\.config\\opencode\\skills`（含 `~/.agents/skills`、`~/.claude/skills`） |',
+  '| 接手先看 | `D:\\rdd\\docs\\rdd-docs\\rdd架构\\self-compile-handoff.md`（不靠口头上下文即可接手） |',
   '| stager 交接 | `stager\\STAGER.md`（给 AI） + `stager\\README.md`（给人） |',
   '| 换人接手 | `stager swap "<你的名字>"` → `stager ctx --full`（把历史文档全文注入） |',
   '',

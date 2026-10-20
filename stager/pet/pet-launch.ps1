@@ -75,7 +75,7 @@ if ($existing.Count -gt 0) {
 
 $psExe = (Get-Process -Id $PID).Path
 # ★ 关键：Start-Process -ArgumentList 不会给含空格的路径自动加引号。
-#   "E:\restart developing doer\..." 会被从第一个空格处截断 -> 桌宠静默起不来。
+#   "D:\rdd\workspace\..." 会被从第一个空格处截断 -> 桌宠静默起不来。
 #   所以这里手工把路径和所有可能含空格的参数包上引号。
 $argLine = '-NoProfile -STA -ExecutionPolicy Bypass -File "{0}" -Size {1}' -f $PetScript, $Size
 Write-Host "  启动: $psExe $argLine"

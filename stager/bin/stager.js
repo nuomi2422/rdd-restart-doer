@@ -565,8 +565,8 @@ function ctxMd(st, full) {
         out.push('  唯一豁免：用户明确说了「本轮不走外脑」。没有这句话 = 没有豁免。');
         out.push('');
         out.push(F2 + 'bash');
-        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-probe.js"');
-        out.push('node "E:\\restart developing doer\\rdd-selfcompile\\scripts\\w-brain-drive.js" askall --file "<你的问题.md>"');
+        out.push('node "D:\\rdd\\workspace\\rdd-selfcompile\\scripts\\w-probe.js"');
+        out.push('node "D:\\rdd\\workspace\\rdd-selfcompile\\scripts\\w-brain-drive.js" askall --file "<你的问题.md>"');
         out.push(F2);
       }
       out.push('');

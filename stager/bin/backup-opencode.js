@@ -7,8 +7,8 @@
 const fs = require('fs');
 const path = require('path');
 
-const CFG = 'C:/Users/lenovo/.config/opencode/opencode.json';
-const OUT_DIR = 'E:/新建文件夹/rdd-docs/rdd存放/配置备份';
+const CFG = 'C:/Users/admin/.config/opencode/opencode.json';
+const OUT_DIR = 'D:/rdd/docs/rdd-docs/rdd存放/配置备份';
 const STAMP = new Date().toISOString().replace(/[-:]/g, '').slice(0, 15);
 const raw = fs.readFileSync(CFG, 'utf8');
 fs.mkdirSync(OUT_DIR, { recursive: true });
@@ -31,13 +31,13 @@ console.log('✔ 已备份: ' + out + '  (' + (raw.length / 1024).toFixed(1) + '
 console.log('✔ latest:  ' + path.join(OUT_DIR, 'opencode-latest.json'));
 console.log('');
 console.log('⚠ 该目录含 ' + secrets.length + ' 个 provider 的 API key（' + secrets.join(', ') + '）');
-console.log('  → 别提交进 git。已确保 .gitignore 没覆盖它，但 E:\\新建文件夹 也不在本仓。');
+console.log('  → 别提交进 git。已确保 .gitignore 没覆盖它，但 D:\\rdd\\extras 也不在本仓。');
 console.log('');
 console.log('回退方法：把 opencode-latest.json 复制回 ~/.config/opencode/opencode.json，重启 opencode。');
 
 // 顺手查一下 gitignore 有没有误伤这个目录
 try {
-  const ig = fs.readFileSync('E:/restart developing doer/.gitignore', 'utf8');
+  const ig = fs.readFileSync('D:/rdd/workspace/.gitignore', 'utf8');
   const bad = ig.split(/\r?\n/).filter((l) => l.trim() && /配置备份|opencode-/.test(l));
   console.log(bad.length ? '  ★ .gitignore 里有相关规则: ' + bad.join(', ') : '  ✔ .gitignore 没误伤');
 } catch (e) {}

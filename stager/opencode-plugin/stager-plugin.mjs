@@ -212,7 +212,7 @@ L.push('')
   //   opencode 每轮自动注入 AGENTS.md，等于同一份内容每轮读两遍，纯浪费。
   //   现在只留「细则文件里没有的活状态」：现在在哪个阶段、门禁差什么、文档几份。
   // ★ 2026-10-04：AGENTS.md 已瘦身，不再承载 stage 流 —— 细则改指向 rddharness\stage.md。
-  L.push(`★ **细则只读 \`E:\\新建文件夹\\rddharness\\stage.md\`**（四阶段流水线/阶段必读/机器门/完成动作）—— AGENTS.md 2026-10-04 起只留工程纪律与杂项。下面只列本阶段增量。`)
+  L.push(`★ **细则只读 \`D:\\rdd\\harness\\rdd-harness\\stage.md\`**（四阶段流水线/阶段必读/机器门/完成动作）—— AGENTS.md 2026-10-04 起只留工程纪律与杂项。下面只列本阶段增量。`)
   L.push('')
   if (s?.ai?.length) {
     s.ai.forEach((x) => L.push('- ' + x))
@@ -317,7 +317,7 @@ function briefSummary(st, S) {
     need.length ? `> **门禁 ✘ 还差 ${need.join(' ')}** —— 补齐才能 \`stager next\`。` : '> **门禁 ✔ 达标** —— 可以 `stager next` 进下一阶段。',
     `> 任务「${st.title || st.id}」　轮回 ${st.wrap || 0} 次　已交文档 ${docs.length} 份`,
     '',
-    `★ 细则只读 \`E:\\新建文件夹\\rddharness\\stage.md\`。本阶段增量：\`node "${CLI}" ctx\`。`,
+    `★ 细则只读 \`D:\\rdd\\harness\\rdd-harness\\stage.md\`。本阶段增量：\`node "${CLI}" ctx\`。`,
     '',
   ].join('\n')
 }

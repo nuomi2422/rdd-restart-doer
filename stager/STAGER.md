@@ -10,7 +10,7 @@
 **先跑这一条，别猜：**
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" ctx
+node "D:\rdd\workspace\stager\bin\stager.js" ctx
 ```
 
 三种结果，三种反应：
@@ -29,8 +29,8 @@ node "E:\restart developing doer\stager\bin\stager.js" ctx
 ## 1 · 换人次（你换了模型/新开会话/人接手）
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" swap "<你的名字>"
-node "E:\restart developing doer\stager\bin\stager.js" ctx --full
+node "D:\rdd\workspace\stager\bin\stager.js" swap "<你的名字>"
+node "D:\rdd\workspace\stager\bin\stager.js" ctx --full
 ```
 
 - `swap` 记一笔"谁接的哪一步"，不查出身，谁都能接。
@@ -106,9 +106,9 @@ node "...stager.js" close --status done --note "一句话结论"
 ## 6 · 全部命令
 
 ```powershell
-node "E:\restart developing doer\stager\bin\stager.js" help
+node "D:\rdd\workspace\stager\bin\stager.js" help
 ```
 
 （也可以把 `stager\bin` 加进 PATH，然后 `stager ctx` / `stager.cmd ctx`。）
 
-阶段定义改 `E:\restart developing doer\stager\core\stages.json`，改完立刻生效（不用改代码）。
+阶段定义改 `D:\rdd\workspace\stager\core\stages.json`，改完立刻生效（不用改代码）。

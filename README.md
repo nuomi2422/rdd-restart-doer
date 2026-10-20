@@ -34,7 +34,7 @@ node stager\bin\repo-status.js
 
 | 仓库 | 路径 | 角色 | 远程 | 分支/状态 |
 |---|---|---|---|---|
-| **rdd-restart-doer** | `E:\restart developing doer` | 外层：流程层（stager / 门禁 / 外脑池 / 编排脚本） | `nuomi2422/rdd-restart-doer`（private） | `master` |
+| **rdd-restart-doer** | `D:\rdd\workspace` | 外层：流程层（stager / 门禁 / 外脑池 / 编排脚本） | `nuomi2422/rdd-restart-doer`（private） | `master` |
 | **minecraft-numen** | `minecraft-numen\` | ★ **源码真源**：全部游戏代码（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1） | `origin` = `Dwinovo/minecraft-numen`（上游）；`backup` = `nuomi2422/minecraft-numen`（我们的 fork） | `redline-1` |
 | **ai-bridge** | `rdd-selfcompile\ai-bridge\` | 浏览器外脑桥（MCP 9527 → Chrome 扩展 → 网页 AI） | `origin` = `SoulChildTc/ai-bridge`；`backup` = `nuomi2422/ai-bridge-backup` | `main` |
 | **rdd-monitor-publish-20260913** | `rdd-monitor-publish-20260913\` | ★ **监测台 live 副本**（只读观测，端口 8776） | `origin` = `Asumi-Nishiki/TouhouLittleMaid-HeartPact`；`backup` = `nuomi2422/heartpact-automation-backup` | `codex/rdd-monitor-publish-20260913` |
@@ -50,7 +50,7 @@ node stager\bin\repo-status.js
 ### 3.1 单轮闭环（主入口）
 
 ```powershell
-& "E:\restart developing doer\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
+& "D:\rdd\workspace\rdd-selfcompile\scripts\run-mutation.ps1" -Requirement "<需求>" -Module <模块>
 ```
 
 编排器依次跑：`new-mutation → build-jar（编译+打包） → deploy（部署 mods） → launch-mc（起游戏） → mcp-drive（驱动） → verify（读监测台判定）`。
@@ -62,9 +62,9 @@ node stager\bin\repo-status.js
 ### 3.2 进游戏 / 出游戏两段门禁
 
 ```powershell
-node "E:\新建文件夹\rddharness\bin\harness-gate.js" preflight  --since <今天> --keyword <模块> --head <HEAD>
+node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" preflight  --since <今天> --keyword <模块> --head <HEAD>
 #   ↑ 进游戏前：读《进游戏前必读-游戏内能力清单.md》（说话/建伙伴/停内脑/视觉/追踪/相机/飞行/看监测台）
-node "E:\新建文件夹\rddharness\bin\harness-gate.js" postflight --since <今天> --keyword <模块> --head <HEAD>
+node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" postflight --since <今天> --keyword <模块> --head <HEAD>
 #   ↑ 出游戏后：查「写记录 + 写文档 + 灌记忆图谱 + 产物真的落地 + 时间锁更新 + 编号登记 + 游戏已关」
 ```
 
@@ -73,7 +73,7 @@ node "E:\新建文件夹\rddharness\bin\harness-gate.js" postflight --since <今
 | 组件 | 位置 | 说明 |
 |---|---|---|
 | **OpenClaw 控制器** | `mc-openclaw-controller\scripts\server.js` → 8080 | **必须先于游戏起**，否则这一轮游戏连不上 |
-| **游戏实例 live** | `E:\.minecraft\versions\The Best of Twilight Forest`（存档 `live`） | 命令行参数名写 `-Instance gpt`，那是**参数名**不是实例名 |
+| **游戏实例 live** | `D:\rdd\mc\The Best of Twilight Forest`（存档 `live`） | 命令行参数名写 `-Instance gpt`，那是**参数名**不是实例名 |
 | **Numen MCP** | `127.0.0.1:8765` | 驱动同伴的唯一正道，`mcp-call.js` / `numen-mcp.js` |
 | **监测台** | `http://127.0.0.1:8776/` → `rdd-monitor-publish-20260913\monitoring-station\server.mjs` | 只读观测；埋点 `config\numen\monitor\rdd.jsonl`（干净 UTF-8） |
 
@@ -148,9 +148,9 @@ node rdd-selfcompile\scripts\mc-watch.js                          # 退游戏前
 
 | 目录 | 谁用 | 装什么 |
 |---|---|---|
-| `E:\新建文件夹\rdd-docs\rdd存放\` | **用户** | 你要看/要用/要点的东西 |
-| `E:\新建文件夹\rdd-docs\rdd架构\` | AI | 设计 + 规范 + 叙事的真源（70 份编号文档） |
-| `E:\新建文件夹\rddharness\` | AI | 工具注册表 / 编程规范 / 门禁 / 时间锁 / stage 流 |
+| `D:\rdd\docs\rdd-docs\rdd存放\` | **用户** | 你要看/要用/要点的东西 |
+| `D:\rdd\docs\rdd-docs\rdd架构\` | AI | 设计 + 规范 + 叙事的真源（70 份编号文档） |
+| `D:\rdd\harness\rdd-harness\` | AI | 工具注册表 / 编程规范 / 门禁 / 时间锁 / stage 流 |
 | `rdd-selfcompile\report\` | AI | 外脑审稿原文（W 池回复也归档到这） |
 | `rdd-monitor-publish-20260913\monitoring-station\` | AI | 监测台源码（8776） |
 
@@ -173,7 +173,7 @@ node rdd-selfcompile\scripts\mc-watch.js                          # 退游戏前
 改了什么（原来每次联网构建/推送都失败在死代理上）：
 
 - `~/.gitconfig`：为 `https://github.com/` **单独置空代理**（`http.<url>.proxy =`），GitHub 走直连，其余保持原样。
-- `E:\.gradle\gradle.properties`：注释掉 4 行 `systemProp.*.proxy*`（原本强制走 7897）。
+- `D:\rdd\.gradle\gradle.properties`：注释掉 4 行 `systemProp.*.proxy*`（原本强制走 7897）。
 - `rdd-selfcompile\scripts\config.ps1`：`GRADLE_OPTS` 里的代理改为**可选**（设 `RDD_GRADLE_PROXY=<端口>` 才注入，默认空 = 直连）。
 
 > 若将来代理恢复且直连被墙：把上面三处反向改回，或临时 `$env:RDD_GRADLE_PROXY=7897` 即可。

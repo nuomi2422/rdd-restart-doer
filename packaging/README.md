@@ -24,9 +24,9 @@ powershell -NoProfile -ExecutionPolicy Bypass -File packaging\make-offline-bundl
 | 组成 | 源 | 体积 |
 |---|---|---|
 | `src\` | `minecraft-numen\`（去 .git/build/runs） | ~0.15 GB |
-| `gradle-home\caches\neoformruntime` | `E:\.gradle\caches\neoformruntime` | ~1.37 GB |
-| `gradle-home\caches\modules-2` | `E:\.gradle\caches\modules-2` | ~0.30 GB |
-| `gradle-home\caches\fabric-loom` | `E:\.gradle\caches\fabric-loom` | ~0.25 GB |
+| `gradle-home\caches\neoformruntime` | `D:\rdd\.gradle\caches\neoformruntime` | ~1.37 GB |
+| `gradle-home\caches\modules-2` | `D:\rdd\.gradle\caches\modules-2` | ~0.30 GB |
+| `gradle-home\caches\fabric-loom` | `D:\rdd\.gradle\caches\fabric-loom` | ~0.25 GB |
 | `gradle-9.2.0\` | 离线发行版 | ~0.14 GB |
 | `jdk\jdk-21.0.11+10\` | 便携 JDK21 | ~0.32 GB |
 | **合计** | | **~2.41 GB**（7z `-mx=1` 后 **2.05 GB**，8025 文件） |

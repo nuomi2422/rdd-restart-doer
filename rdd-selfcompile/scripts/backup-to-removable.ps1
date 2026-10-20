@@ -1,4 +1,4 @@
-# backup-to-removable.ps1 -- 离线备份到 F:（可移动盘）
+﻿# backup-to-removable.ps1 -- 离线备份到 F:（可移动盘）
 # 2026-10-01 · 目的：电脑坏了/进水后能复刻
 #
 # 设计要点
@@ -34,25 +34,25 @@ Write-Output "==================== 开始备份 $stamp ===================="
 New-Item -ItemType Directory -Force -Path $Dest | Out-Null
 
 # ① 架构文档（最重要，纯 md，已验证无密钥）
-Copy-Tree 'E:\新建文件夹\rdd-docs\rdd架构'            (Join-Path $Dest '01-架构文档')
+Copy-Tree 'D:\rdd\docs\rdd-docs\rdd架构'            (Join-Path $Dest '01-架构文档')
 # ② Numen 源码（minecraft-numen 自己的仓）
-Copy-Tree 'E:\restart developing doer\minecraft-numen' (Join-Path $Dest '02-源码-numen')
+Copy-Tree 'D:\rdd\workspace\minecraft-numen' (Join-Path $Dest '02-源码-numen')
 # ③ 自编译闭环（脚本/门禁/模板/报告）
-Copy-Tree 'E:\restart developing doer\rdd-selfcompile' (Join-Path $Dest '03-自编译闭环')
+Copy-Tree 'D:\rdd\workspace\rdd-selfcompile' (Join-Path $Dest '03-自编译闭环')
 # ④ 阶段管理 + 工具
-Copy-Tree 'E:\restart developing doer\stager'   (Join-Path $Dest '04-stager阶段管理')
-Copy-Tree 'E:\restart developing doer\mc-openclaw-controller' (Join-Path $Dest '05-OpenClaw控制器')
-Copy-Tree 'E:\restart developing doer\rdd-monitor-publish-20260913' (Join-Path $Dest '06-监测台')
+Copy-Tree 'D:\rdd\workspace\stager'   (Join-Path $Dest '04-stager阶段管理')
+Copy-Tree 'D:\rdd\workspace\mc-openclaw-controller' (Join-Path $Dest '05-OpenClaw控制器')
+Copy-Tree 'D:\rdd\workspace\rdd-monitor-publish-20260913' (Join-Path $Dest '06-监测台')
 # ⑤ 规则卡与入口脚本（根仓顶层散文件，体积小但关键）
-Copy-Tree 'E:\restart developing doer' (Join-Path $Dest '07-工作区根') | Out-Null
+Copy-Tree 'D:\rdd\workspace' (Join-Path $Dest '07-工作区根') | Out-Null
 
 # ⑥ git 历史（bundle 单文件，.git 已在上面排除）
 $bundleDir = Join-Path $Dest '08-git历史'
 New-Item -ItemType Directory -Force -Path $bundleDir | Out-Null
 Write-Output "BUNDLE: minecraft-numen"
-& git -C 'E:\restart developing doer\minecraft-numen' bundle create (Join-Path $bundleDir 'minecraft-numen-all.bundle') --all 2>&1 | ForEach-Object { "  $_" }
+& git -C 'D:\rdd\workspace\minecraft-numen' bundle create (Join-Path $bundleDir 'minecraft-numen-all.bundle') --all 2>&1 | ForEach-Object { "  $_" }
 Write-Output "BUNDLE: 根仓"
-& git -C 'E:\restart developing doer' bundle create (Join-Path $bundleDir 'workspace-root.bundle') --all 2>&1 | ForEach-Object { "  $_" }
+& git -C 'D:\rdd\workspace' bundle create (Join-Path $bundleDir 'workspace-root.bundle') --all 2>&1 | ForEach-Object { "  $_" }
 
 # ⑦ 清单
 Write-Output "MANIFEST 生成中..."

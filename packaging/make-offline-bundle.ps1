@@ -21,9 +21,9 @@ param(
 
 $ErrorActionPreference = 'Stop'
 
-$Root          = 'E:\restart developing doer'
-$GradleHomeSrc = 'E:\.gradle'
-$JdkSrc        = 'E:\jdk21\jdk-21.0.11+10'
+$Root          = 'D:\rdd\workspace'
+$GradleHomeSrc = 'D:\rdd\.gradle'
+$JdkSrc        = 'D:\rdd\tools\jdk21\jdk-21.0.11+10'
 $GradleDistSrc = Join-Path $Root 'gradle-9.2.0'
 $NumenSrc      = Join-Path $Root 'minecraft-numen'
 $SevenZip      = 'C:\Program Files\7-Zip\7z.exe'
@@ -63,7 +63,7 @@ Step 'copy source (minecraft-numen, minus build/.git/runs)'
 Robo $NumenSrc (Join-Path $Staging 'src') @('/XD', '.git', 'build', '.gradle', 'runs', 'logs', 'out', '.idea')
 
 # Neutralise the absolute org.gradle.java.home in the bundle's gradle.properties
-# (it points at E:\jdk21\... which will not exist on the target machine).
+# (it points at D:\rdd\tools\jdk21\... which will not exist on the target machine).
 $gp = Join-Path $Staging 'src\gradle.properties'
 if (Test-Path $gp) {
     $t = Get-Content $gp -Raw -Encoding UTF8

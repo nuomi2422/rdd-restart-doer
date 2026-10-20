@@ -8,7 +8,7 @@
  *     全部超完就**明确报错**（不静默、不假装成功）。
  *
  * 装：把下面这行加进 ~/.config/opencode/opencode.json 的 plugin 数组，然后重启 opencode（配置不热重载）
- *   "plugin": ["file:///E:/restart developing doer/opencode-plugin/model-router.mjs"]
+ *   "plugin": ["file:///D:/rdd/workspace/opencode-plugin/model-router.mjs"]
  *
  * ★ 为什么要开子会话而不是直接改当前会话的模型：
  *   opencode 的 `chat.params` 钩子能改 temperature / maxOutputTokens，但**改不了 model**（官方类型

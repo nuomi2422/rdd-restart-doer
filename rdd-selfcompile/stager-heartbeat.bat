@@ -19,7 +19,7 @@ REM
 REM  ASCII-only on purpose (see stager.bat for why).
 REM ============================================================
 
-set "HB=E:\restart developing doer\rdd-selfcompile\scripts\stage-heartbeat.js"
+set "HB=D:\rdd\workspace\rdd-selfcompile\scripts\stage-heartbeat.js"
 
 if not exist "%HB%" (
   echo [X] not found: %HB%

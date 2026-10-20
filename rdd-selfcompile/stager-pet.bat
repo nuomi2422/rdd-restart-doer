@@ -12,7 +12,7 @@ REM  multibyte chars inside a .bat and eats the first character of
 REM  the following lines.  All Chinese lives in pet-launch.ps1.
 REM ============================================================
 
-set "HELPER=E:\restart developing doer\stager\pet\pet-launch.ps1"
+set "HELPER=D:\rdd\workspace\stager\pet\pet-launch.ps1"
 
 if not exist "%HELPER%" (
   echo [X] helper missing: %HELPER%

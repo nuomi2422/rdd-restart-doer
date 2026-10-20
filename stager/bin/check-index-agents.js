@@ -4,7 +4,7 @@ const fs = require('fs');
 const FENCE = '```';
 let bad = 0;
 
-for (const f of ['E:/restart developing doer/AGENTS.md', 'E:/新建文件夹/rdd-docs/rdd架构/自编译统一版/10-计划阶段.md']) {
+for (const f of ['D:/rdd/workspace/AGENTS.md', 'D:/rdd/docs/rdd-docs/rdd架构/自编译统一版/10-计划阶段.md']) {
   const t = fs.readFileSync(f, 'utf8');
   const L = t.split(/\r?\n/);
   const name = f.split('/').pop();
@@ -28,7 +28,7 @@ for (const f of ['E:/restart developing doer/AGENTS.md', 'E:/新建文件夹/rdd
   });
 
   // 2) 路径存在性
-  [...new Set([...t.matchAll(/E:\\新建文件夹\\rdd-docs\\rdd架构\\自编译统一版\\[^\s（`]+\.md/g)].map((m) => m[0].replace(/\\/g, '/')))].forEach((p) => {
+  [...new Set([...t.matchAll(/D:\\rdd\\docs\\rdd-docs\\rdd架构\\自编译统一版\\[^\s（`]+\.md/g)].map((m) => m[0].replace(/\\/g, '/')))].forEach((p) => {
     if (!fs.existsSync(p)) { console.log('  ✘ 文件不存在: ' + p); bad++; }
   });
 

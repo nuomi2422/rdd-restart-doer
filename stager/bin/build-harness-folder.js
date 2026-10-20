@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * 建 E:\新建文件夹\rddharness —— 快捷启动集合（2026-10-01 用户要求）
+ * 建 D:\rdd\harness\rdd-harness —— 快捷启动集合（2026-10-01 用户要求）
  *
  * 目的：用户说「以后我也好方便启动」—— 所有要双击的东西收在一处。
  * 只做【复制】，原件留在原位（单一真源），这里当启动台。
@@ -10,8 +10,8 @@ const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
 
-const DEST = 'E:/新建文件夹/rddharness';
-const R = 'E:/restart developing doer';
+const DEST = 'D:/rdd/harness/rdd-harness';
+const R = 'D:/rdd/workspace';
 
 const ITEMS = [
   { file: 'stager-pet.bat', from: R + '/rdd-selfcompile/stager-pet.bat', what: '起桌宠（已开就不重复开）', stop: 'stop-stager-pet.bat' },
@@ -46,7 +46,7 @@ const PS1_BAT = [
   'chcp 65001 >nul',
   'title RDD Monitoring Autostart',
   'echo Starting monitoring station + watchdog + AI Bridge browser...',
-  'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "E:\\restart developing doer\\rdd-selfcompile\\scripts\\autostart-dev.ps1"',
+  'powershell.exe -NoProfile -ExecutionPolicy Bypass -File "D:\\rdd\\workspace\\rdd-selfcompile\\scripts\\autostart-dev.ps1"',
   'echo.',
   'echo Done. Monitoring: http://127.0.0.1:8776/',
   'ping -n 4 127.0.0.1 >nul',

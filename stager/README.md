@@ -19,7 +19,7 @@ stager close --status done      ← 关档
 ## 1 · 装 / 跑
 
 ```powershell
-$env:ST = "E:\restart developing doer\stager"
+$env:ST = "D:\rdd\workspace\stager"
 
 # 看全部命令
 node "$env:ST\bin\stager.js" help
@@ -34,7 +34,7 @@ node "$env:ST\bin\stager.js" install
 node "$env:ST\bin\stager.js" uninstall
 ```
 
-嫌路径长：把 `E:\restart developing doer\stager\bin` 加进 PATH，之后直接
+嫌路径长：把 `D:\rdd\workspace\stager\bin` 加进 PATH，之后直接
 `stager ctx`（PowerShell 里是 `stager.cmd ctx`），或者 `& "$env:ST\bin\stager.ps1" ctx`。
 
 ---

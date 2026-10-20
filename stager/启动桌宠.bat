@@ -13,7 +13,7 @@ REM
 REM  ASCII-only on purpose - see stager.bat for why.
 REM ============================================================
 
-set "SLEEVE=E:\restart developing doer\stager\pet\pet-launch.ps1"
+set "SLEEVE=D:\rdd\workspace\stager\pet\pet-launch.ps1"
 
 if exist "%SLEEVE%" (
   powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%SLEEVE%"

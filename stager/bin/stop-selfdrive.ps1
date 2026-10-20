@@ -1,4 +1,4 @@
-# 关掉 every-10min-drive（自活注入看门狗）
+﻿# 关掉 every-10min-drive（自活注入看门狗）
 # 它有「复活」特性：kill 掉的同时会由 autostart 拉起新的，所以要 kill 两次。
 $ErrorActionPreference = 'SilentlyContinue'
 $all = Get-CimInstance Win32_Process -Filter "Name='powershell.exe'"

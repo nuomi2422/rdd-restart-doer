@@ -1,4 +1,4 @@
-# ============================================
+﻿# ============================================
 # open-ai-bridge-chrome.ps1
 # 启动「AI Bridge 专用 Chrome」：独立 profile，隔离于日常 Chrome
 # 用途：1) 手动登录一次新注册的 ChatGPT 邮箱账号（非 Google）
@@ -9,7 +9,7 @@
 
 param(
   [string]$Chrome = "C:\Program Files\Google\Chrome\Application\chrome.exe",
-  [string]$ProfileDir = "C:\Users\lenovo\.config\ai-bridge\chrome-profile",
+  [string]$ProfileDir = "C:\Users\admin\.config\ai-bridge\chrome-profile",
   [string]$Url = "https://chatgpt.com/",
   [switch]$KeepAlive
 )

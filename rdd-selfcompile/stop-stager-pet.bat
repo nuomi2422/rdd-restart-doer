@@ -6,7 +6,7 @@ setlocal
 REM ASCII-only on purpose - see stager-pet.bat for why.
 REM Passes -Stop through to pet-launch.ps1.
 
-set "HELPER=E:\restart developing doer\stager\pet\pet-launch.ps1"
+set "HELPER=D:\rdd\workspace\stager\pet\pet-launch.ps1"
 
 if not exist "%HELPER%" (
   echo [X] helper missing: %HELPER%

@@ -2,8 +2,8 @@
     stager.ps1 —— PowerShell 包装（和 stager.cmd 等价）
 
     用法：
-      & "E:\restart developing doer\stager\bin\stager.ps1" ctx
-      & "E:\restart developing doer\stager\bin\stager.ps1" next --note "写完了"
+      & "D:\rdd\workspace\stager\bin\stager.ps1" ctx
+      & "D:\rdd\workspace\stager\bin\stager.ps1" next --note "写完了"
 
     -RequireModule stager 会把 stager 函数塞进当前会话，不用每次写全路径。
 #>

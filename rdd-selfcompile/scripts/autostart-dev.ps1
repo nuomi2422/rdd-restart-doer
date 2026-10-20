@@ -15,7 +15,7 @@ param(
 )
 
 $ErrorActionPreference = 'Continue'
-$log = 'E:\restart developing doer\rdd-selfcompile\scripts\autostart-dev.log'
+$log = 'D:\rdd\workspace\rdd-selfcompile\scripts\autostart-dev.log'
 function Say($m) {
     $line = "{0} {1}" -f (Get-Date -Format 'yyyy-MM-dd HH:mm:ss'), $m
     Add-Content -LiteralPath $log -Value $line -Encoding UTF8
@@ -25,13 +25,13 @@ function Say($m) {
 Say "=== autostart 开始 ==="
 
 # --- 0. 常量 ---
-$Repo       = 'E:\restart developing doer\minecraft-numen'
-$MonitorSrv = 'E:\restart developing doer\rdd-monitor-publish-20260913\monitoring-station\server.mjs'
-$MonitorDir = 'E:\.minecraft\versions\The Best of Twilight Forest\config\numen\monitor'
-$Watchdog   = 'E:\restart developing doer\rdd-selfcompile\scripts\every-10min-drive.ps1'
+$Repo       = 'D:\rdd\workspace\minecraft-numen'
+$MonitorSrv = 'D:\rdd\workspace\rdd-monitor-publish-20260913\monitoring-station\server.mjs'
+$MonitorDir = 'D:\rdd\mc\The Best of Twilight Forest\config\numen\monitor'
+$Watchdog   = 'D:\rdd\workspace\rdd-selfcompile\scripts\every-10min-drive.ps1'
 $Chrome     = 'C:\Program Files\Google\Chrome\Application\chrome.exe'
-$ChromeProf = 'C:\Users\lenovo\.config\ai-bridge\chrome-profile'
-$OpencodeExe = 'D:\nodejs\cache\_npx\e2094862b59aac7b\node_modules\opencode-ai\bin\opencode.exe'
+$ChromeProf = 'C:\Users\admin\.config\ai-bridge\chrome-profile'
+$OpencodeExe = 'D:\rdd\tools\node\cache\_npx\e2094862b59aac7b\node_modules\opencode-ai\bin\opencode.exe'
 
 function Port-InUse([int]$p) {
     return [bool](Get-NetTCPConnection -LocalPort $p -State Listen -ErrorAction SilentlyContinue)

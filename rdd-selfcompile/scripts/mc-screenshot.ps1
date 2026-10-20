@@ -1,4 +1,4 @@
-# mc-screenshot.ps1 -- VISION: capture the Minecraft window to PNG (O reads it via Read tool).
+﻿# mc-screenshot.ps1 -- VISION: capture the Minecraft window to PNG (O reads it via Read tool).
 # ASCII-only (PS5.1 misreads BOM-less UTF-8 Chinese and swallows newlines).
 # Usage: powershell -File mc-screenshot.ps1 [-OutPath <png>] [-TitleMatch <regex>] [-MinSize 300] [-NoRestore] [-DryRun]
 # Picks the LARGEST visible matching window (skips minimized 159x27 sentinel windows), restores+foregrounds it,

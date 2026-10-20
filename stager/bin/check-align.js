@@ -13,10 +13,10 @@
 const fs = require('fs');
 const path = require('path');
 
-const G = 'C:/Users/lenovo/.config/opencode/AGENTS.md';
-const B = 'E:/restart developing doer/AGENTS.md';
-const F = 'C:/Users/lenovo/.config/opencode/FLOW-MANDATE.md';
-const STAGE = 'E:/新建文件夹/rddharness/stage.md';
+const G = 'C:/Users/admin/.config/opencode/AGENTS.md';
+const B = 'D:/rdd/workspace/AGENTS.md';
+const F = 'C:/Users/admin/.config/opencode/FLOW-MANDATE.md';
+const STAGE = 'D:/rdd/harness/rdd-harness/stage.md';
 
 const g = fs.existsSync(G) ? fs.readFileSync(G, 'utf8') : '';
 const b = fs.readFileSync(B, 'utf8');
@@ -110,7 +110,7 @@ else if (deadRef.length === 0) good.push('FLOW-MANDATE.md 引用的 ' + fmRefs.l
 else warn.push('FLOW-MANDATE.md 引的小节号已经不存在：' + deadRef.join(' / ') + '（B版瘦身了，要么改引用要么改 FLOW-MANDATE）');
 
 // ⑥ 三份路径存在性
-const P = ['E:/新建文件夹/rddharness/stage.md', 'E:/新建文件夹/rddharness/进游戏前必读-游戏内能力清单.md'];
+const P = ['D:/rdd/harness/rdd-harness/stage.md', 'D:/rdd/harness/rdd-harness/进游戏前必读-游戏内能力清单.md'];
 const missP = P.filter((p) => !fs.existsSync(p));
 if (missP.length === 0) good.push('细则两份文件真实存在');
 else bad.push('文件不存在：' + missP.join(' / '));
@@ -123,7 +123,7 @@ else bad.push('文件不存在：' + missP.join(' / '));
 //      —— 这两条如果不一致，AI 照 ai[] 跑，而门禁按 cmd 判，永远对不上
 //    · stage.md 必须也承载同一套（不然 AI 读 stage.md 时看不到进出游戏提示）
 //    ★ 与 P4/P10/Q7/Q9/bug-10 同族的第 8 个教训：声明 ≠ 接线。
-const SJ = 'E:/restart developing doer/stager/core/stages.json';
+const SJ = 'D:/rdd/workspace/stager/core/stages.json';
 try {
   const sj = JSON.parse(fs.readFileSync(SJ, 'utf8'));
   const HG = sj['$harnessGate'] || {};

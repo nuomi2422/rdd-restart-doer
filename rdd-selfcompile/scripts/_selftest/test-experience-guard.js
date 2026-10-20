@@ -1,8 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
-const GUARD = 'E:/restart developing doer/rdd-selfcompile/scripts/experience-guard.js';
-const TMP = 'C:/Users/lenovo/AppData/Local/Temp/opencode/guard-test';
+const GUARD = 'D:/rdd/workspace/rdd-selfcompile/scripts/experience-guard.js';
+const TMP = 'C:/Users/admin/AppData/Local/Temp/opencode/guard-test';
 fs.rmSync(TMP, { recursive: true, force: true });
 fs.mkdirSync(TMP, { recursive: true });
 

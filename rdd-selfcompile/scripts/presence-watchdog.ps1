@@ -11,7 +11,7 @@ param(
   [switch]$DryRun
 )
 $ErrorActionPreference = 'Continue'
-$Base = 'E:\restart developing doer\rdd-selfcompile\scripts'
+$Base = 'D:\rdd\workspace\rdd-selfcompile\scripts'
 $Presence = Join-Path $Base 'presence-last-user.txt'
 $Log = Join-Path $Base 'presence-watchdog.log'
 function Log($m) { $line = "$(Get-Date -Format 'yyyy-MM-dd HH:mm:ss') $m"; Add-Content -LiteralPath $Log -Value $line -Encoding UTF8; Write-Output $line }
