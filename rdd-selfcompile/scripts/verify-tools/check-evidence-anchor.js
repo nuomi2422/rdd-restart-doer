@@ -217,7 +217,13 @@ function checkCard(mdPath, idx) {
     bare.add(name);
   }
   for (const name of bare) {
-    findings.push({ level: 'NO_COORDINATE', md: mdName, coord: name, detail: `引用了 ${name} 但没给行号（H3 要求 文件:行号）` });
+    // ★ 2026-10-21：区分「证据引用」与「指路」。
+    // 实测 20 条 NO_COORDINATE 全是「查 monitor/brain.jsonl 的 blocker」这类**指路**，不是证据；
+    // 逼它们编一个行号才是最坏的结果（H3 要的是坐标，不是编造）。
+    // 约定：同一行里出现「指针」二字 = 明确声明这是指路，跳过。
+    const pointer = raw.split(/\r?\n/).some((ln) => ln.includes(name) && ln.includes('指针'));
+    if (pointer) continue;
+    findings.push({ level: 'NO_COORDINATE', md: mdName, coord: name, detail: `引用了 ${name} 但没给行号（H3 要求 文件:行号；只是指路的话，在同一行写「指针」）` });
   }
 
   return findings;
@@ -243,6 +249,10 @@ function selftest() {
     { file: 'range.md', body: '证据：`rdd-real.jsonl`:999', want: 'OUT_OF_RANGE' },
     { file: 'fake.md', body: '证据：`rdd-real.jsonl`:3\n`这段原文根本不存在于任何证据里 ×99`', want: 'QUOTE_MISSING' },
     { file: 'bare.md', body: '证据见 rdd-real.jsonl', want: 'NO_COORDINATE' },
+    // 2026-10-21：指路 vs 证据。写了「指针」= 明确声明不是证据 → 不报；
+    // 没写「指针」还是要报（否则这条规则会被「随手加两个字」滥用成万能免检）。
+    { file: 'pointer.md', body: '异常时查 monitor/brain.jsonl 的 blocker（指针，不是证据）', want: 'OK' },
+    { file: 'pointer-no-mark.md', body: '异常时查 monitor/brain.jsonl 的 blocker', want: 'NO_COORDINATE' },
   ];
   for (const c of cases) fs.writeFileSync(path.join(cards, c.file), c.body, 'utf8');
 
