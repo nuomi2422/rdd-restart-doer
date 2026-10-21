@@ -72,6 +72,9 @@ function parseLedger(text) {
   for (const m of text.matchAll(/\b([0-9a-f]{7,40})\b/g)) {
     // 排除明显的非 sha（全数字、日期形如 20261021）
     const s = m[1];
+    // 批次号也可能是全 hex（如 acb12b2），写在 batch= 后面 —— 它不是 git 对象。
+    const before = text.slice(Math.max(0, m.index - 6), m.index);
+    if (/batch=$/i.test(before)) continue;
     if (/^\d+$/.test(s)) continue;
     if (!/[a-f]/.test(s)) continue;
     out.add(s.slice(0, 7));
@@ -116,6 +119,12 @@ function selftest() {
       name: '日期不该被当成 sha',
       log: 'aaaaaaa|feat: x\n',
       ledger: '2026-10-21 记 `aaaaaaa`',
+      want: { missing: 0, phantom: 0 },
+    },
+    {
+      name: '批次号不该被当成 sha',
+      log: 'aaaaaaa|feat: x\n',
+      ledger: 'batch=acb12b2 记 `aaaaaaa`',
       want: { missing: 0, phantom: 0 },
     },
   ];
