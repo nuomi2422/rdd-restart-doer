@@ -95,6 +95,34 @@ node "D:\rdd\harness\rdd-harness\bin\decide-inbox.js" digest
 > 为什么加这条：2026-10-21 实测，主 AI 一直在文档里写「owner 批准动刀 AC-B18」（#122），
 > 但主人看不到、也点不了 —— 链路两端都在，只差中间这根线。
 
+## 第 0.6 条 · 存档快照是**你自己的工具**（用不用你判断，删也归你）
+
+> 用户 2026-10-21 定：「不一定自动打，应该是要干活的 AI 知道这个东西的存在，
+> 他要用的时候才用，而且还要主动的删掉……快照的话应该是执行 AI 自己的事。」
+
+**它不是给用户批的事，是你干活的手段。** 什么时候用：
+
+- 这次验证会**破坏环境**（挖洞 / 丢东西 / 改同伴状态 / 改配置）→ 打一份再进游戏
+- 想**同一场景反复重跑**（判据要多次采样）→ 打一份当基准
+
+```powershell
+# 打（游戏必须已停）
+node "D:\rdd\harness\rdd-harness\bin\snapshot-world.js" --name before-<批次> --apply
+# 跑坏了回滚
+node "D:\rdd\harness\rdd-harness\bin\snapshot-world.js" --restore before-<批次> --apply
+# 看还有几个、占多少、哪些该删
+node "D:\rdd\harness\rdd-harness\bin\snapshot-world.js" --status
+# 删过期的（默认 TTL 48 小时）
+node "D:\rdd\harness\rdd-harness\bin\snapshot-world.js" --prune --apply
+```
+
+**★ 用完自己删。** 它是工作副本，不是资产 —— 每份 30 MB 级，攒着只会占盘。
+默认 TTL 48 小时；退游戏回填时顺手 `--prune`。
+
+> 快照里存三样（体积差 6 倍，工具已分开处理）：
+> `saves\<世界>\` 全量 ｜ `config\numen\`（排除 monitor）全量 ｜ `monitor\` 只留最近 30 分钟。
+> 回滚会自动删 `session.lock`（不删游戏拒绝进入），并先打一份 `pre-restore` 后悔药。
+
 ## 第 1 条 · 工程纪律
 
 ### 1.1 编译只有一个通道（手写 gradle / 手动拷 jar 已被 permission deny，绕不过去）
