@@ -1,0 +1,1003 @@
+{"t":"2026-10-21T14:20:53.755Z","phase":"start","minutes":40,"deathCycle":5,"pid":7064}
+{"t":"2026-10-21T14:20:54.254Z","cycle":1,"phase":"cycle_start","home":{"x":143,"y":-60,"z":310}}
+{"t":"2026-10-21T14:20:54.655Z","cycle":1,"phase":"execute_result","runId":"5be0a7df","status":"RUNNING","ms":400,"err":null}
+{"t":"2026-10-21T14:20:54.998Z","cycle":1,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t14"}
+{"t":"2026-10-21T14:20:55.290Z","cycle":1,"phase":"task1_settled","taskId":"t14"}
+{"t":"2026-10-21T14:20:55.837Z","cycle":1,"phase":"interrupt_goto","taskId":"t15","ms":546,"err":null}
+{"t":"2026-10-21T14:20:59.636Z","cycle":1,"phase":"interrupt_settled","taskId":"t15"}
+{"t":"2026-10-21T14:21:00.124Z","cycle":1,"phase":"resume1","ms":487,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5be0a7df\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:21:00.508Z","cycle":1,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t17","loop":0}
+{"t":"2026-10-21T14:21:08.029Z","phase":"start","minutes":15,"deathCycle":3,"pid":4820}
+{"t":"2026-10-21T14:21:09.072Z","cycle":1,"phase":"cycle_start","home":{"x":140,"y":-60,"z":310}}
+{"t":"2026-10-21T14:21:09.636Z","cycle":1,"phase":"execute_result","runId":"2d4e9f98","status":"RUNNING","ms":563,"err":null}
+{"t":"2026-10-21T14:21:10.339Z","cycle":1,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t18"}
+{"t":"2026-10-21T14:21:10.720Z","cycle":1,"phase":"task1_settled","taskId":"t18"}
+{"t":"2026-10-21T14:21:11.889Z","cycle":1,"phase":"interrupt_goto","taskId":"t19","ms":1169,"err":null}
+{"t":"2026-10-21T14:21:16.198Z","cycle":1,"phase":"interrupt_settled","taskId":"t19"}
+{"t":"2026-10-21T14:21:16.622Z","cycle":1,"phase":"resume1","ms":423,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2d4e9f98\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:21:17.045Z","cycle":1,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:21:17.045Z","cycle":1,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"2d4e9f98","ok":0,"fail":0,"stuck":1,"complete":0,"incomplete":1}
+{"t":"2026-10-21T14:21:19.420Z","cycle":2,"phase":"cycle_start","home":{"x":148,"y":-60,"z":310}}
+{"t":"2026-10-21T14:21:19.710Z","cycle":2,"phase":"execute_result","runId":"6c23799a","status":"RUNNING","ms":290,"err":null}
+{"t":"2026-10-21T14:21:20.233Z","cycle":2,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t20"}
+{"t":"2026-10-21T14:21:20.616Z","cycle":2,"phase":"task1_settled","taskId":"t20"}
+{"t":"2026-10-21T14:21:20.891Z","cycle":2,"phase":"interrupt_goto","taskId":"t21","ms":274,"err":null}
+{"t":"2026-10-21T14:21:24.059Z","cycle":2,"phase":"interrupt_settled","taskId":"t21"}
+{"t":"2026-10-21T14:21:24.401Z","cycle":2,"phase":"resume1","ms":342,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6c23799a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:21:24.713Z","cycle":2,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t22","loop":0}
+{"t":"2026-10-21T14:21:30.941Z","cycle":2,"phase":"task2_settled","taskId":"t22"}
+{"t":"2026-10-21T14:21:31.478Z","cycle":2,"phase":"resume2","ms":536,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6c23799a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:21:31.829Z","cycle":2,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:21:31.830Z","cycle":2,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6c23799a","ok":1,"fail":0,"stuck":1,"complete":1,"incomplete":1}
+{"t":"2026-10-21T14:21:34.135Z","cycle":3,"phase":"cycle_start","home":{"x":143,"y":-60,"z":313}}
+{"t":"2026-10-21T14:21:34.534Z","cycle":3,"phase":"death_execute","runId":"70516966","home":{"x":143,"y":-60,"z":313},"ms":398,"err":null}
+{"t":"2026-10-21T14:21:34.875Z","cycle":3,"phase":"death_pause","status":"PAUSED","taskId":"t24","error":"goto 已受理，后台执行中: taskId=t24"}
+{"t":"2026-10-21T14:21:35.202Z","cycle":3,"phase":"death_before_kill","taskId":"t24","idle":false,"raw":"{\"success\":true,\"message\":\"t24(走向 163,-60,313) running,已进行 0s,时间预算剩 49s。没有挂着的表。\",\"data\":{\"task_id\":\"t24\",\"task\":\"goto\",\"state\":\"running\",\"elapsed_s\":0,\"budget_left_s\":49}}"}
+{"t":"2026-10-21T14:21:35.586Z","cycle":3,"phase":"debug_kill","text":"{\"success\":true,\"message\":\"debug_kill executed (entity.kill(); death resolves this tick)\",\"data\":{\"position\":\"142, -60, 308\",\"hp\":0.0,\"dimension\":\"minecraft:overworld\",\"alive\":false}}","err":null}
+{"t":"2026-10-21T14:21:38.028Z","phase":"heartbeat","at":"debug_kill"}
+{"t":"2026-10-21T14:21:51.045Z","cycle":3,"phase":"after_respawn","position":{"x":121.62663908576707,"y":-60,"z":315.3743388144449}}
+{"t":"2026-10-21T14:21:51.423Z","cycle":3,"phase":"death_poll","try":0,"status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t24"}
+{"t":"2026-10-21T14:21:51.700Z","cycle":3,"phase":"death_resume","n":1,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"70516966\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:21:57.976Z","cycle":3,"phase":"death_poll","try":1,"status":"FAIL","error":"goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:21:57.976Z","cycle":3,"phase":"cycle_done","status":"FAIL","runId":"70516966","error":"goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）","ok":1,"fail":1,"stuck":1,"complete":1,"incomplete":1}
+{"t":"2026-10-21T14:22:00.263Z","cycle":4,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:00.608Z","cycle":4,"phase":"execute_result","runId":"67e7210a","status":"RUNNING","ms":344,"err":null}
+{"t":"2026-10-21T14:22:00.941Z","cycle":4,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t26"}
+{"t":"2026-10-21T14:22:01.262Z","cycle":4,"phase":"task1_settled","taskId":"t26"}
+{"t":"2026-10-21T14:22:01.646Z","cycle":4,"phase":"interrupt_goto","taskId":"t27","ms":384,"err":null}
+{"t":"2026-10-21T14:22:01.928Z","cycle":4,"phase":"interrupt_settled","taskId":"t27"}
+{"t":"2026-10-21T14:22:02.300Z","cycle":4,"phase":"resume1","ms":372,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"67e7210a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:02.647Z","cycle":4,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:22:02.648Z","cycle":4,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"67e7210a","ok":1,"fail":1,"stuck":2,"complete":1,"incomplete":2}
+{"t":"2026-10-21T14:22:05.671Z","cycle":5,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:06.288Z","cycle":5,"phase":"execute_result","runId":"547bf084","status":"RUNNING","ms":616,"err":null}
+{"t":"2026-10-21T14:22:06.594Z","cycle":5,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:06.594Z","cycle":5,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"547bf084","ok":1,"fail":2,"stuck":2,"complete":1,"incomplete":3}
+{"t":"2026-10-21T14:22:08.031Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:22:08.840Z","cycle":6,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:09.154Z","cycle":6,"phase":"execute_result","runId":"2ba27726","status":"RUNNING","ms":312,"err":null}
+{"t":"2026-10-21T14:22:09.486Z","cycle":6,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t28"}
+{"t":"2026-10-21T14:22:09.788Z","cycle":6,"phase":"task1_settled","taskId":"t28"}
+{"t":"2026-10-21T14:22:10.094Z","cycle":6,"phase":"interrupt_goto","taskId":"t29","ms":305,"err":null}
+{"t":"2026-10-21T14:22:10.397Z","cycle":6,"phase":"interrupt_settled","taskId":"t29"}
+{"t":"2026-10-21T14:22:10.700Z","cycle":6,"phase":"resume1","ms":302,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2ba27726\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:10.980Z","cycle":6,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t30","loop":0}
+{"t":"2026-10-21T14:22:11.299Z","cycle":6,"phase":"task2_settled","taskId":"t30"}
+{"t":"2026-10-21T14:22:11.612Z","cycle":6,"phase":"resume2","ms":313,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2ba27726\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:11.901Z","cycle":6,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:22:11.902Z","cycle":6,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"2ba27726","ok":2,"fail":2,"stuck":2,"complete":2,"incomplete":3}
+{"t":"2026-10-21T14:22:14.818Z","cycle":7,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:15.443Z","cycle":7,"phase":"execute_result","runId":"2457c6f1","status":"RUNNING","ms":624,"err":null}
+{"t":"2026-10-21T14:22:16.299Z","cycle":7,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:16.329Z","cycle":7,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"2457c6f1","ok":2,"fail":3,"stuck":2,"complete":2,"incomplete":4}
+{"t":"2026-10-21T14:22:18.656Z","cycle":8,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:18.956Z","cycle":8,"phase":"execute_result","runId":"1040c128","status":"RUNNING","ms":299,"err":null}
+{"t":"2026-10-21T14:22:19.279Z","cycle":8,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t31"}
+{"t":"2026-10-21T14:22:19.580Z","cycle":8,"phase":"task1_settled","taskId":"t31"}
+{"t":"2026-10-21T14:22:19.901Z","cycle":8,"phase":"interrupt_goto","taskId":"t32","ms":321,"err":null}
+{"t":"2026-10-21T14:22:20.422Z","cycle":8,"phase":"interrupt_settled","taskId":"t32"}
+{"t":"2026-10-21T14:22:21.095Z","cycle":8,"phase":"resume1","ms":672,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1040c128\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:21.612Z","cycle":8,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:22:21.612Z","cycle":8,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"1040c128","ok":2,"fail":4,"stuck":2,"complete":2,"incomplete":5}
+{"t":"2026-10-21T14:22:24.363Z","cycle":9,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:25.075Z","cycle":9,"phase":"execute_result","runId":"678efe48","status":"RUNNING","ms":712,"err":null}
+{"t":"2026-10-21T14:22:26.238Z","cycle":9,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:26.239Z","cycle":9,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"678efe48","ok":2,"fail":5,"stuck":2,"complete":2,"incomplete":6}
+{"t":"2026-10-21T14:22:28.522Z","cycle":10,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:28.850Z","cycle":10,"phase":"execute_result","runId":"1522f472","status":"RUNNING","ms":327,"err":null}
+{"t":"2026-10-21T14:22:29.495Z","cycle":10,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t33"}
+{"t":"2026-10-21T14:22:29.909Z","cycle":10,"phase":"task1_settled","taskId":"t33"}
+{"t":"2026-10-21T14:22:30.265Z","cycle":10,"phase":"interrupt_goto","taskId":"t34","ms":355,"err":null}
+{"t":"2026-10-21T14:22:30.870Z","cycle":10,"phase":"interrupt_settled","taskId":"t34"}
+{"t":"2026-10-21T14:22:31.320Z","cycle":10,"phase":"resume1","ms":449,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1522f472\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:31.677Z","cycle":10,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t35","loop":0}
+{"t":"2026-10-21T14:22:31.981Z","cycle":10,"phase":"task2_settled","taskId":"t35"}
+{"t":"2026-10-21T14:22:32.264Z","cycle":10,"phase":"resume2","ms":282,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1522f472\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:32.548Z","cycle":10,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:22:32.549Z","cycle":10,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"1522f472","ok":3,"fail":5,"stuck":2,"complete":3,"incomplete":6}
+{"t":"2026-10-21T14:22:34.899Z","cycle":11,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:35.192Z","cycle":11,"phase":"execute_result","runId":"4b83563b","status":"RUNNING","ms":292,"err":null}
+{"t":"2026-10-21T14:22:35.487Z","cycle":11,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:35.487Z","cycle":11,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"4b83563b","ok":3,"fail":6,"stuck":2,"complete":3,"incomplete":7}
+{"t":"2026-10-21T14:22:37.869Z","cycle":12,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:38.247Z","cycle":12,"phase":"execute_result","runId":"39985e9c","status":"RUNNING","ms":378,"err":null}
+{"t":"2026-10-21T14:22:38.557Z","cycle":12,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t36"}
+{"t":"2026-10-21T14:22:38.847Z","cycle":12,"phase":"task1_settled","taskId":"t36"}
+{"t":"2026-10-21T14:22:39.431Z","cycle":12,"phase":"interrupt_goto","taskId":"t37","ms":583,"err":null}
+{"t":"2026-10-21T14:22:39.808Z","cycle":12,"phase":"interrupt_settled","taskId":"t37"}
+{"t":"2026-10-21T14:22:40.076Z","cycle":12,"phase":"resume1","ms":268,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"39985e9c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:40.392Z","cycle":12,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:22:40.393Z","cycle":12,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"39985e9c","ok":3,"fail":7,"stuck":2,"complete":3,"incomplete":8}
+{"t":"2026-10-21T14:22:40.393Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:22:42.951Z","cycle":13,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:43.461Z","cycle":13,"phase":"execute_result","runId":"26b154a0","status":"RUNNING","ms":509,"err":null}
+{"t":"2026-10-21T14:22:43.764Z","cycle":13,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:43.765Z","cycle":13,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"26b154a0","ok":3,"fail":8,"stuck":2,"complete":3,"incomplete":9}
+{"t":"2026-10-21T14:22:46.065Z","cycle":14,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:46.449Z","cycle":14,"phase":"execute_result","runId":"2e432490","status":"RUNNING","ms":384,"err":null}
+{"t":"2026-10-21T14:22:46.806Z","cycle":14,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t38"}
+{"t":"2026-10-21T14:22:47.120Z","cycle":14,"phase":"task1_settled","taskId":"t38"}
+{"t":"2026-10-21T14:22:47.399Z","cycle":14,"phase":"interrupt_goto","taskId":"t39","ms":279,"err":null}
+{"t":"2026-10-21T14:22:47.695Z","cycle":14,"phase":"interrupt_settled","taskId":"t39"}
+{"t":"2026-10-21T14:22:47.991Z","cycle":14,"phase":"resume1","ms":296,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2e432490\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:48.270Z","cycle":14,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t40","loop":0}
+{"t":"2026-10-21T14:22:48.579Z","cycle":14,"phase":"task2_settled","taskId":"t40"}
+{"t":"2026-10-21T14:22:48.881Z","cycle":14,"phase":"resume2","ms":300,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2e432490\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:49.165Z","cycle":14,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:22:49.166Z","cycle":14,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"2e432490","ok":4,"fail":8,"stuck":2,"complete":4,"incomplete":9}
+{"t":"2026-10-21T14:22:51.497Z","cycle":15,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:51.843Z","cycle":15,"phase":"execute_result","runId":"670dbc93","status":"RUNNING","ms":346,"err":null}
+{"t":"2026-10-21T14:22:52.182Z","cycle":15,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:52.182Z","cycle":15,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"670dbc93","ok":4,"fail":9,"stuck":2,"complete":4,"incomplete":10}
+{"t":"2026-10-21T14:22:54.487Z","cycle":16,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:54.769Z","cycle":16,"phase":"execute_result","runId":"5dd0ad31","status":"RUNNING","ms":282,"err":null}
+{"t":"2026-10-21T14:22:55.051Z","cycle":16,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t41"}
+{"t":"2026-10-21T14:22:55.344Z","cycle":16,"phase":"task1_settled","taskId":"t41"}
+{"t":"2026-10-21T14:22:55.656Z","cycle":16,"phase":"interrupt_goto","taskId":"t42","ms":311,"err":null}
+{"t":"2026-10-21T14:22:55.987Z","cycle":16,"phase":"interrupt_settled","taskId":"t42"}
+{"t":"2026-10-21T14:22:56.296Z","cycle":16,"phase":"resume1","ms":308,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5dd0ad31\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:22:56.637Z","cycle":16,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:22:56.638Z","cycle":16,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"5dd0ad31","ok":4,"fail":10,"stuck":2,"complete":4,"incomplete":11}
+{"t":"2026-10-21T14:22:59.014Z","cycle":17,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:22:59.337Z","cycle":17,"phase":"execute_result","runId":"19549bcf","status":"RUNNING","ms":323,"err":null}
+{"t":"2026-10-21T14:22:59.728Z","cycle":17,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:22:59.729Z","cycle":17,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"19549bcf","ok":4,"fail":11,"stuck":2,"complete":4,"incomplete":12}
+{"t":"2026-10-21T14:23:02.120Z","cycle":18,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:02.415Z","cycle":18,"phase":"execute_result","runId":"11b1bf9c","status":"RUNNING","ms":294,"err":null}
+{"t":"2026-10-21T14:23:02.699Z","cycle":18,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t43"}
+{"t":"2026-10-21T14:23:02.986Z","cycle":18,"phase":"task1_settled","taskId":"t43"}
+{"t":"2026-10-21T14:23:03.564Z","cycle":18,"phase":"interrupt_goto","taskId":"t44","ms":577,"err":null}
+{"t":"2026-10-21T14:23:04.076Z","cycle":18,"phase":"interrupt_settled","taskId":"t44"}
+{"t":"2026-10-21T14:23:05.046Z","cycle":18,"phase":"resume1","ms":969,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"11b1bf9c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:05.660Z","cycle":18,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t45","loop":0}
+{"t":"2026-10-21T14:23:06.141Z","cycle":18,"phase":"task2_settled","taskId":"t45"}
+{"t":"2026-10-21T14:23:06.449Z","cycle":18,"phase":"resume2","ms":308,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"11b1bf9c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:06.799Z","cycle":18,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:23:06.800Z","cycle":18,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"11b1bf9c","ok":5,"fail":11,"stuck":2,"complete":5,"incomplete":12}
+{"t":"2026-10-21T14:23:09.168Z","cycle":19,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:09.585Z","cycle":19,"phase":"execute_result","runId":"3d8ff1db","status":"RUNNING","ms":416,"err":null}
+{"t":"2026-10-21T14:23:09.900Z","cycle":19,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:09.900Z","cycle":19,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"3d8ff1db","ok":5,"fail":12,"stuck":2,"complete":5,"incomplete":13}
+{"t":"2026-10-21T14:23:10.396Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:23:12.385Z","cycle":20,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:12.854Z","cycle":20,"phase":"execute_result","runId":"4859c3c0","status":"RUNNING","ms":468,"err":null}
+{"t":"2026-10-21T14:23:13.347Z","cycle":20,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t46"}
+{"t":"2026-10-21T14:23:13.743Z","cycle":20,"phase":"task1_settled","taskId":"t46"}
+{"t":"2026-10-21T14:23:14.040Z","cycle":20,"phase":"interrupt_goto","taskId":"t47","ms":297,"err":null}
+{"t":"2026-10-21T14:23:14.317Z","cycle":20,"phase":"interrupt_settled","taskId":"t47"}
+{"t":"2026-10-21T14:23:14.659Z","cycle":20,"phase":"resume1","ms":342,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4859c3c0\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:14.968Z","cycle":20,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:23:14.968Z","cycle":20,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"4859c3c0","ok":5,"fail":13,"stuck":2,"complete":5,"incomplete":14}
+{"t":"2026-10-21T14:23:17.302Z","cycle":21,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:17.653Z","cycle":21,"phase":"execute_result","runId":"37ca47dc","status":"RUNNING","ms":350,"err":null}
+{"t":"2026-10-21T14:23:17.968Z","cycle":21,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:17.969Z","cycle":21,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"37ca47dc","ok":5,"fail":14,"stuck":2,"complete":5,"incomplete":15}
+{"t":"2026-10-21T14:23:20.273Z","cycle":22,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:20.596Z","cycle":22,"phase":"execute_result","runId":"4d161cdc","status":"RUNNING","ms":323,"err":null}
+{"t":"2026-10-21T14:23:20.936Z","cycle":22,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t48"}
+{"t":"2026-10-21T14:23:21.288Z","cycle":22,"phase":"task1_settled","taskId":"t48"}
+{"t":"2026-10-21T14:23:21.678Z","cycle":22,"phase":"interrupt_goto","taskId":"t49","ms":390,"err":null}
+{"t":"2026-10-21T14:23:22.042Z","cycle":22,"phase":"interrupt_settled","taskId":"t49"}
+{"t":"2026-10-21T14:23:22.376Z","cycle":22,"phase":"resume1","ms":334,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4d161cdc\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:22.897Z","cycle":22,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t50","loop":0}
+{"t":"2026-10-21T14:23:23.841Z","cycle":22,"phase":"task2_settled","taskId":"t50"}
+{"t":"2026-10-21T14:23:24.194Z","cycle":22,"phase":"resume2","ms":352,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4d161cdc\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:24.531Z","cycle":22,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:23:24.531Z","cycle":22,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"4d161cdc","ok":6,"fail":14,"stuck":2,"complete":6,"incomplete":15}
+{"t":"2026-10-21T14:23:26.849Z","cycle":23,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:27.198Z","cycle":23,"phase":"execute_result","runId":"649a4ed6","status":"RUNNING","ms":349,"err":null}
+{"t":"2026-10-21T14:23:27.616Z","cycle":23,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:27.616Z","cycle":23,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"649a4ed6","ok":6,"fail":15,"stuck":2,"complete":6,"incomplete":16}
+{"t":"2026-10-21T14:23:30.042Z","cycle":24,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:30.386Z","cycle":24,"phase":"execute_result","runId":"67359910","status":"RUNNING","ms":343,"err":null}
+{"t":"2026-10-21T14:23:30.664Z","cycle":24,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t51"}
+{"t":"2026-10-21T14:23:30.954Z","cycle":24,"phase":"task1_settled","taskId":"t51"}
+{"t":"2026-10-21T14:23:31.241Z","cycle":24,"phase":"interrupt_goto","taskId":"t52","ms":287,"err":null}
+{"t":"2026-10-21T14:23:31.588Z","cycle":24,"phase":"interrupt_settled","taskId":"t52"}
+{"t":"2026-10-21T14:23:31.909Z","cycle":24,"phase":"resume1","ms":320,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"67359910\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:32.195Z","cycle":24,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:23:32.195Z","cycle":24,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"67359910","ok":6,"fail":16,"stuck":2,"complete":6,"incomplete":17}
+{"t":"2026-10-21T14:23:34.512Z","cycle":25,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:34.832Z","cycle":25,"phase":"execute_result","runId":"7c812e92","status":"RUNNING","ms":319,"err":null}
+{"t":"2026-10-21T14:23:35.110Z","cycle":25,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:35.110Z","cycle":25,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"7c812e92","ok":6,"fail":17,"stuck":2,"complete":6,"incomplete":18}
+{"t":"2026-10-21T14:23:37.504Z","cycle":26,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:37.806Z","cycle":26,"phase":"execute_result","runId":"37141842","status":"RUNNING","ms":301,"err":null}
+{"t":"2026-10-21T14:23:38.123Z","cycle":26,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t53"}
+{"t":"2026-10-21T14:23:38.485Z","cycle":26,"phase":"task1_settled","taskId":"t53"}
+{"t":"2026-10-21T14:23:38.797Z","cycle":26,"phase":"interrupt_goto","taskId":"t54","ms":312,"err":null}
+{"t":"2026-10-21T14:23:39.067Z","cycle":26,"phase":"interrupt_settled","taskId":"t54"}
+{"t":"2026-10-21T14:23:39.396Z","cycle":26,"phase":"resume1","ms":328,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"37141842\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:39.693Z","cycle":26,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t55","loop":0}
+{"t":"2026-10-21T14:23:39.981Z","cycle":26,"phase":"task2_settled","taskId":"t55"}
+{"t":"2026-10-21T14:23:40.271Z","cycle":26,"phase":"resume2","ms":289,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"37141842\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:40.553Z","cycle":26,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:23:40.554Z","cycle":26,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"37141842","ok":7,"fail":17,"stuck":2,"complete":7,"incomplete":18}
+{"t":"2026-10-21T14:23:40.555Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:23:42.995Z","cycle":27,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:44.015Z","cycle":27,"phase":"execute_result","runId":"2c0107ab","status":"RUNNING","ms":1019,"err":null}
+{"t":"2026-10-21T14:23:44.664Z","cycle":27,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:44.664Z","cycle":27,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"2c0107ab","ok":7,"fail":18,"stuck":2,"complete":7,"incomplete":19}
+{"t":"2026-10-21T14:23:47.117Z","cycle":28,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:47.642Z","cycle":28,"phase":"execute_result","runId":"6e8722d3","status":"RUNNING","ms":523,"err":null}
+{"t":"2026-10-21T14:23:48.107Z","cycle":28,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t56"}
+{"t":"2026-10-21T14:23:48.485Z","cycle":28,"phase":"task1_settled","taskId":"t56"}
+{"t":"2026-10-21T14:23:49.034Z","cycle":28,"phase":"interrupt_goto","taskId":"t57","ms":548,"err":null}
+{"t":"2026-10-21T14:23:49.545Z","cycle":28,"phase":"interrupt_settled","taskId":"t57"}
+{"t":"2026-10-21T14:23:49.949Z","cycle":28,"phase":"resume1","ms":404,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6e8722d3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:50.293Z","cycle":28,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:23:50.294Z","cycle":28,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"6e8722d3","ok":7,"fail":19,"stuck":2,"complete":7,"incomplete":20}
+{"t":"2026-10-21T14:23:52.583Z","cycle":29,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:52.895Z","cycle":29,"phase":"execute_result","runId":"20fac8d8","status":"RUNNING","ms":311,"err":null}
+{"t":"2026-10-21T14:23:53.204Z","cycle":29,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:23:53.204Z","cycle":29,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"20fac8d8","ok":7,"fail":20,"stuck":2,"complete":7,"incomplete":21}
+{"t":"2026-10-21T14:23:55.489Z","cycle":30,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:23:55.807Z","cycle":30,"phase":"execute_result","runId":"12af1bea","status":"RUNNING","ms":317,"err":null}
+{"t":"2026-10-21T14:23:56.092Z","cycle":30,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t58"}
+{"t":"2026-10-21T14:23:56.396Z","cycle":30,"phase":"task1_settled","taskId":"t58"}
+{"t":"2026-10-21T14:23:56.724Z","cycle":30,"phase":"interrupt_goto","taskId":"t59","ms":328,"err":null}
+{"t":"2026-10-21T14:23:57.003Z","cycle":30,"phase":"interrupt_settled","taskId":"t59"}
+{"t":"2026-10-21T14:23:57.316Z","cycle":30,"phase":"resume1","ms":312,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"12af1bea\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:57.626Z","cycle":30,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t60","loop":0}
+{"t":"2026-10-21T14:23:58.047Z","cycle":30,"phase":"task2_settled","taskId":"t60"}
+{"t":"2026-10-21T14:23:58.375Z","cycle":30,"phase":"resume2","ms":327,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"12af1bea\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:23:58.721Z","cycle":30,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:23:58.722Z","cycle":30,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"12af1bea","ok":8,"fail":20,"stuck":2,"complete":8,"incomplete":21}
+{"t":"2026-10-21T14:24:01.192Z","cycle":31,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:01.697Z","cycle":31,"phase":"execute_result","runId":"3695cf90","status":"RUNNING","ms":505,"err":null}
+{"t":"2026-10-21T14:24:01.995Z","cycle":31,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:01.996Z","cycle":31,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"3695cf90","ok":8,"fail":21,"stuck":2,"complete":8,"incomplete":22}
+{"t":"2026-10-21T14:24:04.284Z","cycle":32,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:04.636Z","cycle":32,"phase":"execute_result","runId":"63e8dcc4","status":"RUNNING","ms":351,"err":null}
+{"t":"2026-10-21T14:24:05.065Z","cycle":32,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t61"}
+{"t":"2026-10-21T14:24:05.345Z","cycle":32,"phase":"task1_settled","taskId":"t61"}
+{"t":"2026-10-21T14:24:05.627Z","cycle":32,"phase":"interrupt_goto","taskId":"t62","ms":281,"err":null}
+{"t":"2026-10-21T14:24:05.916Z","cycle":32,"phase":"interrupt_settled","taskId":"t62"}
+{"t":"2026-10-21T14:24:06.211Z","cycle":32,"phase":"resume1","ms":294,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"63e8dcc4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:06.506Z","cycle":32,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:24:06.507Z","cycle":32,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"63e8dcc4","ok":8,"fail":22,"stuck":2,"complete":8,"incomplete":23}
+{"t":"2026-10-21T14:24:09.005Z","cycle":33,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:09.385Z","cycle":33,"phase":"execute_result","runId":"73ef2f7c","status":"RUNNING","ms":379,"err":null}
+{"t":"2026-10-21T14:24:09.749Z","cycle":33,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:09.749Z","cycle":33,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"73ef2f7c","ok":8,"fail":23,"stuck":2,"complete":8,"incomplete":24}
+{"t":"2026-10-21T14:24:10.555Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:24:12.074Z","cycle":34,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:12.377Z","cycle":34,"phase":"execute_result","runId":"65152ee3","status":"RUNNING","ms":303,"err":null}
+{"t":"2026-10-21T14:24:12.681Z","cycle":34,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t63"}
+{"t":"2026-10-21T14:24:12.971Z","cycle":34,"phase":"task1_settled","taskId":"t63"}
+{"t":"2026-10-21T14:24:13.557Z","cycle":34,"phase":"interrupt_goto","taskId":"t64","ms":586,"err":null}
+{"t":"2026-10-21T14:24:14.412Z","cycle":34,"phase":"interrupt_settled","taskId":"t64"}
+{"t":"2026-10-21T14:24:14.943Z","cycle":34,"phase":"resume1","ms":530,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"65152ee3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:15.264Z","cycle":34,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t65","loop":0}
+{"t":"2026-10-21T14:24:15.590Z","cycle":34,"phase":"task2_settled","taskId":"t65"}
+{"t":"2026-10-21T14:24:15.933Z","cycle":34,"phase":"resume2","ms":342,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"65152ee3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:16.234Z","cycle":34,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:24:16.235Z","cycle":34,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"65152ee3","ok":9,"fail":23,"stuck":2,"complete":9,"incomplete":24}
+{"t":"2026-10-21T14:24:18.550Z","cycle":35,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:18.865Z","cycle":35,"phase":"execute_result","runId":"2bcb43be","status":"RUNNING","ms":314,"err":null}
+{"t":"2026-10-21T14:24:19.140Z","cycle":35,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:19.140Z","cycle":35,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"2bcb43be","ok":9,"fail":24,"stuck":2,"complete":9,"incomplete":25}
+{"t":"2026-10-21T14:24:21.644Z","cycle":36,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:21.957Z","cycle":36,"phase":"execute_result","runId":"1a9bfdf5","status":"RUNNING","ms":312,"err":null}
+{"t":"2026-10-21T14:24:22.438Z","cycle":36,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t66"}
+{"t":"2026-10-21T14:24:22.735Z","cycle":36,"phase":"task1_settled","taskId":"t66"}
+{"t":"2026-10-21T14:24:23.024Z","cycle":36,"phase":"interrupt_goto","taskId":"t67","ms":289,"err":null}
+{"t":"2026-10-21T14:24:23.466Z","cycle":36,"phase":"interrupt_settled","taskId":"t67"}
+{"t":"2026-10-21T14:24:23.796Z","cycle":36,"phase":"resume1","ms":330,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1a9bfdf5\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:24.113Z","cycle":36,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:24:24.114Z","cycle":36,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"1a9bfdf5","ok":9,"fail":25,"stuck":2,"complete":9,"incomplete":26}
+{"t":"2026-10-21T14:24:26.670Z","cycle":37,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:26.953Z","cycle":37,"phase":"execute_result","runId":"766a1de7","status":"RUNNING","ms":282,"err":null}
+{"t":"2026-10-21T14:24:27.232Z","cycle":37,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:27.232Z","cycle":37,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"766a1de7","ok":9,"fail":26,"stuck":2,"complete":9,"incomplete":27}
+{"t":"2026-10-21T14:24:29.538Z","cycle":38,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:29.857Z","cycle":38,"phase":"execute_result","runId":"362812e4","status":"RUNNING","ms":319,"err":null}
+{"t":"2026-10-21T14:24:30.164Z","cycle":38,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t68"}
+{"t":"2026-10-21T14:24:30.513Z","cycle":38,"phase":"task1_settled","taskId":"t68"}
+{"t":"2026-10-21T14:24:30.781Z","cycle":38,"phase":"interrupt_goto","taskId":"t69","ms":268,"err":null}
+{"t":"2026-10-21T14:24:31.127Z","cycle":38,"phase":"interrupt_settled","taskId":"t69"}
+{"t":"2026-10-21T14:24:31.585Z","cycle":38,"phase":"resume1","ms":431,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"362812e4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:32.025Z","cycle":38,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t70","loop":0}
+{"t":"2026-10-21T14:24:32.370Z","cycle":38,"phase":"task2_settled","taskId":"t70"}
+{"t":"2026-10-21T14:24:32.697Z","cycle":38,"phase":"resume2","ms":327,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"362812e4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:33.029Z","cycle":38,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:24:33.030Z","cycle":38,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"362812e4","ok":10,"fail":26,"stuck":2,"complete":10,"incomplete":27}
+{"t":"2026-10-21T14:24:35.493Z","cycle":39,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:35.839Z","cycle":39,"phase":"execute_result","runId":"418a4ddb","status":"RUNNING","ms":345,"err":null}
+{"t":"2026-10-21T14:24:36.216Z","cycle":39,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:36.216Z","cycle":39,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"418a4ddb","ok":10,"fail":27,"stuck":2,"complete":10,"incomplete":28}
+{"t":"2026-10-21T14:24:38.517Z","cycle":40,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:38.887Z","cycle":40,"phase":"execute_result","runId":"3051be4b","status":"RUNNING","ms":370,"err":null}
+{"t":"2026-10-21T14:24:39.193Z","cycle":40,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t71"}
+{"t":"2026-10-21T14:24:39.497Z","cycle":40,"phase":"task1_settled","taskId":"t71"}
+{"t":"2026-10-21T14:24:39.901Z","cycle":40,"phase":"interrupt_goto","taskId":"t72","ms":403,"err":null}
+{"t":"2026-10-21T14:24:40.184Z","cycle":40,"phase":"interrupt_settled","taskId":"t72"}
+{"t":"2026-10-21T14:24:40.466Z","cycle":40,"phase":"resume1","ms":282,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"3051be4b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:40.852Z","cycle":40,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:24:40.853Z","cycle":40,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"3051be4b","ok":10,"fail":28,"stuck":2,"complete":10,"incomplete":29}
+{"t":"2026-10-21T14:24:40.853Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:24:43.186Z","cycle":41,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:43.549Z","cycle":41,"phase":"execute_result","runId":"20c7d3d4","status":"RUNNING","ms":362,"err":null}
+{"t":"2026-10-21T14:24:43.997Z","cycle":41,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:43.997Z","cycle":41,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"20c7d3d4","ok":10,"fail":29,"stuck":2,"complete":10,"incomplete":30}
+{"t":"2026-10-21T14:24:46.448Z","cycle":42,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:46.765Z","cycle":42,"phase":"execute_result","runId":"390ee10c","status":"RUNNING","ms":317,"err":null}
+{"t":"2026-10-21T14:24:47.087Z","cycle":42,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t73"}
+{"t":"2026-10-21T14:24:47.395Z","cycle":42,"phase":"task1_settled","taskId":"t73"}
+{"t":"2026-10-21T14:24:47.704Z","cycle":42,"phase":"interrupt_goto","taskId":"t74","ms":308,"err":null}
+{"t":"2026-10-21T14:24:48.199Z","cycle":42,"phase":"interrupt_settled","taskId":"t74"}
+{"t":"2026-10-21T14:24:48.760Z","cycle":42,"phase":"resume1","ms":560,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"390ee10c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:49.196Z","cycle":42,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t75","loop":0}
+{"t":"2026-10-21T14:24:49.518Z","cycle":42,"phase":"task2_settled","taskId":"t75"}
+{"t":"2026-10-21T14:24:49.848Z","cycle":42,"phase":"resume2","ms":330,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"390ee10c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:50.122Z","cycle":42,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:24:50.122Z","cycle":42,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"390ee10c","ok":11,"fail":29,"stuck":2,"complete":11,"incomplete":30}
+{"t":"2026-10-21T14:24:52.439Z","cycle":43,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:52.738Z","cycle":43,"phase":"execute_result","runId":"196dd6e9","status":"RUNNING","ms":298,"err":null}
+{"t":"2026-10-21T14:24:53.009Z","cycle":43,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:24:53.009Z","cycle":43,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"196dd6e9","ok":11,"fail":30,"stuck":2,"complete":11,"incomplete":31}
+{"t":"2026-10-21T14:24:55.299Z","cycle":44,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:24:55.623Z","cycle":44,"phase":"execute_result","runId":"5e34b617","status":"RUNNING","ms":324,"err":null}
+{"t":"2026-10-21T14:24:55.898Z","cycle":44,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t76"}
+{"t":"2026-10-21T14:24:56.180Z","cycle":44,"phase":"task1_settled","taskId":"t76"}
+{"t":"2026-10-21T14:24:56.517Z","cycle":44,"phase":"interrupt_goto","taskId":"t77","ms":337,"err":null}
+{"t":"2026-10-21T14:24:56.791Z","cycle":44,"phase":"interrupt_settled","taskId":"t77"}
+{"t":"2026-10-21T14:24:57.074Z","cycle":44,"phase":"resume1","ms":283,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5e34b617\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:24:57.383Z","cycle":44,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:24:57.384Z","cycle":44,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"5e34b617","ok":11,"fail":31,"stuck":2,"complete":11,"incomplete":32}
+{"t":"2026-10-21T14:24:59.687Z","cycle":45,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:00.085Z","cycle":45,"phase":"execute_result","runId":"5b315252","status":"RUNNING","ms":397,"err":null}
+{"t":"2026-10-21T14:25:00.396Z","cycle":45,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:00.396Z","cycle":45,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"5b315252","ok":11,"fail":32,"stuck":2,"complete":11,"incomplete":33}
+{"t":"2026-10-21T14:25:02.686Z","cycle":46,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:02.974Z","cycle":46,"phase":"execute_result","runId":"686cb013","status":"RUNNING","ms":287,"err":null}
+{"t":"2026-10-21T14:25:03.260Z","cycle":46,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t78"}
+{"t":"2026-10-21T14:25:03.602Z","cycle":46,"phase":"task1_settled","taskId":"t78"}
+{"t":"2026-10-21T14:25:03.903Z","cycle":46,"phase":"interrupt_goto","taskId":"t79","ms":300,"err":null}
+{"t":"2026-10-21T14:25:04.268Z","cycle":46,"phase":"interrupt_settled","taskId":"t79"}
+{"t":"2026-10-21T14:25:04.641Z","cycle":46,"phase":"resume1","ms":372,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"686cb013\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:04.932Z","cycle":46,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t80","loop":0}
+{"t":"2026-10-21T14:25:05.204Z","cycle":46,"phase":"task2_settled","taskId":"t80"}
+{"t":"2026-10-21T14:25:05.498Z","cycle":46,"phase":"resume2","ms":293,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"686cb013\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:05.791Z","cycle":46,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:25:05.791Z","cycle":46,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"686cb013","ok":12,"fail":32,"stuck":2,"complete":12,"incomplete":33}
+{"t":"2026-10-21T14:25:08.095Z","cycle":47,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:08.486Z","cycle":47,"phase":"execute_result","runId":"5b3ffc7d","status":"RUNNING","ms":390,"err":null}
+{"t":"2026-10-21T14:25:08.890Z","cycle":47,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:08.891Z","cycle":47,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"5b3ffc7d","ok":12,"fail":33,"stuck":2,"complete":12,"incomplete":34}
+{"t":"2026-10-21T14:25:10.853Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:25:11.207Z","cycle":48,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:11.700Z","cycle":48,"phase":"execute_result","runId":"46a9682b","status":"RUNNING","ms":492,"err":null}
+{"t":"2026-10-21T14:25:12.115Z","cycle":48,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t81"}
+{"t":"2026-10-21T14:25:12.506Z","cycle":48,"phase":"task1_settled","taskId":"t81"}
+{"t":"2026-10-21T14:25:12.867Z","cycle":48,"phase":"interrupt_goto","taskId":"t82","ms":361,"err":null}
+{"t":"2026-10-21T14:25:13.203Z","cycle":48,"phase":"interrupt_settled","taskId":"t82"}
+{"t":"2026-10-21T14:25:14.141Z","cycle":48,"phase":"resume1","ms":937,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"46a9682b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:15.112Z","cycle":48,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:25:15.112Z","cycle":48,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"46a9682b","ok":12,"fail":34,"stuck":2,"complete":12,"incomplete":35}
+{"t":"2026-10-21T14:25:17.459Z","cycle":49,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:17.755Z","cycle":49,"phase":"execute_result","runId":"330bed75","status":"RUNNING","ms":296,"err":null}
+{"t":"2026-10-21T14:25:18.051Z","cycle":49,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:18.051Z","cycle":49,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"330bed75","ok":12,"fail":35,"stuck":2,"complete":12,"incomplete":36}
+{"t":"2026-10-21T14:25:20.361Z","cycle":50,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:20.648Z","cycle":50,"phase":"execute_result","runId":"31259d1a","status":"RUNNING","ms":287,"err":null}
+{"t":"2026-10-21T14:25:20.947Z","cycle":50,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t83"}
+{"t":"2026-10-21T14:25:21.260Z","cycle":50,"phase":"task1_settled","taskId":"t83"}
+{"t":"2026-10-21T14:25:21.557Z","cycle":50,"phase":"interrupt_goto","taskId":"t84","ms":297,"err":null}
+{"t":"2026-10-21T14:25:24.799Z","cycle":50,"phase":"interrupt_settled","taskId":"t84"}
+{"t":"2026-10-21T14:25:25.293Z","cycle":50,"phase":"resume1","ms":494,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"31259d1a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:25.686Z","cycle":50,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t85","loop":0}
+{"t":"2026-10-21T14:25:25.973Z","cycle":50,"phase":"task2_settled","taskId":"t85"}
+{"t":"2026-10-21T14:25:26.236Z","cycle":50,"phase":"resume2","ms":263,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"31259d1a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:26.571Z","cycle":50,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:25:26.571Z","cycle":50,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"31259d1a","ok":13,"fail":35,"stuck":2,"complete":13,"incomplete":36}
+{"t":"2026-10-21T14:25:28.893Z","cycle":51,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:29.264Z","cycle":51,"phase":"execute_result","runId":"131d162d","status":"RUNNING","ms":370,"err":null}
+{"t":"2026-10-21T14:25:29.570Z","cycle":51,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:29.570Z","cycle":51,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"131d162d","ok":13,"fail":36,"stuck":2,"complete":13,"incomplete":37}
+{"t":"2026-10-21T14:25:31.842Z","cycle":52,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:32.121Z","cycle":52,"phase":"execute_result","runId":"588ace86","status":"RUNNING","ms":278,"err":null}
+{"t":"2026-10-21T14:25:32.421Z","cycle":52,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t86"}
+{"t":"2026-10-21T14:25:32.736Z","cycle":52,"phase":"task1_settled","taskId":"t86"}
+{"t":"2026-10-21T14:25:33.049Z","cycle":52,"phase":"interrupt_goto","taskId":"t87","ms":313,"err":null}
+{"t":"2026-10-21T14:25:33.380Z","cycle":52,"phase":"interrupt_settled","taskId":"t87"}
+{"t":"2026-10-21T14:25:33.725Z","cycle":52,"phase":"resume1","ms":344,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"588ace86\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:34.027Z","cycle":52,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:25:34.028Z","cycle":52,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"588ace86","ok":13,"fail":37,"stuck":2,"complete":13,"incomplete":38}
+{"t":"2026-10-21T14:25:36.419Z","cycle":53,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:36.744Z","cycle":53,"phase":"execute_result","runId":"104351d7","status":"RUNNING","ms":324,"err":null}
+{"t":"2026-10-21T14:25:37.140Z","cycle":53,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:37.140Z","cycle":53,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"104351d7","ok":13,"fail":38,"stuck":2,"complete":13,"incomplete":39}
+{"t":"2026-10-21T14:25:39.479Z","cycle":54,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:39.819Z","cycle":54,"phase":"execute_result","runId":"10f18f83","status":"RUNNING","ms":340,"err":null}
+{"t":"2026-10-21T14:25:40.102Z","cycle":54,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t88"}
+{"t":"2026-10-21T14:25:40.416Z","cycle":54,"phase":"task1_settled","taskId":"t88"}
+{"t":"2026-10-21T14:25:40.766Z","cycle":54,"phase":"interrupt_goto","taskId":"t89","ms":349,"err":null}
+{"t":"2026-10-21T14:25:41.118Z","cycle":54,"phase":"interrupt_settled","taskId":"t89"}
+{"t":"2026-10-21T14:25:41.426Z","cycle":54,"phase":"resume1","ms":308,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"10f18f83\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:41.744Z","cycle":54,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t90","loop":0}
+{"t":"2026-10-21T14:25:42.089Z","cycle":54,"phase":"task2_settled","taskId":"t90"}
+{"t":"2026-10-21T14:25:42.446Z","cycle":54,"phase":"resume2","ms":356,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"10f18f83\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:42.745Z","cycle":54,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:25:42.745Z","cycle":54,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"10f18f83","ok":14,"fail":38,"stuck":2,"complete":14,"incomplete":39}
+{"t":"2026-10-21T14:25:42.745Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:25:45.044Z","cycle":55,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:45.316Z","cycle":55,"phase":"execute_result","runId":"1b9c9637","status":"RUNNING","ms":271,"err":null}
+{"t":"2026-10-21T14:25:45.617Z","cycle":55,"phase":"pause1","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）"}
+{"t":"2026-10-21T14:25:45.618Z","cycle":55,"phase":"cycle_done","status":"FAIL","pauses":0,"runId":"1b9c9637","ok":14,"fail":39,"stuck":2,"complete":14,"incomplete":40}
+{"t":"2026-10-21T14:25:47.939Z","cycle":56,"phase":"cycle_start","home":{"x":125,"y":-62,"z":310}}
+{"t":"2026-10-21T14:25:48.235Z","cycle":56,"phase":"execute_result","runId":"57f22d79","status":"RUNNING","ms":295,"err":null}
+{"t":"2026-10-21T14:25:48.543Z","cycle":56,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t91"}
+{"t":"2026-10-21T14:25:48.859Z","cycle":56,"phase":"task1_settled","taskId":"t91"}
+{"t":"2026-10-21T14:25:49.240Z","cycle":56,"phase":"interrupt_goto","taskId":"t92","ms":380,"err":null}
+{"t":"2026-10-21T14:25:52.353Z","cycle":56,"phase":"interrupt_settled","taskId":"t92"}
+{"t":"2026-10-21T14:25:52.646Z","cycle":56,"phase":"resume1","ms":293,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"57f22d79\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:25:52.951Z","cycle":56,"phase":"pause2","status":"FAIL","error":"goto 异步任务失败: 任务终态是 FAILED（不是成功，按失败处理）","loop":0}
+{"t":"2026-10-21T14:25:52.951Z","cycle":56,"phase":"cycle_done","status":"FAIL","pauses":1,"runId":"57f22d79","ok":14,"fail":40,"stuck":2,"complete":14,"incomplete":41}
+{"t":"2026-10-21T14:25:55.288Z","cycle":57,"phase":"cycle_start","home":{"x":126,"y":-60,"z":310}}
+{"t":"2026-10-21T14:25:55.553Z","cycle":57,"phase":"execute_result","runId":"7e45bed4","status":"RUNNING","ms":265,"err":null}
+{"t":"2026-10-21T14:25:55.812Z","cycle":57,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t94"}
+{"t":"2026-10-21T14:25:58.984Z","cycle":57,"phase":"task1_settled","taskId":"t94"}
+{"t":"2026-10-21T14:25:59.351Z","cycle":57,"phase":"interrupt_goto","taskId":"t95","ms":367,"err":null}
+{"t":"2026-10-21T14:26:02.468Z","cycle":57,"phase":"interrupt_settled","taskId":"t95"}
+{"t":"2026-10-21T14:26:02.779Z","cycle":57,"phase":"resume1","ms":311,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7e45bed4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:03.087Z","cycle":57,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t97","loop":0}
+{"t":"2026-10-21T14:26:08.986Z","cycle":57,"phase":"task2_settled","taskId":"t97"}
+{"t":"2026-10-21T14:26:09.333Z","cycle":57,"phase":"resume2","ms":347,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7e45bed4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:09.656Z","cycle":57,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:26:09.657Z","cycle":57,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"7e45bed4","ok":15,"fail":40,"stuck":2,"complete":15,"incomplete":41}
+{"t":"2026-10-21T14:26:11.931Z","cycle":58,"phase":"cycle_start","home":{"x":122,"y":-60,"z":310}}
+{"t":"2026-10-21T14:26:12.205Z","cycle":58,"phase":"execute_result","runId":"37722a8b","status":"RUNNING","ms":274,"err":null}
+{"t":"2026-10-21T14:26:12.468Z","cycle":58,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t98"}
+{"t":"2026-10-21T14:26:12.762Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:26:15.651Z","cycle":58,"phase":"task1_settled","taskId":"t98"}
+{"t":"2026-10-21T14:26:15.955Z","cycle":58,"phase":"interrupt_goto","taskId":"t99","ms":304,"err":null}
+{"t":"2026-10-21T14:26:19.137Z","cycle":58,"phase":"interrupt_settled","taskId":"t99"}
+{"t":"2026-10-21T14:26:19.472Z","cycle":58,"phase":"resume1","ms":335,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"37722a8b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:19.798Z","cycle":58,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:26:19.798Z","cycle":58,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"37722a8b","ok":15,"fail":40,"stuck":3,"complete":15,"incomplete":42}
+{"t":"2026-10-21T14:26:22.157Z","cycle":59,"phase":"cycle_start","home":{"x":135,"y":-60,"z":310}}
+{"t":"2026-10-21T14:26:22.417Z","cycle":59,"phase":"execute_result","runId":"3ed1a899","status":"RUNNING","ms":260,"err":null}
+{"t":"2026-10-21T14:26:22.798Z","cycle":59,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t102"}
+{"t":"2026-10-21T14:26:23.104Z","cycle":59,"phase":"task1_settled","taskId":"t102"}
+{"t":"2026-10-21T14:26:23.380Z","cycle":59,"phase":"interrupt_goto","taskId":"t103","ms":275,"err":null}
+{"t":"2026-10-21T14:26:26.479Z","cycle":59,"phase":"interrupt_settled","taskId":"t103"}
+{"t":"2026-10-21T14:26:26.755Z","cycle":59,"phase":"resume1","ms":275,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"3ed1a899\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:27.047Z","cycle":59,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t104","loop":0}
+{"t":"2026-10-21T14:26:30.146Z","cycle":59,"phase":"task2_settled","taskId":"t104"}
+{"t":"2026-10-21T14:26:30.463Z","cycle":59,"phase":"resume2","ms":316,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"3ed1a899\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:30.756Z","cycle":59,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:26:30.757Z","cycle":59,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"3ed1a899","ok":16,"fail":40,"stuck":3,"complete":16,"incomplete":42}
+{"t":"2026-10-21T14:26:33.069Z","cycle":60,"phase":"cycle_start","home":{"x":131,"y":-61,"z":310}}
+{"t":"2026-10-21T14:26:33.464Z","cycle":60,"phase":"execute_result","runId":"60a10549","status":"RUNNING","ms":394,"err":null}
+{"t":"2026-10-21T14:26:33.849Z","cycle":60,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t105"}
+{"t":"2026-10-21T14:26:34.166Z","cycle":60,"phase":"task1_settled","taskId":"t105"}
+{"t":"2026-10-21T14:26:34.493Z","cycle":60,"phase":"interrupt_goto","taskId":"t106","ms":327,"err":null}
+{"t":"2026-10-21T14:26:37.700Z","cycle":60,"phase":"interrupt_settled","taskId":"t106"}
+{"t":"2026-10-21T14:26:37.987Z","cycle":60,"phase":"resume1","ms":287,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"60a10549\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:38.277Z","cycle":60,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:26:38.278Z","cycle":60,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"60a10549","ok":16,"fail":40,"stuck":4,"complete":16,"incomplete":43}
+{"t":"2026-10-21T14:26:40.634Z","cycle":61,"phase":"cycle_start","home":{"x":138,"y":-60,"z":310}}
+{"t":"2026-10-21T14:26:41.012Z","cycle":61,"phase":"execute_result","runId":"2babc35a","status":"RUNNING","ms":377,"err":null}
+{"t":"2026-10-21T14:26:41.543Z","cycle":61,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t107"}
+{"t":"2026-10-21T14:26:42.764Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:26:44.652Z","cycle":61,"phase":"task1_settled","taskId":"t107"}
+{"t":"2026-10-21T14:26:45.277Z","cycle":61,"phase":"interrupt_goto","taskId":"t108","ms":625,"err":null}
+{"t":"2026-10-21T14:26:45.789Z","cycle":61,"phase":"interrupt_settled","taskId":"t108"}
+{"t":"2026-10-21T14:26:46.107Z","cycle":61,"phase":"resume1","ms":317,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2babc35a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:46.490Z","cycle":61,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t109","loop":0}
+{"t":"2026-10-21T14:26:49.810Z","cycle":61,"phase":"task2_settled","taskId":"t109"}
+{"t":"2026-10-21T14:26:50.245Z","cycle":61,"phase":"resume2","ms":435,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2babc35a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:26:50.669Z","cycle":61,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:26:50.669Z","cycle":61,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"2babc35a","ok":17,"fail":40,"stuck":4,"complete":17,"incomplete":43}
+{"t":"2026-10-21T14:26:53.070Z","cycle":62,"phase":"cycle_start","home":{"x":134,"y":-60,"z":310}}
+{"t":"2026-10-21T14:26:53.442Z","cycle":62,"phase":"execute_result","runId":"6e2ebcd4","status":"RUNNING","ms":372,"err":null}
+{"t":"2026-10-21T14:26:53.838Z","cycle":62,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t110"}
+{"t":"2026-10-21T14:26:57.120Z","cycle":62,"phase":"task1_settled","taskId":"t110"}
+{"t":"2026-10-21T14:26:57.490Z","cycle":62,"phase":"interrupt_goto","taskId":"t111","ms":369,"err":null}
+{"t":"2026-10-21T14:27:00.647Z","cycle":62,"phase":"interrupt_settled","taskId":"t111"}
+{"t":"2026-10-21T14:27:00.916Z","cycle":62,"phase":"resume1","ms":269,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6e2ebcd4\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:01.234Z","cycle":62,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:01.235Z","cycle":62,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"6e2ebcd4","ok":17,"fail":40,"stuck":5,"complete":17,"incomplete":44}
+{"t":"2026-10-21T14:27:03.549Z","cycle":63,"phase":"cycle_start","home":{"x":142,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:03.841Z","cycle":63,"phase":"execute_result","runId":"18d31bb5","status":"RUNNING","ms":292,"err":null}
+{"t":"2026-10-21T14:27:04.113Z","cycle":63,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t112"}
+{"t":"2026-10-21T14:27:04.415Z","cycle":63,"phase":"task1_settled","taskId":"t112"}
+{"t":"2026-10-21T14:27:04.708Z","cycle":63,"phase":"interrupt_goto","taskId":"t113","ms":292,"err":null}
+{"t":"2026-10-21T14:27:07.786Z","cycle":63,"phase":"interrupt_settled","taskId":"t113"}
+{"t":"2026-10-21T14:27:08.056Z","cycle":63,"phase":"resume1","ms":270,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"18d31bb5\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:08.356Z","cycle":63,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t114","loop":0}
+{"t":"2026-10-21T14:27:11.495Z","cycle":63,"phase":"task2_settled","taskId":"t114"}
+{"t":"2026-10-21T14:27:11.771Z","cycle":63,"phase":"resume2","ms":275,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"18d31bb5\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:12.049Z","cycle":63,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:12.049Z","cycle":63,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"18d31bb5","ok":18,"fail":40,"stuck":5,"complete":18,"incomplete":44}
+{"t":"2026-10-21T14:27:12.766Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:27:14.397Z","cycle":64,"phase":"cycle_start","home":{"x":138,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:14.688Z","cycle":64,"phase":"execute_result","runId":"7a95b18b","status":"RUNNING","ms":290,"err":null}
+{"t":"2026-10-21T14:27:14.966Z","cycle":64,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t115"}
+{"t":"2026-10-21T14:27:18.033Z","cycle":64,"phase":"task1_settled","taskId":"t115"}
+{"t":"2026-10-21T14:27:18.335Z","cycle":64,"phase":"interrupt_goto","taskId":"t116","ms":301,"err":null}
+{"t":"2026-10-21T14:27:21.455Z","cycle":64,"phase":"interrupt_settled","taskId":"t116"}
+{"t":"2026-10-21T14:27:21.737Z","cycle":64,"phase":"resume1","ms":282,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7a95b18b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:22.133Z","cycle":64,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:22.133Z","cycle":64,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"7a95b18b","ok":18,"fail":40,"stuck":6,"complete":18,"incomplete":45}
+{"t":"2026-10-21T14:27:24.441Z","cycle":65,"phase":"cycle_start","home":{"x":143,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:24.734Z","cycle":65,"phase":"execute_result","runId":"5bacd828","status":"RUNNING","ms":292,"err":null}
+{"t":"2026-10-21T14:27:25.016Z","cycle":65,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t117"}
+{"t":"2026-10-21T14:27:25.318Z","cycle":65,"phase":"task1_settled","taskId":"t117"}
+{"t":"2026-10-21T14:27:25.635Z","cycle":65,"phase":"interrupt_goto","taskId":"t118","ms":316,"err":null}
+{"t":"2026-10-21T14:27:28.748Z","cycle":65,"phase":"interrupt_settled","taskId":"t118"}
+{"t":"2026-10-21T14:27:29.050Z","cycle":65,"phase":"resume1","ms":302,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5bacd828\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:29.414Z","cycle":65,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t119","loop":0}
+{"t":"2026-10-21T14:27:32.505Z","cycle":65,"phase":"task2_settled","taskId":"t119"}
+{"t":"2026-10-21T14:27:32.781Z","cycle":65,"phase":"resume2","ms":275,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5bacd828\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:33.057Z","cycle":65,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:33.058Z","cycle":65,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"5bacd828","ok":19,"fail":40,"stuck":6,"complete":19,"incomplete":45}
+{"t":"2026-10-21T14:27:35.328Z","cycle":66,"phase":"cycle_start","home":{"x":140,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:35.648Z","cycle":66,"phase":"execute_result","runId":"3975ef63","status":"RUNNING","ms":319,"err":null}
+{"t":"2026-10-21T14:27:35.935Z","cycle":66,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t120"}
+{"t":"2026-10-21T14:27:39.019Z","cycle":66,"phase":"task1_settled","taskId":"t120"}
+{"t":"2026-10-21T14:27:39.259Z","cycle":66,"phase":"interrupt_goto","taskId":"t121","ms":239,"err":null}
+{"t":"2026-10-21T14:27:42.324Z","cycle":66,"phase":"interrupt_settled","taskId":"t121"}
+{"t":"2026-10-21T14:27:42.662Z","cycle":66,"phase":"resume1","ms":337,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"3975ef63\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:42.939Z","cycle":66,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:42.940Z","cycle":66,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"3975ef63","ok":19,"fail":40,"stuck":7,"complete":19,"incomplete":46}
+{"t":"2026-10-21T14:27:42.940Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:27:45.213Z","cycle":67,"phase":"cycle_start","home":{"x":148,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:45.532Z","cycle":67,"phase":"execute_result","runId":"6d4cb586","status":"RUNNING","ms":318,"err":null}
+{"t":"2026-10-21T14:27:45.816Z","cycle":67,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t122"}
+{"t":"2026-10-21T14:27:46.098Z","cycle":67,"phase":"task1_settled","taskId":"t122"}
+{"t":"2026-10-21T14:27:46.369Z","cycle":67,"phase":"interrupt_goto","taskId":"t123","ms":271,"err":null}
+{"t":"2026-10-21T14:27:49.442Z","cycle":67,"phase":"interrupt_settled","taskId":"t123"}
+{"t":"2026-10-21T14:27:49.716Z","cycle":67,"phase":"resume1","ms":274,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6d4cb586\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:50.008Z","cycle":67,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t124","loop":0}
+{"t":"2026-10-21T14:27:55.931Z","cycle":67,"phase":"task2_settled","taskId":"t124"}
+{"t":"2026-10-21T14:27:56.200Z","cycle":67,"phase":"resume2","ms":269,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6d4cb586\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:27:56.597Z","cycle":67,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:27:56.597Z","cycle":67,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6d4cb586","ok":20,"fail":40,"stuck":7,"complete":20,"incomplete":46}
+{"t":"2026-10-21T14:27:58.892Z","cycle":68,"phase":"cycle_start","home":{"x":144,"y":-60,"z":310}}
+{"t":"2026-10-21T14:27:59.186Z","cycle":68,"phase":"execute_result","runId":"7539469c","status":"RUNNING","ms":293,"err":null}
+{"t":"2026-10-21T14:27:59.535Z","cycle":68,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t125"}
+{"t":"2026-10-21T14:28:02.611Z","cycle":68,"phase":"task1_settled","taskId":"t125"}
+{"t":"2026-10-21T14:28:02.906Z","cycle":68,"phase":"interrupt_goto","taskId":"t126","ms":295,"err":null}
+{"t":"2026-10-21T14:28:05.988Z","cycle":68,"phase":"interrupt_settled","taskId":"t126"}
+{"t":"2026-10-21T14:28:06.307Z","cycle":68,"phase":"resume1","ms":319,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7539469c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:06.610Z","cycle":68,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:28:06.611Z","cycle":68,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"7539469c","ok":20,"fail":40,"stuck":8,"complete":20,"incomplete":47}
+{"t":"2026-10-21T14:28:08.916Z","cycle":69,"phase":"cycle_start","home":{"x":149,"y":-60,"z":310}}
+{"t":"2026-10-21T14:28:09.219Z","cycle":69,"phase":"execute_result","runId":"6a1ef10d","status":"RUNNING","ms":302,"err":null}
+{"t":"2026-10-21T14:28:09.532Z","cycle":69,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t127"}
+{"t":"2026-10-21T14:28:09.807Z","cycle":69,"phase":"task1_settled","taskId":"t127"}
+{"t":"2026-10-21T14:28:10.107Z","cycle":69,"phase":"interrupt_goto","taskId":"t128","ms":299,"err":null}
+{"t":"2026-10-21T14:28:13.238Z","cycle":69,"phase":"interrupt_settled","taskId":"t128"}
+{"t":"2026-10-21T14:28:13.536Z","cycle":69,"phase":"resume1","ms":298,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6a1ef10d\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:13.960Z","cycle":69,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t129","loop":0}
+{"t":"2026-10-21T14:28:14.460Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:28:17.267Z","cycle":69,"phase":"task2_settled","taskId":"t129"}
+{"t":"2026-10-21T14:28:17.588Z","cycle":69,"phase":"resume2","ms":321,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6a1ef10d\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:17.893Z","cycle":69,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:28:17.894Z","cycle":69,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6a1ef10d","ok":21,"fail":40,"stuck":8,"complete":21,"incomplete":47}
+{"t":"2026-10-21T14:28:20.189Z","cycle":70,"phase":"cycle_start","home":{"x":146,"y":-60,"z":309}}
+{"t":"2026-10-21T14:28:20.501Z","cycle":70,"phase":"execute_result","runId":"469f7899","status":"RUNNING","ms":311,"err":null}
+{"t":"2026-10-21T14:28:20.799Z","cycle":70,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t130"}
+{"t":"2026-10-21T14:28:23.890Z","cycle":70,"phase":"task1_settled","taskId":"t130"}
+{"t":"2026-10-21T14:28:24.228Z","cycle":70,"phase":"interrupt_goto","taskId":"t131","ms":338,"err":null}
+{"t":"2026-10-21T14:28:27.391Z","cycle":70,"phase":"interrupt_settled","taskId":"t131"}
+{"t":"2026-10-21T14:28:27.688Z","cycle":70,"phase":"resume1","ms":296,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"469f7899\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:27.993Z","cycle":70,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:28:27.994Z","cycle":70,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"469f7899","ok":21,"fail":40,"stuck":9,"complete":21,"incomplete":48}
+{"t":"2026-10-21T14:28:30.311Z","cycle":71,"phase":"cycle_start","home":{"x":154,"y":-60,"z":309}}
+{"t":"2026-10-21T14:28:30.611Z","cycle":71,"phase":"execute_result","runId":"6a2ca5d8","status":"RUNNING","ms":299,"err":null}
+{"t":"2026-10-21T14:28:30.975Z","cycle":71,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t132"}
+{"t":"2026-10-21T14:28:34.203Z","cycle":71,"phase":"task1_settled","taskId":"t132"}
+{"t":"2026-10-21T14:28:34.563Z","cycle":71,"phase":"interrupt_goto","taskId":"t133","ms":360,"err":null}
+{"t":"2026-10-21T14:28:37.710Z","cycle":71,"phase":"interrupt_settled","taskId":"t133"}
+{"t":"2026-10-21T14:28:38.059Z","cycle":71,"phase":"resume1","ms":349,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6a2ca5d8\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:38.355Z","cycle":71,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t134","loop":0}
+{"t":"2026-10-21T14:28:41.512Z","cycle":71,"phase":"task2_settled","taskId":"t134"}
+{"t":"2026-10-21T14:28:41.843Z","cycle":71,"phase":"resume2","ms":331,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6a2ca5d8\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:42.135Z","cycle":71,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:28:42.135Z","cycle":71,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6a2ca5d8","ok":22,"fail":40,"stuck":9,"complete":22,"incomplete":48}
+{"t":"2026-10-21T14:28:44.467Z","cycle":72,"phase":"cycle_start","home":{"x":150,"y":-60,"z":309}}
+{"t":"2026-10-21T14:28:44.788Z","cycle":72,"phase":"execute_result","runId":"5bbef08c","status":"RUNNING","ms":320,"err":null}
+{"t":"2026-10-21T14:28:45.109Z","cycle":72,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t135"}
+{"t":"2026-10-21T14:28:45.411Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:28:48.257Z","cycle":72,"phase":"task1_settled","taskId":"t135"}
+{"t":"2026-10-21T14:28:48.567Z","cycle":72,"phase":"interrupt_goto","taskId":"t136","ms":310,"err":null}
+{"t":"2026-10-21T14:28:51.767Z","cycle":72,"phase":"interrupt_settled","taskId":"t136"}
+{"t":"2026-10-21T14:28:52.091Z","cycle":72,"phase":"resume1","ms":324,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5bbef08c\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:52.412Z","cycle":72,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:28:52.412Z","cycle":72,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"5bbef08c","ok":22,"fail":40,"stuck":10,"complete":22,"incomplete":49}
+{"t":"2026-10-21T14:28:54.720Z","cycle":73,"phase":"cycle_start","home":{"x":158,"y":-60,"z":309}}
+{"t":"2026-10-21T14:28:55.035Z","cycle":73,"phase":"execute_result","runId":"62e86445","status":"RUNNING","ms":314,"err":null}
+{"t":"2026-10-21T14:28:55.392Z","cycle":73,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t137"}
+{"t":"2026-10-21T14:28:55.696Z","cycle":73,"phase":"task1_settled","taskId":"t137"}
+{"t":"2026-10-21T14:28:55.992Z","cycle":73,"phase":"interrupt_goto","taskId":"t138","ms":295,"err":null}
+{"t":"2026-10-21T14:28:59.138Z","cycle":73,"phase":"interrupt_settled","taskId":"t138"}
+{"t":"2026-10-21T14:28:59.484Z","cycle":73,"phase":"resume1","ms":345,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"62e86445\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:28:59.767Z","cycle":73,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t139","loop":0}
+{"t":"2026-10-21T14:29:02.848Z","cycle":73,"phase":"task2_settled","taskId":"t139"}
+{"t":"2026-10-21T14:29:03.159Z","cycle":73,"phase":"resume2","ms":310,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"62e86445\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:03.458Z","cycle":73,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:29:03.459Z","cycle":73,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"62e86445","ok":23,"fail":40,"stuck":10,"complete":23,"incomplete":49}
+{"t":"2026-10-21T14:29:05.841Z","cycle":74,"phase":"cycle_start","home":{"x":154,"y":-60,"z":309}}
+{"t":"2026-10-21T14:29:06.222Z","cycle":74,"phase":"execute_result","runId":"61f31cf3","status":"RUNNING","ms":380,"err":null}
+{"t":"2026-10-21T14:29:06.618Z","cycle":74,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t140"}
+{"t":"2026-10-21T14:29:07.071Z","cycle":74,"phase":"task1_settled","taskId":"t140"}
+{"t":"2026-10-21T14:29:07.441Z","cycle":74,"phase":"interrupt_goto","taskId":"t141","ms":370,"err":null}
+{"t":"2026-10-21T14:29:10.587Z","cycle":74,"phase":"interrupt_settled","taskId":"t141"}
+{"t":"2026-10-21T14:29:10.908Z","cycle":74,"phase":"resume1","ms":320,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"61f31cf3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:11.210Z","cycle":74,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:29:11.210Z","cycle":74,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"61f31cf3","ok":23,"fail":40,"stuck":11,"complete":23,"incomplete":50}
+{"t":"2026-10-21T14:29:13.588Z","cycle":75,"phase":"cycle_start","home":{"x":159,"y":-60,"z":309}}
+{"t":"2026-10-21T14:29:13.869Z","cycle":75,"phase":"execute_result","runId":"7ed33fb9","status":"RUNNING","ms":281,"err":null}
+{"t":"2026-10-21T14:29:14.169Z","cycle":75,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t142"}
+{"t":"2026-10-21T14:29:15.414Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:29:17.268Z","cycle":75,"phase":"task1_settled","taskId":"t142"}
+{"t":"2026-10-21T14:29:17.563Z","cycle":75,"phase":"interrupt_goto","taskId":"t143","ms":294,"err":null}
+{"t":"2026-10-21T14:29:20.675Z","cycle":75,"phase":"interrupt_settled","taskId":"t143"}
+{"t":"2026-10-21T14:29:20.961Z","cycle":75,"phase":"resume1","ms":286,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7ed33fb9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:21.286Z","cycle":75,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t144","loop":0}
+{"t":"2026-10-21T14:29:24.410Z","cycle":75,"phase":"task2_settled","taskId":"t144"}
+{"t":"2026-10-21T14:29:24.718Z","cycle":75,"phase":"resume2","ms":308,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7ed33fb9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:25.014Z","cycle":75,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:29:25.015Z","cycle":75,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"7ed33fb9","ok":24,"fail":40,"stuck":11,"complete":24,"incomplete":50}
+{"t":"2026-10-21T14:29:27.299Z","cycle":76,"phase":"cycle_start","home":{"x":155,"y":-60,"z":309}}
+{"t":"2026-10-21T14:29:27.599Z","cycle":76,"phase":"execute_result","runId":"2c1cc832","status":"RUNNING","ms":299,"err":null}
+{"t":"2026-10-21T14:29:27.892Z","cycle":76,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t145"}
+{"t":"2026-10-21T14:29:31.003Z","cycle":76,"phase":"task1_settled","taskId":"t145"}
+{"t":"2026-10-21T14:29:31.310Z","cycle":76,"phase":"interrupt_goto","taskId":"t146","ms":306,"err":null}
+{"t":"2026-10-21T14:29:34.492Z","cycle":76,"phase":"interrupt_settled","taskId":"t146"}
+{"t":"2026-10-21T14:29:34.819Z","cycle":76,"phase":"resume1","ms":327,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2c1cc832\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:35.122Z","cycle":76,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:29:35.122Z","cycle":76,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"2c1cc832","ok":24,"fail":40,"stuck":12,"complete":24,"incomplete":51}
+{"t":"2026-10-21T14:29:37.412Z","cycle":77,"phase":"cycle_start","home":{"x":163,"y":-60,"z":309}}
+{"t":"2026-10-21T14:29:37.761Z","cycle":77,"phase":"execute_result","runId":"7e332f01","status":"RUNNING","ms":348,"err":null}
+{"t":"2026-10-21T14:29:38.077Z","cycle":77,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t147"}
+{"t":"2026-10-21T14:29:41.276Z","cycle":77,"phase":"task1_settled","taskId":"t147"}
+{"t":"2026-10-21T14:29:41.649Z","cycle":77,"phase":"interrupt_goto","taskId":"t148","ms":373,"err":null}
+{"t":"2026-10-21T14:29:44.893Z","cycle":77,"phase":"interrupt_settled","taskId":"t148"}
+{"t":"2026-10-21T14:29:45.215Z","cycle":77,"phase":"resume1","ms":321,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7e332f01\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:45.559Z","cycle":77,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t149","loop":0}
+{"t":"2026-10-21T14:29:45.853Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:29:48.659Z","cycle":77,"phase":"task2_settled","taskId":"t149"}
+{"t":"2026-10-21T14:29:48.969Z","cycle":77,"phase":"resume2","ms":310,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7e332f01\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:29:49.261Z","cycle":77,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:29:49.261Z","cycle":77,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"7e332f01","ok":25,"fail":40,"stuck":12,"complete":25,"incomplete":51}
+{"t":"2026-10-21T14:29:51.551Z","cycle":78,"phase":"cycle_start","home":{"x":159,"y":-60,"z":309}}
+{"t":"2026-10-21T14:29:51.834Z","cycle":78,"phase":"execute_result","runId":"6b6daf12","status":"RUNNING","ms":283,"err":null}
+{"t":"2026-10-21T14:29:52.209Z","cycle":78,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t150"}
+{"t":"2026-10-21T14:29:55.364Z","cycle":78,"phase":"task1_settled","taskId":"t150"}
+{"t":"2026-10-21T14:29:55.640Z","cycle":78,"phase":"interrupt_goto","taskId":"t151","ms":275,"err":null}
+{"t":"2026-10-21T14:29:58.862Z","cycle":78,"phase":"interrupt_settled","taskId":"t151"}
+{"t":"2026-10-21T14:29:59.420Z","cycle":78,"phase":"resume1","ms":557,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6b6daf12\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:00.047Z","cycle":78,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:30:00.048Z","cycle":78,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"6b6daf12","ok":25,"fail":40,"stuck":13,"complete":25,"incomplete":52}
+{"t":"2026-10-21T14:30:02.827Z","cycle":79,"phase":"cycle_start","home":{"x":167,"y":-60,"z":309}}
+{"t":"2026-10-21T14:30:03.196Z","cycle":79,"phase":"execute_result","runId":"171e1cff","status":"RUNNING","ms":369,"err":null}
+{"t":"2026-10-21T14:30:03.604Z","cycle":79,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t152"}
+{"t":"2026-10-21T14:30:04.079Z","cycle":79,"phase":"task1_settled","taskId":"t152"}
+{"t":"2026-10-21T14:30:04.495Z","cycle":79,"phase":"interrupt_goto","taskId":"t153","ms":415,"err":null}
+{"t":"2026-10-21T14:30:07.687Z","cycle":79,"phase":"interrupt_settled","taskId":"t153"}
+{"t":"2026-10-21T14:30:08.061Z","cycle":79,"phase":"resume1","ms":374,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"171e1cff\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:08.372Z","cycle":79,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t154","loop":0}
+{"t":"2026-10-21T14:30:11.510Z","cycle":79,"phase":"task2_settled","taskId":"t154"}
+{"t":"2026-10-21T14:30:11.802Z","cycle":79,"phase":"resume2","ms":292,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"171e1cff\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:12.110Z","cycle":79,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:30:12.110Z","cycle":79,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"171e1cff","ok":26,"fail":40,"stuck":13,"complete":26,"incomplete":52}
+{"t":"2026-10-21T14:30:14.459Z","cycle":80,"phase":"cycle_start","home":{"x":163,"y":-60,"z":309}}
+{"t":"2026-10-21T14:30:14.757Z","cycle":80,"phase":"execute_result","runId":"66c85fbc","status":"RUNNING","ms":297,"err":null}
+{"t":"2026-10-21T14:30:15.049Z","cycle":80,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t155"}
+{"t":"2026-10-21T14:30:15.853Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:30:18.164Z","cycle":80,"phase":"task1_settled","taskId":"t155"}
+{"t":"2026-10-21T14:30:18.520Z","cycle":80,"phase":"interrupt_goto","taskId":"t156","ms":356,"err":null}
+{"t":"2026-10-21T14:30:21.621Z","cycle":80,"phase":"interrupt_settled","taskId":"t156"}
+{"t":"2026-10-21T14:30:21.942Z","cycle":80,"phase":"resume1","ms":321,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"66c85fbc\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:22.261Z","cycle":80,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:30:22.262Z","cycle":80,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"66c85fbc","ok":26,"fail":40,"stuck":14,"complete":26,"incomplete":53}
+{"t":"2026-10-21T14:30:24.592Z","cycle":81,"phase":"cycle_start","home":{"x":171,"y":-60,"z":309}}
+{"t":"2026-10-21T14:30:24.867Z","cycle":81,"phase":"execute_result","runId":"41a3730f","status":"RUNNING","ms":275,"err":null}
+{"t":"2026-10-21T14:30:25.233Z","cycle":81,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t157"}
+{"t":"2026-10-21T14:30:28.417Z","cycle":81,"phase":"task1_settled","taskId":"t157"}
+{"t":"2026-10-21T14:30:28.731Z","cycle":81,"phase":"interrupt_goto","taskId":"t158","ms":314,"err":null}
+{"t":"2026-10-21T14:30:31.815Z","cycle":81,"phase":"interrupt_settled","taskId":"t158"}
+{"t":"2026-10-21T14:30:32.086Z","cycle":81,"phase":"resume1","ms":270,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"41a3730f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:32.355Z","cycle":81,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t159","loop":0}
+{"t":"2026-10-21T14:30:35.473Z","cycle":81,"phase":"task2_settled","taskId":"t159"}
+{"t":"2026-10-21T14:30:35.747Z","cycle":81,"phase":"resume2","ms":273,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"41a3730f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:36.155Z","cycle":81,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:30:36.156Z","cycle":81,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"41a3730f","ok":27,"fail":40,"stuck":14,"complete":27,"incomplete":53}
+{"t":"2026-10-21T14:30:38.452Z","cycle":82,"phase":"cycle_start","home":{"x":167,"y":-60,"z":309}}
+{"t":"2026-10-21T14:30:38.730Z","cycle":82,"phase":"execute_result","runId":"39cf06ca","status":"RUNNING","ms":278,"err":null}
+{"t":"2026-10-21T14:30:39.014Z","cycle":82,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t160"}
+{"t":"2026-10-21T14:30:42.142Z","cycle":82,"phase":"task1_settled","taskId":"t160"}
+{"t":"2026-10-21T14:30:42.419Z","cycle":82,"phase":"interrupt_goto","taskId":"t161","ms":277,"err":null}
+{"t":"2026-10-21T14:30:45.586Z","cycle":82,"phase":"interrupt_settled","taskId":"t161"}
+{"t":"2026-10-21T14:30:45.871Z","cycle":82,"phase":"resume1","ms":285,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"39cf06ca\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:46.177Z","cycle":82,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:30:46.177Z","cycle":82,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"39cf06ca","ok":27,"fail":40,"stuck":15,"complete":27,"incomplete":54}
+{"t":"2026-10-21T14:30:46.177Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:30:48.487Z","cycle":83,"phase":"cycle_start","home":{"x":175,"y":-61,"z":309}}
+{"t":"2026-10-21T14:30:48.805Z","cycle":83,"phase":"execute_result","runId":"1b699e72","status":"RUNNING","ms":317,"err":null}
+{"t":"2026-10-21T14:30:49.114Z","cycle":83,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t162"}
+{"t":"2026-10-21T14:30:49.466Z","cycle":83,"phase":"task1_settled","taskId":"t162"}
+{"t":"2026-10-21T14:30:49.812Z","cycle":83,"phase":"interrupt_goto","taskId":"t163","ms":345,"err":null}
+{"t":"2026-10-21T14:30:58.486Z","cycle":83,"phase":"interrupt_settled","taskId":"t163"}
+{"t":"2026-10-21T14:30:58.767Z","cycle":83,"phase":"resume1","ms":281,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1b699e72\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:30:59.079Z","cycle":83,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t165","loop":0}
+{"t":"2026-10-21T14:31:05.108Z","cycle":83,"phase":"task2_settled","taskId":"t165"}
+{"t":"2026-10-21T14:31:05.711Z","cycle":83,"phase":"resume2","ms":602,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1b699e72\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:06.011Z","cycle":83,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:31:06.011Z","cycle":83,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"1b699e72","ok":28,"fail":40,"stuck":15,"complete":28,"incomplete":54}
+{"t":"2026-10-21T14:31:08.496Z","cycle":84,"phase":"cycle_start","home":{"x":171,"y":-60,"z":309}}
+{"t":"2026-10-21T14:31:08.802Z","cycle":84,"phase":"execute_result","runId":"59577824","status":"RUNNING","ms":305,"err":null}
+{"t":"2026-10-21T14:31:09.144Z","cycle":84,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t166"}
+{"t":"2026-10-21T14:31:12.245Z","cycle":84,"phase":"task1_settled","taskId":"t166"}
+{"t":"2026-10-21T14:31:12.520Z","cycle":84,"phase":"interrupt_goto","taskId":"t167","ms":274,"err":null}
+{"t":"2026-10-21T14:31:15.618Z","cycle":84,"phase":"interrupt_settled","taskId":"t167"}
+{"t":"2026-10-21T14:31:15.890Z","cycle":84,"phase":"resume1","ms":271,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"59577824\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:16.170Z","cycle":84,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:31:16.171Z","cycle":84,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"59577824","ok":28,"fail":40,"stuck":16,"complete":28,"incomplete":55}
+{"t":"2026-10-21T14:31:16.176Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:31:18.455Z","cycle":85,"phase":"cycle_start","home":{"x":179,"y":-60,"z":309}}
+{"t":"2026-10-21T14:31:18.729Z","cycle":85,"phase":"execute_result","runId":"4259e28e","status":"RUNNING","ms":274,"err":null}
+{"t":"2026-10-21T14:31:18.999Z","cycle":85,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t168"}
+{"t":"2026-10-21T14:31:22.107Z","cycle":85,"phase":"task1_settled","taskId":"t168"}
+{"t":"2026-10-21T14:31:22.408Z","cycle":85,"phase":"interrupt_goto","taskId":"t169","ms":300,"err":null}
+{"t":"2026-10-21T14:31:25.486Z","cycle":85,"phase":"interrupt_settled","taskId":"t169"}
+{"t":"2026-10-21T14:31:25.797Z","cycle":85,"phase":"resume1","ms":311,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4259e28e\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:26.134Z","cycle":85,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t170","loop":0}
+{"t":"2026-10-21T14:31:29.193Z","cycle":85,"phase":"task2_settled","taskId":"t170"}
+{"t":"2026-10-21T14:31:29.541Z","cycle":85,"phase":"resume2","ms":347,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4259e28e\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:29.838Z","cycle":85,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:31:29.839Z","cycle":85,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"4259e28e","ok":29,"fail":40,"stuck":16,"complete":29,"incomplete":55}
+{"t":"2026-10-21T14:31:32.124Z","cycle":86,"phase":"cycle_start","home":{"x":175,"y":-61,"z":309}}
+{"t":"2026-10-21T14:31:32.406Z","cycle":86,"phase":"execute_result","runId":"3f02fa3d","status":"RUNNING","ms":281,"err":null}
+{"t":"2026-10-21T14:31:32.700Z","cycle":86,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t171"}
+{"t":"2026-10-21T14:31:32.971Z","cycle":86,"phase":"task1_settled","taskId":"t171"}
+{"t":"2026-10-21T14:31:33.216Z","cycle":86,"phase":"interrupt_goto","taskId":"t172","ms":244,"err":null}
+{"t":"2026-10-21T14:31:36.361Z","cycle":86,"phase":"interrupt_settled","taskId":"t172"}
+{"t":"2026-10-21T14:31:36.642Z","cycle":86,"phase":"resume1","ms":280,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"3f02fa3d\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:36.971Z","cycle":86,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:31:36.971Z","cycle":86,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"3f02fa3d","ok":29,"fail":40,"stuck":17,"complete":29,"incomplete":56}
+{"t":"2026-10-21T14:31:39.255Z","cycle":87,"phase":"cycle_start","home":{"x":183,"y":-60,"z":309}}
+{"t":"2026-10-21T14:31:39.533Z","cycle":87,"phase":"execute_result","runId":"70c50ea6","status":"RUNNING","ms":277,"err":null}
+{"t":"2026-10-21T14:31:39.803Z","cycle":87,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t173"}
+{"t":"2026-10-21T14:31:42.894Z","cycle":87,"phase":"task1_settled","taskId":"t173"}
+{"t":"2026-10-21T14:31:43.170Z","cycle":87,"phase":"interrupt_goto","taskId":"t174","ms":275,"err":null}
+{"t":"2026-10-21T14:31:46.246Z","cycle":87,"phase":"interrupt_settled","taskId":"t174"}
+{"t":"2026-10-21T14:31:46.561Z","cycle":87,"phase":"resume1","ms":315,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"70c50ea6\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:46.857Z","cycle":87,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t175","loop":0}
+{"t":"2026-10-21T14:31:47.147Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:31:49.942Z","cycle":87,"phase":"task2_settled","taskId":"t175"}
+{"t":"2026-10-21T14:31:50.234Z","cycle":87,"phase":"resume2","ms":292,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"70c50ea6\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:31:50.508Z","cycle":87,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:31:50.508Z","cycle":87,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"70c50ea6","ok":30,"fail":40,"stuck":17,"complete":30,"incomplete":56}
+{"t":"2026-10-21T14:31:52.805Z","cycle":88,"phase":"cycle_start","home":{"x":179,"y":-60,"z":309}}
+{"t":"2026-10-21T14:31:53.117Z","cycle":88,"phase":"execute_result","runId":"7826a0a3","status":"RUNNING","ms":311,"err":null}
+{"t":"2026-10-21T14:31:53.402Z","cycle":88,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t176"}
+{"t":"2026-10-21T14:31:56.469Z","cycle":88,"phase":"task1_settled","taskId":"t176"}
+{"t":"2026-10-21T14:31:56.736Z","cycle":88,"phase":"interrupt_goto","taskId":"t177","ms":267,"err":null}
+{"t":"2026-10-21T14:31:59.837Z","cycle":88,"phase":"interrupt_settled","taskId":"t177"}
+{"t":"2026-10-21T14:32:00.150Z","cycle":88,"phase":"resume1","ms":313,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7826a0a3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:00.466Z","cycle":88,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:32:00.467Z","cycle":88,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"7826a0a3","ok":30,"fail":40,"stuck":18,"complete":30,"incomplete":57}
+{"t":"2026-10-21T14:32:02.744Z","cycle":89,"phase":"cycle_start","home":{"x":187,"y":-60,"z":309}}
+{"t":"2026-10-21T14:32:03.022Z","cycle":89,"phase":"execute_result","runId":"36f6183f","status":"RUNNING","ms":278,"err":null}
+{"t":"2026-10-21T14:32:03.263Z","cycle":89,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t178"}
+{"t":"2026-10-21T14:32:06.322Z","cycle":89,"phase":"task1_settled","taskId":"t178"}
+{"t":"2026-10-21T14:32:06.605Z","cycle":89,"phase":"interrupt_goto","taskId":"t179","ms":283,"err":null}
+{"t":"2026-10-21T14:32:09.646Z","cycle":89,"phase":"interrupt_settled","taskId":"t179"}
+{"t":"2026-10-21T14:32:09.938Z","cycle":89,"phase":"resume1","ms":291,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"36f6183f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:10.217Z","cycle":89,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t180","loop":0}
+{"t":"2026-10-21T14:32:13.281Z","cycle":89,"phase":"task2_settled","taskId":"t180"}
+{"t":"2026-10-21T14:32:13.568Z","cycle":89,"phase":"resume2","ms":287,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"36f6183f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:13.874Z","cycle":89,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:32:13.875Z","cycle":89,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"36f6183f","ok":31,"fail":40,"stuck":18,"complete":31,"incomplete":57}
+{"t":"2026-10-21T14:32:16.162Z","cycle":90,"phase":"cycle_start","home":{"x":183,"y":-60,"z":309}}
+{"t":"2026-10-21T14:32:16.432Z","cycle":90,"phase":"execute_result","runId":"36b3babe","status":"RUNNING","ms":269,"err":null}
+{"t":"2026-10-21T14:32:16.711Z","cycle":90,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t181"}
+{"t":"2026-10-21T14:32:17.159Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:32:19.758Z","cycle":90,"phase":"task1_settled","taskId":"t181"}
+{"t":"2026-10-21T14:32:20.043Z","cycle":90,"phase":"interrupt_goto","taskId":"t182","ms":285,"err":null}
+{"t":"2026-10-21T14:32:23.143Z","cycle":90,"phase":"interrupt_settled","taskId":"t182"}
+{"t":"2026-10-21T14:32:23.437Z","cycle":90,"phase":"resume1","ms":293,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"36b3babe\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:23.724Z","cycle":90,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:32:23.724Z","cycle":90,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"36b3babe","ok":31,"fail":40,"stuck":19,"complete":31,"incomplete":58}
+{"t":"2026-10-21T14:32:26.009Z","cycle":91,"phase":"cycle_start","home":{"x":191,"y":-60,"z":309}}
+{"t":"2026-10-21T14:32:26.311Z","cycle":91,"phase":"execute_result","runId":"6aa8d8b9","status":"RUNNING","ms":302,"err":null}
+{"t":"2026-10-21T14:32:26.605Z","cycle":91,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t183"}
+{"t":"2026-10-21T14:32:29.668Z","cycle":91,"phase":"task1_settled","taskId":"t183"}
+{"t":"2026-10-21T14:32:29.935Z","cycle":91,"phase":"interrupt_goto","taskId":"t184","ms":266,"err":null}
+{"t":"2026-10-21T14:32:32.967Z","cycle":91,"phase":"interrupt_settled","taskId":"t184"}
+{"t":"2026-10-21T14:32:33.243Z","cycle":91,"phase":"resume1","ms":275,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6aa8d8b9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:33.586Z","cycle":91,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t185","loop":0}
+{"t":"2026-10-21T14:32:36.742Z","cycle":91,"phase":"task2_settled","taskId":"t185"}
+{"t":"2026-10-21T14:32:37.072Z","cycle":91,"phase":"resume2","ms":330,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6aa8d8b9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:37.360Z","cycle":91,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:32:37.361Z","cycle":91,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6aa8d8b9","ok":32,"fail":40,"stuck":19,"complete":32,"incomplete":58}
+{"t":"2026-10-21T14:32:39.661Z","cycle":92,"phase":"cycle_start","home":{"x":187,"y":-60,"z":309}}
+{"t":"2026-10-21T14:32:39.951Z","cycle":92,"phase":"execute_result","runId":"35596983","status":"RUNNING","ms":290,"err":null}
+{"t":"2026-10-21T14:32:40.260Z","cycle":92,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t186"}
+{"t":"2026-10-21T14:32:43.405Z","cycle":92,"phase":"task1_settled","taskId":"t186"}
+{"t":"2026-10-21T14:32:43.808Z","cycle":92,"phase":"interrupt_goto","taskId":"t187","ms":403,"err":null}
+{"t":"2026-10-21T14:32:46.893Z","cycle":92,"phase":"interrupt_settled","taskId":"t187"}
+{"t":"2026-10-21T14:32:47.215Z","cycle":92,"phase":"resume1","ms":321,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"35596983\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:47.637Z","cycle":92,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:32:47.637Z","cycle":92,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"35596983","ok":32,"fail":40,"stuck":20,"complete":32,"incomplete":59}
+{"t":"2026-10-21T14:32:47.637Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:32:49.933Z","cycle":93,"phase":"cycle_start","home":{"x":195,"y":-60,"z":309}}
+{"t":"2026-10-21T14:32:50.201Z","cycle":93,"phase":"execute_result","runId":"53de0c04","status":"RUNNING","ms":268,"err":null}
+{"t":"2026-10-21T14:32:50.487Z","cycle":93,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t188"}
+{"t":"2026-10-21T14:32:53.601Z","cycle":93,"phase":"task1_settled","taskId":"t188"}
+{"t":"2026-10-21T14:32:53.885Z","cycle":93,"phase":"interrupt_goto","taskId":"t189","ms":283,"err":null}
+{"t":"2026-10-21T14:32:57.102Z","cycle":93,"phase":"interrupt_settled","taskId":"t189"}
+{"t":"2026-10-21T14:32:57.400Z","cycle":93,"phase":"resume1","ms":297,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"53de0c04\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:32:57.704Z","cycle":93,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t190","loop":0}
+{"t":"2026-10-21T14:33:00.794Z","cycle":93,"phase":"task2_settled","taskId":"t190"}
+{"t":"2026-10-21T14:33:01.080Z","cycle":93,"phase":"resume2","ms":285,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"53de0c04\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:01.364Z","cycle":93,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:01.365Z","cycle":93,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"53de0c04","ok":33,"fail":40,"stuck":20,"complete":33,"incomplete":59}
+{"t":"2026-10-21T14:33:03.668Z","cycle":94,"phase":"cycle_start","home":{"x":191,"y":-60,"z":309}}
+{"t":"2026-10-21T14:33:03.963Z","cycle":94,"phase":"execute_result","runId":"22558b1b","status":"RUNNING","ms":295,"err":null}
+{"t":"2026-10-21T14:33:04.275Z","cycle":94,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t191"}
+{"t":"2026-10-21T14:33:07.471Z","cycle":94,"phase":"task1_settled","taskId":"t191"}
+{"t":"2026-10-21T14:33:07.743Z","cycle":94,"phase":"interrupt_goto","taskId":"t192","ms":271,"err":null}
+{"t":"2026-10-21T14:33:10.836Z","cycle":94,"phase":"interrupt_settled","taskId":"t192"}
+{"t":"2026-10-21T14:33:11.113Z","cycle":94,"phase":"resume1","ms":276,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"22558b1b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:11.424Z","cycle":94,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:11.424Z","cycle":94,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"22558b1b","ok":33,"fail":40,"stuck":21,"complete":33,"incomplete":60}
+{"t":"2026-10-21T14:33:13.757Z","cycle":95,"phase":"cycle_start","home":{"x":199,"y":-60,"z":309}}
+{"t":"2026-10-21T14:33:14.110Z","cycle":95,"phase":"execute_result","runId":"62872807","status":"RUNNING","ms":353,"err":null}
+{"t":"2026-10-21T14:33:14.419Z","cycle":95,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t193"}
+{"t":"2026-10-21T14:33:17.530Z","cycle":95,"phase":"task1_settled","taskId":"t193"}
+{"t":"2026-10-21T14:33:17.817Z","cycle":95,"phase":"interrupt_goto","taskId":"t194","ms":286,"err":null}
+{"t":"2026-10-21T14:33:18.213Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:33:21.197Z","cycle":95,"phase":"interrupt_settled","taskId":"t194"}
+{"t":"2026-10-21T14:33:21.534Z","cycle":95,"phase":"resume1","ms":336,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"62872807\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:21.824Z","cycle":95,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t195","loop":0}
+{"t":"2026-10-21T14:33:25.027Z","cycle":95,"phase":"task2_settled","taskId":"t195"}
+{"t":"2026-10-21T14:33:25.682Z","cycle":95,"phase":"resume2","ms":654,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"62872807\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:25.973Z","cycle":95,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:25.973Z","cycle":95,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"62872807","ok":34,"fail":40,"stuck":21,"complete":34,"incomplete":60}
+{"t":"2026-10-21T14:33:28.255Z","cycle":96,"phase":"cycle_start","home":{"x":195,"y":-60,"z":309}}
+{"t":"2026-10-21T14:33:28.536Z","cycle":96,"phase":"execute_result","runId":"7f50914b","status":"RUNNING","ms":280,"err":null}
+{"t":"2026-10-21T14:33:28.800Z","cycle":96,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t196"}
+{"t":"2026-10-21T14:33:31.863Z","cycle":96,"phase":"task1_settled","taskId":"t196"}
+{"t":"2026-10-21T14:33:32.136Z","cycle":96,"phase":"interrupt_goto","taskId":"t197","ms":272,"err":null}
+{"t":"2026-10-21T14:33:35.197Z","cycle":96,"phase":"interrupt_settled","taskId":"t197"}
+{"t":"2026-10-21T14:33:35.488Z","cycle":96,"phase":"resume1","ms":291,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"7f50914b\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:35.857Z","cycle":96,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:35.857Z","cycle":96,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"7f50914b","ok":34,"fail":40,"stuck":22,"complete":34,"incomplete":61}
+{"t":"2026-10-21T14:33:38.127Z","cycle":97,"phase":"cycle_start","home":{"x":203,"y":-60,"z":309}}
+{"t":"2026-10-21T14:33:38.419Z","cycle":97,"phase":"execute_result","runId":"5b52c69f","status":"RUNNING","ms":292,"err":null}
+{"t":"2026-10-21T14:33:38.698Z","cycle":97,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t198"}
+{"t":"2026-10-21T14:33:41.771Z","cycle":97,"phase":"task1_settled","taskId":"t198"}
+{"t":"2026-10-21T14:33:42.046Z","cycle":97,"phase":"interrupt_goto","taskId":"t199","ms":274,"err":null}
+{"t":"2026-10-21T14:33:45.107Z","cycle":97,"phase":"interrupt_settled","taskId":"t199"}
+{"t":"2026-10-21T14:33:45.427Z","cycle":97,"phase":"resume1","ms":320,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5b52c69f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:45.721Z","cycle":97,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t200","loop":0}
+{"t":"2026-10-21T14:33:48.214Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:33:48.857Z","cycle":97,"phase":"task2_settled","taskId":"t200"}
+{"t":"2026-10-21T14:33:49.161Z","cycle":97,"phase":"resume2","ms":304,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"5b52c69f\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:49.434Z","cycle":97,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:49.434Z","cycle":97,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"5b52c69f","ok":35,"fail":40,"stuck":22,"complete":35,"incomplete":61}
+{"t":"2026-10-21T14:33:51.739Z","cycle":98,"phase":"cycle_start","home":{"x":199,"y":-60,"z":309}}
+{"t":"2026-10-21T14:33:52.088Z","cycle":98,"phase":"execute_result","runId":"40cfafb3","status":"RUNNING","ms":348,"err":null}
+{"t":"2026-10-21T14:33:52.416Z","cycle":98,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t201"}
+{"t":"2026-10-21T14:33:55.488Z","cycle":98,"phase":"task1_settled","taskId":"t201"}
+{"t":"2026-10-21T14:33:55.763Z","cycle":98,"phase":"interrupt_goto","taskId":"t202","ms":274,"err":null}
+{"t":"2026-10-21T14:33:58.839Z","cycle":98,"phase":"interrupt_settled","taskId":"t202"}
+{"t":"2026-10-21T14:33:59.110Z","cycle":98,"phase":"resume1","ms":270,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"40cfafb3\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:33:59.422Z","cycle":98,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:33:59.423Z","cycle":98,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"40cfafb3","ok":35,"fail":40,"stuck":23,"complete":35,"incomplete":62}
+{"t":"2026-10-21T14:34:01.757Z","cycle":99,"phase":"cycle_start","home":{"x":207,"y":-60,"z":309}}
+{"t":"2026-10-21T14:34:02.045Z","cycle":99,"phase":"execute_result","runId":"6d8985ef","status":"RUNNING","ms":288,"err":null}
+{"t":"2026-10-21T14:34:02.316Z","cycle":99,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t203"}
+{"t":"2026-10-21T14:34:05.361Z","cycle":99,"phase":"task1_settled","taskId":"t203"}
+{"t":"2026-10-21T14:34:05.656Z","cycle":99,"phase":"interrupt_goto","taskId":"t204","ms":294,"err":null}
+{"t":"2026-10-21T14:34:08.709Z","cycle":99,"phase":"interrupt_settled","taskId":"t204"}
+{"t":"2026-10-21T14:34:08.988Z","cycle":99,"phase":"resume1","ms":279,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6d8985ef\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:09.255Z","cycle":99,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t205","loop":0}
+{"t":"2026-10-21T14:34:12.345Z","cycle":99,"phase":"task2_settled","taskId":"t205"}
+{"t":"2026-10-21T14:34:12.633Z","cycle":99,"phase":"resume2","ms":288,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"6d8985ef\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:12.953Z","cycle":99,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:34:12.953Z","cycle":99,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"6d8985ef","ok":36,"fail":40,"stuck":23,"complete":36,"incomplete":62}
+{"t":"2026-10-21T14:34:15.247Z","cycle":100,"phase":"cycle_start","home":{"x":203,"y":-60,"z":309}}
+{"t":"2026-10-21T14:34:15.535Z","cycle":100,"phase":"execute_result","runId":"1ff6dbfd","status":"RUNNING","ms":288,"err":null}
+{"t":"2026-10-21T14:34:15.793Z","cycle":100,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t206"}
+{"t":"2026-10-21T14:34:18.213Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:34:18.874Z","cycle":100,"phase":"task1_settled","taskId":"t206"}
+{"t":"2026-10-21T14:34:19.161Z","cycle":100,"phase":"interrupt_goto","taskId":"t207","ms":286,"err":null}
+{"t":"2026-10-21T14:34:22.251Z","cycle":100,"phase":"interrupt_settled","taskId":"t207"}
+{"t":"2026-10-21T14:34:22.594Z","cycle":100,"phase":"resume1","ms":343,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"1ff6dbfd\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:22.876Z","cycle":100,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:34:22.876Z","cycle":100,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"1ff6dbfd","ok":36,"fail":40,"stuck":24,"complete":36,"incomplete":63}
+{"t":"2026-10-21T14:34:25.146Z","cycle":101,"phase":"cycle_start","home":{"x":211,"y":-60,"z":309}}
+{"t":"2026-10-21T14:34:25.431Z","cycle":101,"phase":"execute_result","runId":"11f345d9","status":"RUNNING","ms":285,"err":null}
+{"t":"2026-10-21T14:34:25.756Z","cycle":101,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t208"}
+{"t":"2026-10-21T14:34:28.841Z","cycle":101,"phase":"task1_settled","taskId":"t208"}
+{"t":"2026-10-21T14:34:29.111Z","cycle":101,"phase":"interrupt_goto","taskId":"t209","ms":270,"err":null}
+{"t":"2026-10-21T14:34:32.284Z","cycle":101,"phase":"interrupt_settled","taskId":"t209"}
+{"t":"2026-10-21T14:34:32.569Z","cycle":101,"phase":"resume1","ms":284,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"11f345d9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:32.917Z","cycle":101,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t210","loop":0}
+{"t":"2026-10-21T14:34:36.007Z","cycle":101,"phase":"task2_settled","taskId":"t210"}
+{"t":"2026-10-21T14:34:36.295Z","cycle":101,"phase":"resume2","ms":288,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"11f345d9\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:36.662Z","cycle":101,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:34:36.663Z","cycle":101,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"11f345d9","ok":37,"fail":40,"stuck":24,"complete":37,"incomplete":63}
+{"t":"2026-10-21T14:34:38.941Z","cycle":102,"phase":"cycle_start","home":{"x":207,"y":-60,"z":309}}
+{"t":"2026-10-21T14:34:39.205Z","cycle":102,"phase":"execute_result","runId":"4b687463","status":"RUNNING","ms":263,"err":null}
+{"t":"2026-10-21T14:34:39.494Z","cycle":102,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t211"}
+{"t":"2026-10-21T14:34:42.552Z","cycle":102,"phase":"task1_settled","taskId":"t211"}
+{"t":"2026-10-21T14:34:42.812Z","cycle":102,"phase":"interrupt_goto","taskId":"t212","ms":259,"err":null}
+{"t":"2026-10-21T14:34:45.892Z","cycle":102,"phase":"interrupt_settled","taskId":"t212"}
+{"t":"2026-10-21T14:34:46.186Z","cycle":102,"phase":"resume1","ms":293,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"4b687463\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:46.466Z","cycle":102,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:34:46.467Z","cycle":102,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"4b687463","ok":37,"fail":40,"stuck":25,"complete":37,"incomplete":64}
+{"t":"2026-10-21T14:34:48.214Z","phase":"heartbeat","at":"acx_status"}
+{"t":"2026-10-21T14:34:48.756Z","cycle":103,"phase":"cycle_start","home":{"x":215,"y":-60,"z":309}}
+{"t":"2026-10-21T14:34:49.019Z","cycle":103,"phase":"execute_result","runId":"2b466caf","status":"RUNNING","ms":263,"err":null}
+{"t":"2026-10-21T14:34:49.326Z","cycle":103,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t214"}
+{"t":"2026-10-21T14:34:52.490Z","cycle":103,"phase":"task1_settled","taskId":"t214"}
+{"t":"2026-10-21T14:34:52.813Z","cycle":103,"phase":"interrupt_goto","taskId":"t215","ms":322,"err":null}
+{"t":"2026-10-21T14:34:55.905Z","cycle":103,"phase":"interrupt_settled","taskId":"t215"}
+{"t":"2026-10-21T14:34:56.176Z","cycle":103,"phase":"resume1","ms":270,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2b466caf\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:34:56.492Z","cycle":103,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t216","loop":0}
+{"t":"2026-10-21T14:34:59.559Z","cycle":103,"phase":"task2_settled","taskId":"t216"}
+{"t":"2026-10-21T14:34:59.832Z","cycle":103,"phase":"resume2","ms":273,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"2b466caf\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:35:00.096Z","cycle":103,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:35:00.096Z","cycle":103,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"2b466caf","ok":38,"fail":40,"stuck":25,"complete":38,"incomplete":64}
+{"t":"2026-10-21T14:35:02.394Z","cycle":104,"phase":"cycle_start","home":{"x":211,"y":-60,"z":309}}
+{"t":"2026-10-21T14:35:02.640Z","cycle":104,"phase":"execute_result","runId":"21f672fe","status":"RUNNING","ms":245,"err":null}
+{"t":"2026-10-21T14:35:02.953Z","cycle":104,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t217"}
+{"t":"2026-10-21T14:35:06.009Z","cycle":104,"phase":"task1_settled","taskId":"t217"}
+{"t":"2026-10-21T14:35:06.289Z","cycle":104,"phase":"interrupt_goto","taskId":"t218","ms":280,"err":null}
+{"t":"2026-10-21T14:35:09.388Z","cycle":104,"phase":"interrupt_settled","taskId":"t218"}
+{"t":"2026-10-21T14:35:09.688Z","cycle":104,"phase":"resume1","ms":300,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"21f672fe\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:35:10.017Z","cycle":104,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:35:10.018Z","cycle":104,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"21f672fe","ok":38,"fail":40,"stuck":26,"complete":38,"incomplete":65}
+{"t":"2026-10-21T14:35:12.310Z","cycle":105,"phase":"cycle_start","home":{"x":219,"y":-60,"z":309}}
+{"t":"2026-10-21T14:35:12.609Z","cycle":105,"phase":"execute_result","runId":"663df95a","status":"RUNNING","ms":298,"err":null}
+{"t":"2026-10-21T14:35:12.884Z","cycle":105,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t219"}
+{"t":"2026-10-21T14:35:15.957Z","cycle":105,"phase":"task1_settled","taskId":"t219"}
+{"t":"2026-10-21T14:35:16.226Z","cycle":105,"phase":"interrupt_goto","taskId":"t220","ms":269,"err":null}
+{"t":"2026-10-21T14:35:18.217Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:35:19.294Z","cycle":105,"phase":"interrupt_settled","taskId":"t220"}
+{"t":"2026-10-21T14:35:19.604Z","cycle":105,"phase":"resume1","ms":309,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"663df95a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:35:19.891Z","cycle":105,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t221","loop":0}
+{"t":"2026-10-21T14:35:22.949Z","cycle":105,"phase":"task2_settled","taskId":"t221"}
+{"t":"2026-10-21T14:35:23.255Z","cycle":105,"phase":"resume2","ms":306,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"663df95a\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:35:23.502Z","cycle":105,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:35:23.502Z","cycle":105,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"663df95a","ok":39,"fail":40,"stuck":26,"complete":39,"incomplete":65}
+{"t":"2026-10-21T14:35:25.786Z","cycle":106,"phase":"cycle_start","home":{"x":215,"y":-60,"z":309}}
+{"t":"2026-10-21T14:35:26.057Z","cycle":106,"phase":"execute_result","runId":"561494ca","status":"RUNNING","ms":270,"err":null}
+{"t":"2026-10-21T14:35:26.346Z","cycle":106,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t222"}
+{"t":"2026-10-21T14:35:37.924Z","cycle":106,"phase":"task1_settled","taskId":"t222"}
+{"t":"2026-10-21T14:35:38.192Z","cycle":106,"phase":"interrupt_goto","taskId":"t224","ms":268,"err":null}
+{"t":"2026-10-21T14:35:48.219Z","phase":"heartbeat","at":"task_status"}
+{"t":"2026-10-21T14:35:49.674Z","cycle":106,"phase":"interrupt_settled","taskId":"t224"}
+{"t":"2026-10-21T14:35:49.949Z","cycle":106,"phase":"resume1","ms":275,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"561494ca\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:35:50.255Z","cycle":106,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:35:50.256Z","cycle":106,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"561494ca","ok":39,"fail":40,"stuck":27,"complete":39,"incomplete":66}
+{"t":"2026-10-21T14:35:52.538Z","cycle":107,"phase":"cycle_start","home":{"x":223,"y":-60,"z":309}}
+{"t":"2026-10-21T14:35:52.839Z","cycle":107,"phase":"execute_result","runId":"479e77ab","status":"RUNNING","ms":301,"err":null}
+{"t":"2026-10-21T14:35:53.116Z","cycle":107,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t225"}
+{"t":"2026-10-21T14:35:56.435Z","cycle":107,"phase":"task1_settled","taskId":"t225"}
+{"t":"2026-10-21T14:35:56.767Z","cycle":107,"phase":"interrupt_goto","taskId":"t226","ms":332,"err":null}
+{"t":"2026-10-21T14:35:59.868Z","cycle":107,"phase":"interrupt_settled","taskId":"t226"}
+{"t":"2026-10-21T14:36:00.162Z","cycle":107,"phase":"resume1","ms":293,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"479e77ab\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:36:00.464Z","cycle":107,"phase":"pause2","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t227","loop":0}
+{"t":"2026-10-21T14:36:03.547Z","cycle":107,"phase":"task2_settled","taskId":"t227"}
+{"t":"2026-10-21T14:36:03.856Z","cycle":107,"phase":"resume2","ms":308,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"479e77ab\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:36:04.132Z","cycle":107,"phase":"final","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:36:04.133Z","cycle":107,"phase":"cycle_done","status":"SUCCESS","pauses":2,"runId":"479e77ab","ok":40,"fail":40,"stuck":27,"complete":40,"incomplete":66}
+{"t":"2026-10-21T14:36:06.429Z","cycle":108,"phase":"cycle_start","home":{"x":219,"y":-60,"z":309}}
+{"t":"2026-10-21T14:36:06.731Z","cycle":108,"phase":"execute_result","runId":"771d18e2","status":"RUNNING","ms":301,"err":null}
+{"t":"2026-10-21T14:36:07.048Z","cycle":108,"phase":"pause1","status":"PAUSED","error":"goto 已受理，后台执行中: taskId=t228"}
+{"t":"2026-10-21T14:36:10.238Z","cycle":108,"phase":"task1_settled","taskId":"t228"}
+{"t":"2026-10-21T14:36:10.672Z","cycle":108,"phase":"interrupt_goto","taskId":"t229","ms":433,"err":null}
+{"t":"2026-10-21T14:36:13.995Z","cycle":108,"phase":"interrupt_settled","taskId":"t229"}
+{"t":"2026-10-21T14:36:14.437Z","cycle":108,"phase":"resume1","ms":441,"text":"{\"success\":true,\"message\":\"已受理，从断点续跑\",\"data\":{\"run_id\":\"771d18e2\",\"state\":\"RUNNING\",\"async\":true,\"resumed_from_step\":0}}","err":null}
+{"t":"2026-10-21T14:36:14.787Z","cycle":108,"phase":"pause2","status":"SUCCESS","error":"tl02_for_async 完成 (1 步)","loop":2}
+{"t":"2026-10-21T14:36:14.787Z","cycle":108,"phase":"cycle_done","status":"SUCCESS","pauses":1,"runId":"771d18e2","ok":40,"fail":40,"stuck":28,"complete":40,"incomplete":67}
+{"t":"2026-10-21T14:36:16.788Z","phase":"done","cycles":108,"ok":40,"fail":40,"stuck":28,"complete":40,"incomplete":67,"death":{"status":"FAIL","error":"goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）","resumes":1,"runId":"70516966","taskId":"t24","idleBeforeKill":false},"minutes":15}

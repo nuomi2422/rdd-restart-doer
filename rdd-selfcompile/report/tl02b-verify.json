@@ -1,0 +1,44 @@
+{
+  "startedAt": "2026-10-21T14:18:23.589Z",
+  "steps": [
+    {
+      "step": "D4a 死亡前暂停",
+      "pass": true,
+      "detail": "{\"s\":\"PAUSED\",\"err\":\"goto 已受理，后台执行中: taskId=t4\",\"step\":0}",
+      "at": "2026-10-21T14:18:25.043Z"
+    },
+    {
+      "step": "D4b 死后 resume = FAIL",
+      "pass": true,
+      "detail": "FAIL | goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）",
+      "at": "2026-10-21T14:18:48.990Z"
+    },
+    {
+      "step": "D4c error 含「任务终态是 CANCELLED」",
+      "pass": true,
+      "detail": "goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）",
+      "at": "2026-10-21T14:18:48.990Z"
+    },
+    {
+      "step": "D5 stale-null = 0",
+      "pass": true,
+      "detail": "goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）",
+      "at": "2026-10-21T14:18:48.991Z"
+    },
+    {
+      "step": "D6a farm_harvest_loop resume = SUCCESS",
+      "pass": false,
+      "detail": "{\"s\":\"FAIL\",\"err\":\"collect_items 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）\",\"step\":2,\"resumes\":2}",
+      "at": "2026-10-21T14:19:08.202Z"
+    },
+    {
+      "step": "D6b 必失败 goto resume = FAIL",
+      "pass": true,
+      "detail": "{\"s\":\"FAIL\",\"err\":\"goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）\",\"step\":0,\"resumes\":2}",
+      "at": "2026-10-21T14:19:27.458Z"
+    }
+  ],
+  "ok": false,
+  "kill": "{\"success\":true,\"message\":\"debug_kill executed (entity.kill(); death resolves this tick)\",\"data\":{\"position\":\"187, -60, 315\",\"hp\":0.0,\"dimension\":\"minecraft:overworld\",\"alive\":false}}",
+  "finishedAt": "2026-10-21T14:19:27.459Z"
+}

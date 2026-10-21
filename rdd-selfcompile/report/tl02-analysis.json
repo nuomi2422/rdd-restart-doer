@@ -1,0 +1,522 @@
+{
+  "window": {
+    "acx_lines": 999,
+    "rdd_lines": 454,
+    "baseline": {
+      "rdd": 249,
+      "acx": 2985,
+      "ts": "2026-10-21T22:20:53.1433078+08:00"
+    }
+  },
+  "runs": {
+    "total": 110,
+    "byAc": {
+      "tl02_for_async": {
+        "n": 109,
+        "success": 68,
+        "fail": 39,
+        "paused2": 41
+      },
+      "tl02_death": {
+        "n": 1,
+        "success": 0,
+        "fail": 1,
+        "paused2": 0
+      }
+    }
+  },
+  "steps": {
+    "paused": 124,
+    "succeeded": 28
+  },
+  "staleNull": {
+    "count": 0,
+    "samples": []
+  },
+  "taskFinished": {
+    "done": 217,
+    "failed": 53,
+    "interrupted": 0,
+    "other": 32,
+    "samples": []
+  },
+  "driver": {
+    "cycles": 108,
+    "last": [
+      {
+        "t": "2026-10-21T14:35:50.256Z",
+        "cycle": 106,
+        "phase": "cycle_done",
+        "status": "SUCCESS",
+        "pauses": 1,
+        "runId": "561494ca",
+        "ok": 39,
+        "fail": 40,
+        "stuck": 27,
+        "complete": 39,
+        "incomplete": 66
+      },
+      {
+        "t": "2026-10-21T14:36:04.133Z",
+        "cycle": 107,
+        "phase": "cycle_done",
+        "status": "SUCCESS",
+        "pauses": 2,
+        "runId": "479e77ab",
+        "ok": 40,
+        "fail": 40,
+        "stuck": 27,
+        "complete": 40,
+        "incomplete": 66
+      },
+      {
+        "t": "2026-10-21T14:36:14.787Z",
+        "cycle": 108,
+        "phase": "cycle_done",
+        "status": "SUCCESS",
+        "pauses": 1,
+        "runId": "771d18e2",
+        "ok": 40,
+        "fail": 40,
+        "stuck": 28,
+        "complete": 40,
+        "incomplete": 67
+      }
+    ],
+    "death": {
+      "t": "2026-10-21T14:21:57.976Z",
+      "cycle": 3,
+      "phase": "cycle_done",
+      "status": "FAIL",
+      "runId": "70516966",
+      "error": "goto 异步任务失败: 任务终态是 CANCELLED（不是成功，按失败处理）",
+      "ok": 1,
+      "fail": 1,
+      "stuck": 1,
+      "complete": 1,
+      "incomplete": 1
+    }
+  },
+  "runsDetail": [
+    {
+      "run": "6a1ef10d",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t127",
+        "t129"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "469f7899",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t130"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "6a2ca5d8",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t132",
+        "t134"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "5bbef08c",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t135"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "62e86445",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t137",
+        "t139"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "61f31cf3",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t140"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "7ed33fb9",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t142",
+        "t144"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "2c1cc832",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t145"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "7e332f01",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t147",
+        "t149"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "6b6daf12",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t150"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "171e1cff",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t152",
+        "t154"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "66c85fbc",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t155"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "41a3730f",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t157",
+        "t159"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "39cf06ca",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t160"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "1b699e72",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t162",
+        "t165"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "59577824",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t166"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "4259e28e",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t168",
+        "t170"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "3f02fa3d",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t171"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "70c50ea6",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t173",
+        "t175"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "7826a0a3",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t176"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "36f6183f",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t178",
+        "t180"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "36b3babe",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t181"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "6aa8d8b9",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t183",
+        "t185"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "35596983",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t186"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "53de0c04",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t188",
+        "t190"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "22558b1b",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t191"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "62872807",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t193",
+        "t195"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "7f50914b",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t196"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "5b52c69f",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t198",
+        "t200"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "40cfafb3",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t201"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "6d8985ef",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t203",
+        "t205"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "1ff6dbfd",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t206"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "11f345d9",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t208",
+        "t210"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "4b687463",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t211"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "2b466caf",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t214",
+        "t216"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "21f672fe",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t217"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "663df95a",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t219",
+        "t221"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "561494ca",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t222"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "479e77ab",
+      "ac": "tl02_for_async",
+      "pauses": 2,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t225",
+        "t227"
+      ],
+      "stale": 0
+    },
+    {
+      "run": "771d18e2",
+      "ac": "tl02_for_async",
+      "pauses": 1,
+      "terminal": "SUCCESS",
+      "tasks": [
+        "t228"
+      ],
+      "stale": 0
+    }
+  ]
+}
