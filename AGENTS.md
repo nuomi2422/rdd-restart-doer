@@ -36,6 +36,37 @@
 node "D:\rdd\workspace\stager\bin\stager.js" start "<用户原话目标>" --actor "<你的名字>"
 ```
 
+## 第 0.5 条 · ★ 要主人拍板 → 走 decide-inbox，**不要只在文档里写一句**
+
+> 用户 2026-10-21 定：**「拍板」不是批次流程的一部分，是治理层和执行层之间的独立通道。**
+> 它**不依赖 stage**（不开 stage 也能用），队列落成 append-only 的
+> `docs\rdd-docs\rdd存放\decisions.jsonl`，和 `memory.jsonl` 一个待遇。
+
+**凡是要主人拍板的事，一律举手**（当前约定：宁多勿漏，跑一两周再定过滤规则）：
+
+```powershell
+node "D:\rdd\harness\rdd-harness\bin\decide-inbox.js" add "<要主人拍板的那件事>" `
+  --risk high-arch `
+  --why "<影响面 / 两条路的代价 / 不决定会怎样>" `
+  --opt "A|<方案甲>|rec|<选了它的后果>" `
+  --opt "B|<方案乙>||<选了它的后果>" `
+  --batch <批次号>
+```
+
+**主人拍完之后，你必读**（这是闭环的另一半 —— 不读等于没接通）：
+
+```powershell
+node "D:\rdd\harness\rdd-harness\bin\decide-inbox.js" digest
+```
+
+- `digest` 会列出「主人已拍板」的项，**那条决定覆盖你之前的任何倾向**。
+- 除非发现事实与决策时的假设不符，不要再改主意；确实必须改，先说明「哪一条假设不成立了」，再重新 `add`。
+- **禁止**把「等主人拍板」只写在文档里就继续干 —— 那样主人根本不知道你在等。
+- 判据：`add` 会拦下机械性技术问题（真源 `stager\core\decide-policy.json`）。被拦了就是你自己该定，别 `--force`。
+
+> 为什么加这条：2026-10-21 实测，主 AI 一直在文档里写「owner 批准动刀 AC-B18」（#122），
+> 但主人看不到、也点不了 —— 链路两端都在，只差中间这根线。
+
 > ### ★ 四阶段流水线 / 阶段必读 / 机器门 / 完成动作 —— **全在 stage.md，本文件不承载**
 >
 > ```text
