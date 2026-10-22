@@ -84,8 +84,17 @@ function parseArgs(argv) {
   return o;
 }
 
-const hasCJK = (s) => /[\u4e00-\u9fff]/.test(s);
-const looksLikeEvidence = (s) => s.length >= QUOTE_MIN && (hasCJK(s) || /[×]/.test(s) || /\d{2,}/.test(s));
+const hasCJK = (s) => /[一-鿿]/.test(s);
+// ★ 2026-10-22 假绿修复：原判据 `长度>=12 && (有中文 || × || 两位以上数字)`
+//   把 `"role":"executor"` / `"actor":"supervisor"` 这类**短 JSON 键值对**全丢了。
+//   后果是检查器对这些坐标「实际被核的引文数 = 0」→ 永远不可能报错（免检）。
+//   2026-10-22 实测踩到：平行会话把 G5e:97 的坐标改到错误的归档文件
+//   （该行不含 actor），却因为引文被丢弃而照样「通过」。
+//   判别标准（别再犯）：**报「没问题」之前，先看这条坐标实际核了几条引文。**
+//   ⇒ 加一条 JSON 键值对形态白名单，直接判为证据，不受长度/中文约束。
+const JSON_KV = /^"[^"\n]{1,40}"\s*:\s*"[^"\n]{1,80}"$/;
+const looksLikeEvidence = (s) =>
+  JSON_KV.test(s.trim()) || (s.length >= QUOTE_MIN && (hasCJK(s) || /[×]/.test(s) || /\d{2,}/.test(s)));
 
 /* ── 建立 jsonl 索引：basename → [完整路径…]（可能同名多份，全留着） ── */
 function indexJsonl(root) {
@@ -106,6 +115,34 @@ function indexJsonl(root) {
   };
   walk(root, 0);
   return idx;
+}
+
+/**
+ * ★ 2026-10-22 归档族索引（治「行号漂移」的根因，不是改数字）
+ *
+ * 实测根因（A1）：monitor 里的 `rdd.jsonl` 会轮转 —— 写卡时它还在，
+ * 几小时后被换成 `rdd-<epoch>.jsonl` 存档、活动文件重新从第 1 行开始。
+ * 于是「rdd.jsonl:922」在写卡时为真，轮转后活动文件只剩 841 行 → OUT_OF_RANGE。
+ *
+ * 原来的 indexJsonl 按 **basename** 建索引，`rdd-1792600891285.jsonl`
+ * 永远成不了 `rdd.jsonl` 坐标的候选文件 → 归档兜底对 OUT_OF_RANGE 无效。
+ *
+ * 现在显式建族：`rdd.jsonl` ↔ `rdd-<epoch>.jsonl`、
+ *              `context.jsonl` ↔ `context-<epoch>.jsonl`。
+ * 族内任一份够长，就认为「这条坐标指向的是这个族里的某一行」。
+ */
+function familyOf(name) {
+  const m = name.match(/^([A-Za-z0-9_.\-]+?)(?:-\d{8,})?\.jsonl$/i);
+  return m ? m[1].toLowerCase() : name.toLowerCase();
+}
+function buildFamilies(idx) {
+  const fam = new Map();
+  for (const [name, files] of idx) {
+    const key = familyOf(name);
+    if (!fam.has(key)) fam.set(key, []);
+    for (const f of files) if (!fam.get(key).includes(f)) fam.get(key).push(f);
+  }
+  return fam;
 }
 
 const lineCache = new Map();
@@ -145,21 +182,35 @@ function extractCoords(text) {
 
 /* ── 在坐标附近找「被引用的原文片段」 ── */
 // 取该坐标所在行 + 后续 2 行里的反引号片段，长度/形态够像证据才核
+// ★ 2026-10-22：坐标本身不是引文。
+//   `rdd.jsonl`:922 这类片段也会被反引号包住，若被当成引文去核，
+//   会因为「坐标不在日志行里」误报 QUOTE_MISSING。
+//   实测踩过：平行会话把坐标改成 `rdd-1792587704647.jsonl`:922 后，
+//   这个坐标片段自己就被当成引文送去核了。
+const COORD_FRAG = /^[A-Za-z0-9_.\-]+\.jsonl\s*[:：]\s*\d+$/;
+// ★ 2026-10-22 窗口不能跨条目。
+//   §6.4 的写法是「一条坐标 + 空行 + 下一条坐标」。原实现取「本行 + 后 2 行」，
+//   于是下一条的引文（如 `"role":"executor"`）会被算进上一条的窗口，
+//   拿去跟上一条的坐标核 → 误报 QUOTE_MISSING（实测踩到，G5f X5 就是这样红的）。
+//   判别标准：**报「引文不存在」之前，先看这条引文是不是属于下一条坐标。**
+//   ⇒ 遇到空行就停。同一行内的多引文（含表格行）仍然全收。
 function quotesNear(lines, lineIdx) {
   const out = [];
   for (let i = lineIdx; i <= Math.min(lineIdx + 2, lines.length - 1); i++) {
+    if (i > lineIdx && lines[i].trim() === '') break;   // 空行 = 条目边界
     const re = /`([^`\n]{4,200})`/g;
     let m;
     while ((m = re.exec(lines[i]))) {
       const q = m[1].trim();
-      if (looksLikeEvidence(q) && !/\.jsonl$/i.test(q)) out.push({ text: q, mdLine: i + 1 });
+      if (looksLikeEvidence(q) && !/\.jsonl$/i.test(q) && !COORD_FRAG.test(q)) {
+        out.push({ text: q, mdLine: i + 1 });
+      }
     }
   }
   return out;
 }
-
 /* ── 核心判定 ── */
-function checkCard(mdPath, idx) {
+function checkCard(mdPath, idx, families) {
   const mdName = path.basename(mdPath);
   const raw = fs.readFileSync(mdPath, 'utf8');
   const lines = raw.split(/\r?\n/);
@@ -182,7 +233,19 @@ function checkCard(mdPath, idx) {
       const fl = readLines(file);
       if (!fl) continue;
       if (c.line > fl.length) {
-        if (!best) best = { level: 'OUT_OF_RANGE', file, detail: `${path.basename(file)} 只有 ${fl.length} 行，引用第 ${c.line} 行` };
+        // ★ 2026-10-22：先看归档族里有没有哪一份够长。
+        //   `rdd.jsonl` 会轮转，写卡时它够长、轮转后它不够长 ——
+        //   这时判 OUT_OF_RANGE 是**假警报**（坐标当时是真的）。
+        //   判「假警报」的依据：同族某份归档 >= 该行号。
+        const fam = families && families.get(familyOf(c.name)) || [];
+        const reachable = fam.some((f) => { const l = readLines(f); return l && l.length >= c.line; });
+        if (!best) {
+          best = reachable
+            ? { level: 'OK', file, coord: `${c.name}:${c.line}`, rotated: true,
+                detail: `${path.basename(file)} 只有 ${fl.length} 行，但归档族里有够长的文件 —— 日志轮转导致的行号失效，不是假坐标` }
+            : { level: 'OUT_OF_RANGE', file, detail: `${path.basename(file)} 只有 ${fl.length} 行，引用第 ${c.line} 行（归档族里也没有够长的）` };
+        }
+        if (reachable) break;   // 族内有候选，不必继续看其他同名文件
         continue;
       }
       const lineText = fl[c.line - 1] || '';
@@ -238,6 +301,14 @@ function selftest() {
   // 真证据：第 3 行含一段中文原文
   fs.writeFileSync(path.join(mon, 'rdd-real.jsonl'),
     '{"type":"a"}\n{"type":"b"}\n{"type":"c","note":"一级目标需求还差：[关键] minecraft:torch ×32（现有 22）"}\n', 'utf8');
+  // ★ 2026-10-22 轮转族：`rot.jsonl` 现在只剩 1 行（已轮转），
+  //   但归档 `rot-1792600891285.jsonl` 有 5 行 → 引 rot.jsonl:3 **不得**判 OUT_OF_RANGE。
+  fs.writeFileSync(path.join(mon, 'rot.jsonl'), '{"type":"after-rotation"}\n', 'utf8');
+  fs.writeFileSync(path.join(mon, 'rot-1792600891285.jsonl'),
+    '{"a":1}\n{"a":2}\n{"a":3,"role":"executor"}\n{"a":4}\n{"a":5}\n', 'utf8');
+  // 对照：另一个族里归档也短 → 该判 OUT_OF_RANGE（防止「族内有文件就一律放过」）
+  fs.writeFileSync(path.join(mon, 'short.jsonl'), '{"b":1}\n', 'utf8');
+  fs.writeFileSync(path.join(mon, 'short-1792600891285.jsonl'), '{"b":1}\n', 'utf8');
 
   const cards = path.join(tmp, 'cards');
   fs.mkdirSync(cards, { recursive: true });
@@ -253,13 +324,32 @@ function selftest() {
     // 没写「指针」还是要报（否则这条规则会被「随手加两个字」滥用成万能免检）。
     { file: 'pointer.md', body: '异常时查 monitor/brain.jsonl 的 blocker（指针，不是证据）', want: 'OK' },
     { file: 'pointer-no-mark.md', body: '异常时查 monitor/brain.jsonl 的 blocker', want: 'NO_COORDINATE' },
+    // 2026-10-22 假绿修复：短 JSON 键值对必须被当引文核。
+    // 改前 `"role":"executor"` 被 looksLikeEvidence 丢掉 → 该坐标被核引文数=0 → 永远通过。
+    { file: 'shortkv-ok.md', body: '证据：`rdd-real.jsonl`:3\n`"role":"executor"`', want: 'OK', setup: (mon2) => {
+        const f = path.join(mon2, 'rdd-real.jsonl');
+        const cur = fs.readFileSync(f, 'utf8').split(/\r?\n/);
+        // 第 3 行原本以 `"}...` 结尾，把 role 插到对象里（不是替换结尾 —— 那样替换不到）
+        cur[2] = cur[2].replace(/}\s*$/, ',"role":"executor"}');
+        fs.writeFileSync(f, cur.join('\n'), 'utf8');
+      } },
+    { file: 'shortkv-fake.md', body: '证据：`rdd-real.jsonl`:3\n`"role":"planner"`', want: 'QUOTE_MISSING' },
+    // 轮转族：活动文件被轮断了，但归档够长 → 不是假坐标
+    { file: 'rotated-ok.md', body: '证据：`rot.jsonl`:3\n`"role":"executor"`', want: 'OK' },
+    // 对照组：族内没有任何一份够长 → 该报越界
+    { file: 'rotated-range.md', body: '证据：`short.jsonl`:3', want: 'OUT_OF_RANGE' },
   ];
+  for (const c of cases) {
+    if (c.setup) { try { c.setup(mon); } catch (e) { console.log(`  [setup fail] ${c.file}: ${e.message}`); } }
+  }
   for (const c of cases) fs.writeFileSync(path.join(cards, c.file), c.body, 'utf8');
 
   const idx = indexJsonl(mon);
+  // 归档族索引：rdd.jsonl ↔ rdd-<epoch>.jsonl（治行号漂移的假警报）
+  const fams = buildFamilies(idx);
   let pass = 0, fail = 0;
   for (const c of cases) {
-    const f = checkCard(path.join(cards, c.file), idx);
+    const f = checkCard(path.join(cards, c.file), idx, fams);
     const got = f.length ? f[0].level : 'OK';
     const ok = got === c.want;
     console.log(`  ${ok ? '✔' : '✘'} ${c.file.padEnd(12)} 期望 ${c.want.padEnd(14)} 实得 ${got}`);
@@ -296,13 +386,15 @@ function main() {
       for (const p of v) if (!idx.get(k).includes(p)) idx.get(k).push(p);
     }
   }
+  // 归档族索引必须在额外根并入之后再建，否则 report/ 里的同名文件不进族
+  const families = buildFamilies(idx);
   let cards = fs.readdirSync(opt.cards).filter((f) => f.endsWith('.md') && !f.startsWith('_'));
   if (opt.card) cards = cards.filter((f) => f === opt.card);
   if (cards.length === 0) { console.error('[env] 没找到可查的卡'); return EXIT_USAGE; }
 
   const all = [];
   for (const f of cards) {
-    try { all.push(...checkCard(path.join(opt.cards, f), idx)); }
+    try { all.push(...checkCard(path.join(opt.cards, f), idx, families)); }
     catch (e) { all.push({ level: 'READ_ERROR', md: f, detail: e.message }); }
   }
 
@@ -312,7 +404,16 @@ function main() {
   if (opt.json) {
     console.log(JSON.stringify({ hard, warn, total: all.length }, null, 2));
   } else {
-    console.log(`\n扫描 ${cards.length} 张卡，解析出 ${all.length} 条问题（含警告）\n`);
+    // ★ 2026-10-22 报告口径：原来把 level:'OK' 的发现也 push 进 all，
+  //   于是「解析出 19 条问题」= 0 hard + 12 warn + 7 OK，
+  //   把已通过的也说成问题 —— 这个数比 warn 数大，读的人会以为漏报了。
+  //   现在 OK 单独计数，只在 --verbose 时打印。
+  const passed = all.filter((x) => x.level === 'OK');
+  const problems = all.length - passed.length;
+  const headline = opt.verbose
+    ? `\n扫描 ${cards.length} 张卡，解析出 ${problems} 条问题（含警告）｜${passed.length} 条坐标已通过\n`
+    : `\n扫描 ${cards.length} 张卡，解析出 ${problems} 条问题（含警告）\n`;
+  console.log(headline);
     if (hard.length) {
       console.log('【失败】坐标指不到东西 / 引文不存在：');
       for (const h of hard) console.log(`  ✘ ${h.md}:${h.mdLine || '-'}  ${h.coord || ''}  ${h.level}  ${h.detail || ''}`);
