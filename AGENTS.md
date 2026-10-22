@@ -141,6 +141,50 @@ node "D:\rdd\harness\rdd-harness\bin\snapshot-world.js" --prune --apply
 > `saves\<世界>\` 全量 ｜ `config\numen\`（排除 monitor）全量 ｜ `monitor\` 只留最近 30 分钟。
 > 回滚会自动删 `session.lock`（不删游戏拒绝进入），并先打一份 `pre-restore` 后悔药。
 
+## 第 0.7 条 · 自主运行四则（2026-10-22 用户授权后定，AI 必须遵守）
+
+> 用户上课/离开时授权 AI 连续跑。授权不是「没人管」，而是下面四条**先钉死**再放行。
+
+### 一、跳过必须留账（防「第三种状态：消失」）
+
+- 每跳过一个项，**必须**在 `rdd架构\杂项记录\YYYY-MM.md` 记一条：`批次号 + 跳过的项 + 原因 + 本轮是第几轮跳过`。
+- 同一项**连跳 3 轮** → 升级为「问用户」（写进 `decide-inbox`，不再自己吞）。
+- 判据：`grep '跳过' 杂项记录` 能查到每一次跳过；查不到 = 蒸发。
+
+### 二、「不可逆且高风险」硬清单（清单内停下问；清单外自己定）
+
+1. **numen 往 `backup` 以外的任何 remote 推送，或改 remote 配置**（`origin` 的 pushurl 已是 `DISABLED://upstream-push-blocked`，别动它）。
+2. **删除或重写 append-only 数据**：`_memory/memory.jsonl`、`monitor/*.jsonl`、`实机验证/*.md`、`审计快照/*`。
+3. **门禁红的状态下强行部署**（preflight `BLOCK>0` 还 `run-mutation`）。
+4. **改宪法级文档**：`红线回退\索引-按红线.md`、`自编译统一版\75-*` 的判据、本文件 第 0.5/0.7 条本身。
+
+清单外（包括：停实例、换 jar、跑实机、改代码、改批次卡、写文档、推送 backup）**一律自己做，不许拿来问**。
+
+### 三、推送前置：三行只读核查（每次自主推送前跑）
+
+```
+git -C <仓> remote -v
+git -C <仓> fetch <remote> --quiet ; git -C <仓> rev-list --count <remote>/<branch>..HEAD
+git -C <仓> config --get-regexp '^remote\.'
+```
+
+- 三行都干净（只有 `backup` 可推、ahead 数符合预期、没有新 remote）→ 直接推；
+- 查出异常 → 落进硬清单第 ① 条，停下等用户。
+
+### 四、游戏实例归 AI 调度
+
+- 「进游戏验证」＝可以自己 `stop-rdd` / 换 jar / 起游戏，**不许**把「需要停实例」当成阻塞跳过；
+- 只有用户在玩（他自己说）时才先问一句。
+- 每次退出游戏后照旧：postflight → 回填卡 → 杂项 → 提交推送。
+
+### 五、上下文吃紧时的落盘（配合 `bin\checkpoint.js`）
+
+- 每批收尾、以及**任何时候感觉上下文过半**：跑
+  `node D:\rdd\harness\rdd-harness\bin\checkpoint.js write --objective "..." --where "..." --doing "..." --next "..." --batch <批次号>`
+- 新会话醒来第一条命令：`node D:\rdd\harness\rdd-harness\bin\checkpoint.js read`（先看这张纸，再决定读哪张卡）。
+
+---
+
 ## 第 1 条 · 工程纪律
 
 ### 1.1 编译只有一个通道（手写 gradle / 手动拷 jar 已被 permission deny，绕不过去）
