@@ -74,7 +74,14 @@ const findings = [];
 const add = (level, file, code, msg) => findings.push({ level, file, code, msg });
 
 // ② 目录里未登记的文档（.bak 不算）
-const onDisk = fs.readdirSync(DIR).filter(f => f.endsWith('.md') && !f.endsWith('.bak'));
+// ★ 2026-10-22：`_` 开头的常驻文档也不参与「必须登记」。
+//   依据 registry.docNumbers.standingDocsNote（2026-10-19）：
+//   「这些是【非编号】长期资产…改它们不用登记三处，改完在 杂项记录记一行即可。」
+//   原实现只排 .bak，于是 `_格式规范.md` 被 BLOCK —— 而规矩明说它不必登记。
+//   这是**检查器与规矩打架**：规矩说不必做，检查器说必须做，两个必有一个错。
+//   按「registry 是真源」改检查器。（`_归档清单.md` 等历史文件已在台账里，
+//   那是既有事实，不因本条改动而要求它们退出。）
+const onDisk = fs.readdirSync(DIR).filter(f => f.endsWith('.md') && !f.endsWith('.bak') && !f.startsWith('_'));
 const registered = new Set((ledger.docs || []).map(d => d.file));
 for (const f of onDisk) {
   if (!registered.has(f)) add('BLOCK', f, 'UNREGISTERED', '目录里有这份文档，但台账没登记 —— 新增文档必须进台账，否则机制对它无效');
