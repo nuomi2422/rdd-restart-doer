@@ -67,3 +67,6 @@ AGENTS.backup/
 # .tmp-agents-msg.txt 是一次性消息草稿。两者都属运行产物，不该入库。
 .tmp/
 .tmp-*
+
+# ── 存档快照（P15 工具产物，30MB 级，不进 git；用完 --prune 删）──
+rdd-selfcompile/snapshots/
