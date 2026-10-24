@@ -38,6 +38,25 @@
 > 主 AI 的实际节奏是「按文档分批写码 → 进游戏验 → 退游戏回填」，
 > 计划那一步已经被 75 号蓝图取代了。**挂在没人走的流程上的必读清单 = 从没被执行过。**
 
+## ★★★ 第 −0.8 条 · RDD harness 已半退役：**暂时一律改用 Agene harness**（2026-10-25 主人裁定）
+
+> **RDD harness（`D:\rdd\harness\rdd-harness\`）不再作为新工程的默认门禁。**
+> 它是上一代工程内核，能力已被 `D:\Agene\harness\` 覆盖并超越（凭据/实验卡/记录义务/规则包/验收器）。
+> **所有 AI 暂时按 Agene harness 干活**，RDD harness 只保留三种用途：
+> ① 历史参照（想查"当年为什么这么设计"）；② 游戏域专用脚本（`send-mc-command.ps1`、`snapshot-world.js`、`weekly-metrics.js`、`stager`）；
+> ③ 迁移对照（找"哪些 RDD 能力还没搬过去"，见 `rdd架构\harness对照-rdd-vs-agene-20261025.md`）。
+
+```powershell
+# 新活一律走这条（在 D:\Agene 仓里）：
+node harness/bin/agene-harness.js doctor          # 环境体检
+node harness/bin/agene-harness.js begin <卡>       # 冻结 + preflight + 规则集冻结 + 开 run
+node harness/bin/agene-harness.js preflight <run>  # 进场打卡（PASS 后签发验证凭据）
+node harness/bin/agene-harness.js verify <run>     # 跑真实命令 + 谓词裁决
+node harness/bin/agene-harness.js postflight <run> # 关凭据 + 记录义务 + 报告
+```
+
+> **例外**：主人明确要"开 stage / 打存档快照 / 看周指标 / 用相机与录屏"时，仍用 RDD 侧那几个专用脚本。
+> Agene 与 RDD 真源独立，**别把 Agene 的规则强加给 RDD 文档，也别把 RDD 的门禁塞进 Agene**。
 **现在真正的门只有两个**（都在 `harness-gate.js`，不依赖任何流程）：
 
 | 门 | 什么时候 | 挂了什么 |
@@ -81,7 +100,7 @@ node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" postflight --since <今天
 其余（S101 · H-Q3 · G5f 采集 · G6a · 报告放行门禁 · 周行为指标 · 推送到主分支 · 快照 · 文档回填）
 **全部沉到机器层，自己做完自己记账**。
 
-> 决策权分配的完整口径在 `C:\Users\admin\.dsh\AGENTS.md` §0.5（主人的三个不可替代角色、那张卡、不许再加工具）。
+> 决策权分配的完整口径在 `C:\Users\admin\.dsh\AGENTS.md` §0.5（主人的三个不可替代角色、那张卡；「不许再加工具」系误记，2026-10-25 已删）。
 > **每次开工先读它。**
 
 筛子过了，才举手：
