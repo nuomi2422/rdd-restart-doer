@@ -38,11 +38,15 @@
 > 主 AI 的实际节奏是「按文档分批写码 → 进游戏验 → 退游戏回填」，
 > 计划那一步已经被 75 号蓝图取代了。**挂在没人走的流程上的必读清单 = 从没被执行过。**
 
-## ★★★ 第 −0.8 条 · RDD harness 已半退役：**暂时一律改用 Agene harness**（2026-10-25 主人裁定）
+## ★★★ 第 −0.8 条 · **半退役已解除**：RDD/MC 工作恢复用 RDD harness（2026-10-25 夜 主人裁定）
 
-> **RDD harness（`D:\rdd\harness\rdd-harness\`）不再作为新工程的默认门禁。**
-> 它是上一代工程内核，能力已被 `D:\Agene\harness\` 覆盖并超越（凭据/实验卡/记录义务/规则包/验收器）。
-> **所有 AI 暂时按 Agene harness 干活**，RDD harness 只保留三种用途：
+> **「暂时一律改用 Agene harness」作废。** 当前重点 = MC 项目，走 RDD harness 的 preflight/postflight 与游戏域脚本。
+> Agene harness 仍然保留：多项目工程底座 + 它自己的 run/凭据/实验卡；两边按 M1 目录互认（`agene-harness.js project show rdd.mc` 只登记不代跑）。
+> **下面这段是当时的裁定原文，保留为历史记录，不再是现行默认。**
+
+> ⚠️（历史，已解除）**RDD harness 不再作为新工程的默认门禁**——该结论 2026-10-25 夜作废，见本节标题。
+> 当时的理由：它是上一代工程内核，能力被认为已被 `D:\Agene\harness\` 覆盖（凭据/实验卡/记录义务/规则包/验收器）。
+> 当时规定：**所有 AI 暂时按 Agene harness 干活**，RDD harness 只保留三种用途：
 > ① 历史参照（想查"当年为什么这么设计"）；② 游戏域专用脚本（`send-mc-command.ps1`、`snapshot-world.js`、`weekly-metrics.js`、`stager`）；
 > ③ 迁移对照（找"哪些 RDD 能力还没搬过去"，见 `rdd架构\harness对照-rdd-vs-agene-20261025.md`）。
 
