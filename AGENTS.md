@@ -57,6 +57,12 @@ node harness/bin/agene-harness.js postflight <run> # 关凭据 + 记录义务 + 
 
 > **例外**：主人明确要"开 stage / 打存档快照 / 看周指标 / 用相机与录屏"时，仍用 RDD 侧那几个专用脚本。
 > Agene 与 RDD 真源独立，**别把 Agene 的规则强加给 RDD 文档，也别把 RDD 的门禁塞进 Agene**。
+>
+> **2026-10-25 口径更新（多项目 Harness 施工单，[D:\Agene\docs\harness-multi-project-construction-v0.1.md](<D:/Agene/docs/harness-multi-project-construction-v0.1.md>) §0/§10）**：
+> 上面的"半退役"是那个时点的搬运结论，**不是终局**。正确关系是：Agene Harness 是多项目工程底座，
+> RDD 的工具/门禁/工艺/记录按 **rdd.mc 项目扩展** 接入统一注册与展开——"不塞进 Agene"指**不硬编码进 core**，
+> 不是"永远排除在外"。真源仍留 `D:\rdd\`，通过适配器纳入统一管理，不要求合仓。
+> **在 MC 项目接入完成平价验证之前，本仓必要的项目门禁（preflight/postflight 等）照常运行，不得停用。**
 **现在真正的门只有两个**（都在 `harness-gate.js`，不依赖任何流程）：
 
 | 门 | 什么时候 | 挂了什么 |
