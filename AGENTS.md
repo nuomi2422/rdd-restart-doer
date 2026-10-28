@@ -93,6 +93,27 @@ node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" postflight --since <今天
 > 原因：本文件 2026-10-04 瘦身就是为了消掉「三份规则文件副本互相漂移」（全局那份已丢 182 行，时间锁 `TL-2026-10-04-03`）。
 
 
+## ★★★ 第 0.1 条 · 建任务链只认 `rdd_supervisor_submit`（2026-10-29 主人定，别再忘）
+
+> 主人原话：「我们的任务链的触发是要有一个特殊的工具，不是说你给 AI 说句话，他就能用规划者的。
+> 这个东西好像写出来了，但是 AI 都忘记用了，干活的 AI 忘记用了 —— 直接在门禁上面打一个显眼的标记啊。」
+> 「找到了正确的入口：`rdd_supervisor_submit` —— 它直通 Stage-A 规划者。
+> 我上一个用错了（`rdd_submit` 只建单目标）。反正你记得让 AI 用这个。」
+
+| | `rdd_supervisor_submit` ✔ | `rdd_submit` ✘ |
+|---|---|---|
+| 经过规划者 | **是**（`beginPlanning`，与 `/goal` 同一段代码） | **否，完全绕过** |
+| 分多级 | 是（`goal_staged{stages:N}`） | 否，只一条硬编码子任务 |
+| 要填 | 只要 `objective` | `goal/primary_goal/subtask/asset_key/minimum` 全套 |
+
+**门禁已经接上，别指望靠记性**：
+- 门禁**最上面**常驻横幅 `★ 任务链入口`，直接打「本轮走了规划者 / 绕过了规划者」；
+- preflight **P18**：建了链却绕过 → **BLOCK**；postflight **Q19**：同一判据，绕过 → WARN；
+- 判据是机读 `monitor\rdd.jsonl` 有没有 `supervisor_input`（`rdd_submit` 只留 `task_bound`）。
+
+> ⚠️ `/goal`（`source=goal_sink`）也算走规划者，门禁只抓 `rdd_submit` 那种绕路。
+> ⚠️ **别再用 `enqueue` 冒充主人发 `/goal` 来建链** —— 那是「主人说话」的通道，语义不对。
+
 ## 第 0.5 条 · ★ 要主人拍板 → **先过筛子**，过了才走 decide-inbox
 
 > 用户 2026-10-21 定：**「拍板」不是批次流程的一部分，是治理层和执行层之间的独立通道。**
