@@ -70,3 +70,24 @@ AGENTS.backup/
 
 # ── 存档快照（P15 工具产物，30MB 级，不进 git；用完 --prune 删）──
 rdd-selfcompile/snapshots/
+
+# ── report 下的一次性探针/取证产物（2026-10-29 清账：125 项未跟踪里 97% 是这些）──
+# 为什么排：它们让 `git status` 永远淹在 125 行里，真正的台账/脚本看不见，
+# 而 `git add -A` 一按就全卷进去（已出过两次事故）。
+# ★ 明确不排：deploy-ledger.jsonl（append-only 台账）、review-packs/、review-requests/、
+#   *.md（取证文档）、scripts/ 下可复现的启动脚本与 verify-tools。
+rdd-selfcompile/report/args-*.json
+rdd-selfcompile/report/start*.err
+rdd-selfcompile/report/start*.log.err
+rdd-selfcompile/report/*.log.err
+rdd-selfcompile/report/javap-*.txt
+rdd-selfcompile/report/watch-*.js
+rdd-selfcompile/report/observer-*
+rdd-selfcompile/report/observe-*
+rdd-selfcompile/report/exp-entry-*.json
+rdd-selfcompile/report/goal*.json
+rdd-selfcompile/report/bot-test.js
+# 一次性补丁/扫描脚本（改完即弃；要留就搬进 verify-tools 并带 --help 与自测）
+rdd-selfcompile/report/fix-triggers.js
+rdd-selfcompile/report/patch-*.ps1
+rdd-selfcompile/report/scan-*.ps1
