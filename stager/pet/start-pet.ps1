@@ -162,6 +162,7 @@ function Get-Bmp($path) {
         <TextBlock x:Name="TBActor" FontSize="12.5" Foreground="#4A4160" Margin="0,2,0,0" TextWrapping="Wrap"/>
         <TextBlock x:Name="TBGate"  FontSize="12.5" Margin="0,2,0,0" TextWrapping="Wrap"/>
         <TextBlock x:Name="TBHint"  FontSize="11"   Foreground="#8A83A0" Margin="0,7,0,0" TextWrapping="Wrap"/>
+        <TextBlock x:Name="TBReport" FontSize="11.5" Foreground="#5A5268" Margin="0,7,0,0" TextWrapping="Wrap" MaxWidth="420"/>
       </StackPanel>
     </Border>
 
@@ -197,6 +198,7 @@ $TBRound  = $win.FindName('TBRound')
 $TBActor  = $win.FindName('TBActor')
 $TBGate   = $win.FindName('TBGate')
 $TBHint   = $win.FindName('TBHint')
+$TBReport = $win.FindName('TBReport')
 
 if ($NoTopmost) { $win.Topmost = $false }
 $PetHost.Width  = $Size
@@ -350,6 +352,22 @@ function Set-Bubble($on) {
     $win.Dispatcher.Invoke([action] { }, [System.Windows.Threading.DispatcherPriority]::Background)
     Layout-Win
 }
+function Get-LatestBrief {
+    $docsRoot = Split-Path (Split-Path $Root -Parent) -Parent
+    $outDir = Join-Path $docsRoot "docs\rdd-docs\rdd存放"
+    $files = @(Get-ChildItem -LiteralPath $outDir -File -Filter "*.md" -ErrorAction SilentlyContinue | Where-Object { $_.Name -notlike "_*" -and $_.Name -match "20\d{6}" } | Sort-Object LastWriteTime -Descending)
+    if ($files.Count -eq 0) { return "简报：没有" }
+    $file = $files[0]
+    $text = Get-Content -LiteralPath $file.FullName -Raw -Encoding UTF8
+    $m = [regex]::Match($text, "(?ms)^#{1,4}\s*给老板的三行[^\r\n]*\r?\n(?<body>.*?)(?=^#{1,4}\s+\S|\z)")
+    $date = [regex]::Match($file.Name, "20\d{6}").Value
+    if (-not $m.Success) { return "简报今天未更新（$date）：缺少给老板的三行" }
+    $body = ($m.Groups["body"].Value.Trim() -replace "\r?\n", " ")
+    if ($body.Length -gt 220) { $body = $body.Substring(0, 220) + "…" }
+    $state = if ($date -eq (Get-Date -Format "yyyyMMdd")) { "已更新" } else { "今天尚未更新" }
+    return "简报 $state（$date）：$body"
+}
+
 function Update-Bubble {
     $st = Get-StagerState
     if (-not $st) {
@@ -360,6 +378,7 @@ function Update-Bubble {
         $TBActor.Text  = '或：stager list 看历史任务'
         $TBGate.Text   = ''
         $TBHint.Text   = '点一下收起 · 右键有菜单 · Esc 收起'
+        $TBReport.Text = Get-LatestBrief
         return
     }
     $TBTitle.Foreground = New-Object System.Windows.Media.SolidColorBrush ([System.Windows.Media.Color]::FromRgb(58, 46, 90))
@@ -383,6 +402,7 @@ function Update-Bubble {
         $TBGate.Foreground = New-Object System.Windows.Media.SolidColorBrush ([System.Windows.Media.Color]::FromRgb(190, 50, 50))
     }
     $TBHint.Text = '要点：' + $s.brief
+    $TBReport.Text = Get-LatestBrief
 }
 
 function Refresh-All {
