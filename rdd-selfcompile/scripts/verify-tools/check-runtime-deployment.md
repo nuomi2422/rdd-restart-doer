@@ -67,6 +67,32 @@ node .\check-runtime-deployment.js --src "<minecraft-numen 路径>" --mods "<mod
 > 教训：**判据用代理（时间戳）时，必须把代理会漏的真实顺序写下来**，否则每次都会有人（包括我）被它误伤。
 > 2026-10-01 RL-19 就是这么验出「jar 里是旧文案」的。
 
+## ★ 跨模块依赖（2026-10-30 新增）：上游改了，下游 jar 得知道
+
+`api/common` 删掉一个类、插件 jar 却是**在这之前**编的 → 运行时直接崩（2026-10-30 H10：
+`IToolSpec is null`）。原来的判据只看「本模块自己的源码改没改」，对这种情况完全瞎。
+
+现在多一段 `UPSTREAM`：按各 `build.gradle` 的 `compileOnly` / `api project(...)` 建依赖图
+（`plugins/rdd ← core/common, api/common, ai, ui` 等），只要**上游目录最后一次改源码**
+（排除 `src/test/` 与 `*Test.java`）晚于本 jar 且部署流水无法证明之后重部署过，就报
+「需重建评估」。
+
+```
+✔ numen-plugin-rdd-…jar   jar 10-30 08:48   jar 已包含最新 main 改动
+   ↳ 【需重建评估】api/common 在 10-30 14:15 改过（3472352），比本 jar 新 5h
+```
+
+**默认只警告、不改变退出码。** 理由（实测，不是猜）：2026-10-30 api/common 改了一次，
+8 个插件 jar **全部**「更旧」—— 时间图只证明「上游动过」，不证明「这个 jar 真用到了被改的东西」。
+若默认按硬门禁算，等于每次 api 改动都要重打全部插件，几天内就会被忽略。
+
+需要硬判时加 `--strict-upstream`（上游变更也算 STALE，exit 2）。它保证的是
+「**你不能声称这些 jar 与当前 API 一致**」，不是「它们一定崩」。
+
+> ★ 已知缺口（`registry.knownGaps[UPSTREAM-CLASS-CHECK]`）：真正的判据是**类级核对** ——
+> 解 jar 常量池，把 `com/dwinovo/numen/` 的引用与当前 api/core jar 的类集合比对，
+> 输出「引用但不存在」的清单。那才是 H10 的精确反例；时间图只是代理。
+
 ## ⚠️ 已知局限
 
 1. **模块映射写死在文件头**（`JAR_TO_MODULE`）。新增插件要手动加一条，
