@@ -5,6 +5,21 @@
 
 > ⚠️ **含中文路径的 wrapper 一律写 node `.js`，不要用 `.ps1`**（PS 5.1 读 UTF-8 无 BOM 的 `.ps1` 会把中文路径读成乱码，`MODULE_NOT_FOUND`）。
 
+## 第 −0.9 条 · 开工第一件事是 `bench brief`，不是 grep 原始 jsonl（2026-10-30 接线）
+
+> 用户 2026-10-30：「怎么感觉 AI 还是没用实验台，依旧自己找数据？」—— 当时实测：两天里只有一个会话读过 brief，
+> 本文件对 `bench` 零提及，所以每个新会话都从入口读不到它。**这条就是入口。**
+
+```powershell
+node D:\rdd\harness\rdd-harness\bin\bench.js brief                    # 开工：目标/边界 + open 坑 + 前次结论 + live 新鲜度 + core 五入口
+node D:\rdd\harness\rdd-harness\bin\bench.js live show snapshot       # 现场一屏（15s 刷新，别再拉 13MB 的 /api/snapshot）
+node D:\rdd\harness\rdd-harness\bin\bench.js health <runDir>          # 收工：这轮材料能不能用
+```
+
+- **顺序**：`brief` → `live show snapshot/chain/context`（有活游戏时）→ 需要复核旧局才 `timeline` / 原始 JSONL。
+- brief 显示 `live STALE（进程已退出）` → 先 `bench live start`，等 15s 再读。**视图死了 ≠ 游戏没数据**。
+- 这条只管「先读证据」，不派工、不改世界；纯文档/单测任务不强制进游戏。
+
 ## 第 −0.5 条 · 写作格式不在这里（2026-10-19 拆出去）
 
 **本文件只管「怎么干活」，不管「怎么写文档」。** 进哪个目录干活，先读那个目录的 `_格式规范.md`：
