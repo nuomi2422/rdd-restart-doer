@@ -8,23 +8,32 @@
 //
 // 新契约：细则分三层，各层自己查自己那份有没有漏。
 //   ① 全局卡（指针）  —— 不承载细则，只承载指针 + 摘要   → 真问题由 check-global.js 查
-//   ② 外层 AGENTS.md  —— 工程纪律 + 杂项 + 索引地图
+//   ② 外层 AGENTS.md + _格式规范.md —— 项目入口（≤100 行，只放指针）+ 工程纪律正文
+//      2026-10-31：AGENTS.md 按《提示词治理规范》瘦身为 48 行（提交 f58375f），
+//      工程纪律正文同日补回 `_格式规范.md` §0；check-align 仍按旧契约只查 AGENTS.md，
+//      于是 preflight P11 报 BLOCK。这里把 B 版口径改成「两份相加」，判据不减少；
+//      「套娃仓库 6 个」的数字判据同时改成主题判据 —— 2026-10-31 repo-status 实测：
+//      voyager 不是 git 仓库，实际是 5 个 git 仓，写死数字会再次变成假警报。
 //   ③ stage.md        —— stage 流（四阶段/必读/机器门/完成动作/改流程）
 const fs = require('fs');
 const path = require('path');
 
 const G = 'C:/Users/admin/.config/opencode/AGENTS.md';
 const B = 'D:/rdd/workspace/AGENTS.md';
+const B2 = 'D:/rdd/workspace/_格式规范.md';
 const F = 'C:/Users/admin/.config/opencode/FLOW-MANDATE.md';
 const STAGE = 'D:/rdd/harness/rdd-harness/stage.md';
 
 const g = fs.existsSync(G) ? fs.readFileSync(G, 'utf8') : '';
 const b = fs.readFileSync(B, 'utf8');
+const b2 = fs.existsSync(B2) ? fs.readFileSync(B2, 'utf8') : '';
+const bAll = b + '\n' + b2;
 const f = fs.existsSync(F) ? fs.readFileSync(F, 'utf8') : '';
 const s = fs.existsSync(STAGE) ? fs.readFileSync(STAGE, 'utf8') : '';
 
 console.log('全局卡   ' + g.length + ' 字符, ' + g.split(/\r?\n/).length + ' 行');
 console.log('外层 B 版 ' + b.length + ' 字符, ' + b.split(/\r?\n/).length + ' 行');
+console.log('外层格式规范 ' + b2.length + ' 字符, ' + b2.split(/\r?\n/).length + ' 行');
 console.log('FLOW-MANDATE ' + f.length + ' 字符');
 console.log('stage.md ' + s.length + ' 字符, ' + s.split(/\r?\n/).length + ' 行');
 console.log('');
@@ -54,14 +63,14 @@ const B_NEED = [
   ['游戏日志 GBK', /GBK/],
   ['实例叫法表', /实例叫法/],
   ['工作区地图', /本工作区地图/],
-  ['套娃仓库 6 个', /6 个 git 仓库/],
+  ['套娃仓库口径', /套娃仓库/],
   ['repo-status 跨仓库对账', /repo-status\.js/],
   ['plugins/selfcompile ≠ 改码通道', /plugins\/selfcompile/],
   ['harness 指针', /rddharness/],
   ['交接与资产', /交接与资产/],
   ['用户唯一收件箱', /rdd存放/],
 ];
-const missB = B_NEED.filter((x) => !x[1].test(b)).map((x) => x[0]);
+const missB = B_NEED.filter((x) => !x[1].test(bAll)).map((x) => x[0]);
 if (missB.length === 0) good.push('外层 B 版工程纪律 ' + B_NEED.length + ' 项齐全');
 else bad.push('外层 B 版缺：' + missB.join(' / '));
 
@@ -77,7 +86,7 @@ const B_SHOULDNT = [
   ['flow-gate 命令', /flow-gate\.js/],
   ['GLM 源码审', /GLM 源码审/],
 ];
-const leakB = B_SHOULDNT.filter((x) => x[1].test(b)).map((x) => x[0]);
+const leakB = B_SHOULDNT.filter((x) => x[1].test(bAll)).map((x) => x[0]);
 if (leakB.length === 0) good.push('外层 B 版没有 stage 流残留（' + B_SHOULDNT.length + ' 项都不在）');
 else bad.push('外层 B 版还在承载 stage 流：' + leakB.join(' / ') + '（应只在 stage.md）');
 
