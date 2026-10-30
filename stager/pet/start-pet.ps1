@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     STAGER 桌面宠物 —— 点它就报「现在第几阶段、第几轮、谁在干活」。
 
@@ -493,6 +493,10 @@ $win.Add_KeyDown({
 
 # ---------------------------------------------------------------- 右键菜单
 
+function Open-BossDashboard {
+    Start-Process 'http://127.0.0.1:8891/#boss'
+}
+
 $menu = New-Object System.Windows.Controls.ContextMenu
 
 function Add-Mi($header, $block) {
@@ -568,6 +572,7 @@ try {
     $tray.Icon = [System.Drawing.SystemIcons]::Information
     $trayMenu = New-Object System.Windows.Forms.ContextMenuStrip
     $null = $trayMenu.Items.Add('报状态', { Update-Bubble; Set-Bubble $true })
+    $null = $trayMenu.Items.Add('打开老板台', { Open-BossDashboard })
     $null = $trayMenu.Items.Add('刷新', { Refresh-All })
     $null = $trayMenu.Items.Add('退出', { $win.Close() })
     $tray.ContextMenuStrip = $trayMenu
