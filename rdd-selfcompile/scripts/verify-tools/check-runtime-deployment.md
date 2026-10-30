@@ -92,6 +92,34 @@ node .\check-runtime-deployment.js --src "<minecraft-numen 路径>" --mods "<mod
 > ★ 已知缺口（`registry.knownGaps[UPSTREAM-CLASS-CHECK]`）：真正的判据是**类级核对** ——
 > 解 jar 常量池，把 `com/dwinovo/numen/` 的引用与当前 api/core jar 的类集合比对，
 > 输出「引用但不存在」的清单。那才是 H10 的精确反例；时间图只是代理。
+>
+> **2026-10-30 已补上，见下一节。** 时间图保留（它回答「该不该重建」的**建议**），
+> 类级核对负责回答「会不会崩」的**事实**。
+
+## ★ 类级核对（2026-10-30）：它才是 H10 的真判据
+
+实现：`classrefs.js`（零依赖）—— 读 zip → 解 `.class` 常量池（只认 Utf8 与 Class 两个 tag）
+→ 取 `com/dwinovo/numen/` 开头的引用 → 与**当前 mods 里真正投放的 numen jar** 声明的类集合比对。
+
+```powershell
+node .\classrefs.js --mods "D:\rdd\mc\The Best of Twilight Forest\mods"   # 人读
+node .\classrefs.js --mods <dir> --json                                  # 机器可读
+node .\classrefs.js --selftest                                          # 内存造 jar 的正/反例
+```
+
+`check-runtime-deployment.js` **默认就跑它**（实测 10 个 jar / 2009 条引用 / 约 0.2s），
+`--no-class` 可跳过。**它默认就是硬判据（exit 2）**，因为它不做猜测：
+
+| 结果 | 含义 | 处置 |
+|---|---|---|
+| 引用都能解析到实现类 | 这个 jar 与当前 API 相容 —— 时间图那条「上游改过」的警告可以直接不看 | 放行 |
+| 有引用解析不到 | **一定** `NoClassDefFoundError` / `null spec`（H10 的形态） | 重建对应 jar，改好前不许起游戏 |
+
+**为什么只认 mods 里投放的 jar，不认 `build/libs`**：`build/libs` 里有旧产物，
+拿它当「可用类」会让「源码树里有」冒充「运行时能加载」，正好把 H10 藏起来。
+
+**边界（不吹）**：只查 `com/dwinovo/numen/` 前缀的**类级**引用；方法/字段签名变化
+（同名类改了签名 → `NoSuchMethodError`）还没有比对，那是下一步。
 
 ## ⚠️ 已知局限
 

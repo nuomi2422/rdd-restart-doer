@@ -81,10 +81,35 @@ const add = (level, file, code, msg) => findings.push({ level, file, code, msg }
 //   这是**检查器与规矩打架**：规矩说不必做，检查器说必须做，两个必有一个错。
 //   按「registry 是真源」改检查器。（`_归档清单.md` 等历史文件已在台账里，
 //   那是既有事实，不因本条改动而要求它们退出。）
+// ★ 2026-10-30：编号放宽到 2–3 位（原来只认两位，100–151 共 52 份对这里完全不可见，
+//   于是「编号/登记都没问题」是个假结论）。同时把 UNREGISTERED 按**取号处上线日**
+//   分两档：上线之后新增却没登记 = BLOCK（真债），上线之前就在盘上的 = WARN
+//   （历史债，补登记即消）—— 否则一次 69 条旧债会把工具永久钉死（S-DOC-03 同理）。
 const onDisk = fs.readdirSync(DIR).filter(f => f.endsWith('.md') && !f.endsWith('.bak') && !f.startsWith('_'));
 const registered = new Set((ledger.docs || []).map(d => d.file));
+// 机制上线日 = 台账 allocations 里最早的那次分配（数据驱动，不写死日期）。
+// 没有 allocations 时退化成「全部算历史」—— 宁可少拦，也不凭空造红。
+let mechSince = null;
+try {
+  const first = (ledger.allocations || []).slice()
+    .sort((a, b) => String(a.at).localeCompare(String(b.at)))[0];
+  if (first && first.at) mechSince = String(first.at).slice(0, 10);
+} catch { mechSince = null; }
+let unregBlock = 0, unregWarn = 0;
 for (const f of onDisk) {
-  if (!registered.has(f)) add('BLOCK', f, 'UNREGISTERED', '目录里有这份文档，但台账没登记 —— 新增文档必须进台账，否则机制对它无效');
+  if (registered.has(f)) continue;
+  const gitDay = lastGitDate(LEDGER_REL.replace('docs-freshness.json', f));
+  const isNew = !gitDay || !mechSince || gitDay >= mechSince;
+  if (isNew) {
+    unregBlock++;
+    add('BLOCK', f, 'UNREGISTERED',
+      '新增文档没进台账（' + (gitDay ? '最后改动 ' + gitDay : '还没提交过') + '，晚于取号处上线日 '
+      + (mechSince || '?') + '）—— 新增文档必须进台账，否则机制对它无效');
+  } else {
+    unregWarn++;
+    add('WARN', f, 'UNREGISTERED',
+      '[历史债 · 取号处上线前就在盘上] 台账没登记；补登记即消，不拦（改它会自动升为 BLOCK）');
+  }
 }
 for (const d of ledger.docs || []) {
   registered.delete(d.file);
@@ -99,7 +124,8 @@ for (const f of registered) {
 const KNOWN_DUP = new Set(ledger.knownDuplicateNumbers || []);
 const byNumber = new Map();
 for (const f of onDisk) {
-  const m = f.match(/^(\d{2})-/);
+  // ★ 2026-10-30：两位/三位都认（原来 /^(\d{2})-/ 看不见 100 号以上）
+  const m = f.match(/^(\d{2,3})-/);
   if (!m) continue;
   if (!byNumber.has(m[1])) byNumber.set(m[1], []);
   byNumber.get(m[1]).push(f);

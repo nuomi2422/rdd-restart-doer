@@ -19,6 +19,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFileSync } = require('child_process');
+const CLASSREFS = require('./classrefs.js');
 
 const EXIT_OK = 0;
 const EXIT_STALE = 2;
@@ -158,25 +159,30 @@ function main() {
   const args = process.argv.slice(2);
   let src = DEFAULT_SRC, modsDirs = [];
   let strictUpstream = false;
+  let noClass = false;
   for (let i = 0; i < args.length; i++) {
     if (args[i] === '--src') src = args[++i];
     else if (args[i] === '--mods') modsDirs.push(args[++i]);
     else if (args[i] === '--strict-upstream') strictUpstream = true;
+    else if (args[i] === '--no-class') noClass = true;
     else if (args[i] === '--help' || args[i] === '-h') {
-      console.log(`用法：node check-runtime-deployment.js [--src <minecraft-numen 路径>] [--mods <实例 mods 目录>] [--strict-upstream]
+      console.log(`用法：node check-runtime-deployment.js [--src <minecraft-numen 路径>] [--mods <实例 mods 目录>] [--strict-upstream] [--no-class]
 
   --src              Java 源码仓库（默认 minecraft-numen）
   --mods             实例 mods 目录，可重复。默认只扫 live（唯一在用）
   --strict-upstream  上游依赖变更也按 STALE 处理（默认只报 UPSTREAM 警告，不改变退出码）
+  --no-class         跳过类级核对（默认跑；实测全部 jar 约 0.2s）
 
 判据①（本模块）：该 jar 对应模块「最后一次改源码集的提交时间」 vs jar 的 LastWriteTime
   jar 更早 → 源码领先运行时，游戏里跑的是旧版
   只改测试（main 一行没动）→ 不算债
-判据②（跨模块，2026-10-30 新增）：上游目录（api/common、ai、ui…）最后一次改源码
-  晚于本 jar → 报 UPSTREAM「需重建评估」。这只是「可能」，不是「一定」：
-  它不知道这个 jar 到底有没有用到被改的东西；默认不改变退出码。
+判据②（跨模块时间图，2026-10-30 新增）：上游目录最后一次改源码晚于本 jar → 报 UPSTREAM
+  「需重建评估」。它只证明「上游动过」，不证明「这个 jar 真用到了被改的东西」；默认不改变退出码。
+判据③（跨模块类级核对，2026-10-30 新增）：解 jar 常量池，列出插件引用到的 numen 类，
+  与当前 mods 里真正投放的 jar 的类集合比对。**引用但不存在 = 一定 NoClassDefFoundError**，
+  所以它默认就是硬判据（exit 2）—— 这是 H10 事故的真判据，时间图只是代理。
 
-退出码：0 全部已部署 / 2 有源码领先于 jar（或 --strict-upstream 下有上游变更）/ 3 环境错`);
+退出码：0 全部已部署 / 2 有源码领先、或有引用不到的类（或 --strict-upstream 下有上游变更）/ 3 环境错`);
       process.exit(EXIT_OK);
     }
   }
@@ -204,6 +210,7 @@ function main() {
 
   const stale = [];
   const upstreamWarn = [];
+  const classStale = [];
   const rows = [];
 
   console.log('');
@@ -275,15 +282,49 @@ function main() {
         }
       }
     }
+
+    // ── 判据③：类级核对（2026-10-30）。这是 H10 的**真判据**，不是代理。 ──
+    // 「这个 jar 真正引用的类，当前 mods 里还在不在」：在 → 与当前 API 相容（时间图那条警告就可以不看）；
+    // 不在 → 一定 NoClassDefFoundError，硬 STALE，不需要任何猜测。
+    // 成本实测 ~0.2s/全部 jar（9 个文件、~1800 类），所以默认就跑；--no-class 可跳过。
+    if (!noClass) {
+      try {
+        const cr = CLASSREFS.check(modsDir);
+        if (cr.missing.length) {
+          console.log(`   ✘ 类级核对：${cr.missing.length} 条引用指向不存在的类`);
+          for (const m of cr.missing.slice(0, 8)) console.log(`        └─ ${m.jar} → ${m.cls}`);
+          for (const m of cr.missing) classStale.push({ modsDir, tag, ...m });
+        } else {
+          const totalRefs = cr.jars.reduce((a, j) => a + j.refs, 0);
+          console.log(`   ✔ 类级核对：${cr.jars.length} 个 jar、${totalRefs} 条 numen 引用，全部能解析到实现类`);
+        }
+      } catch (e) {
+        console.log(`   ? 类级核对跑不起来（${String(e.message).slice(0, 80)}）—— 这是环境问题，不冒充通过`);
+      }
+    }
     console.log('');
   }
 
   console.log('─'.repeat(70));
 
+  // 类级缺失是**硬**的：引用了不存在的类一定会崩，不需要任何解释
+  if (classStale.length) {
+    console.log(`VERDICT=STALE  ${classStale.length} 条引用指向当前 mods 里不存在的类（一定 NoClassDefFoundError）：`);
+    for (const m of classStale) {
+      console.log(`   · [${m.tag}] ${m.jar} → ${m.cls}`);
+      console.log(`     修：run-mutation.ps1 -Requirement "<按当前 API 重建 ${m.jar}>" -Module <对应模块>  → 重启游戏`);
+    }
+    console.log('');
+    console.log('★ 这就是 2026-10-30 H10 的形态：api/common 删了类、插件 jar 还是旧编译。');
+    console.log('  每一条都是确定会崩的引用，不是「可能」—— 在修好前不许起游戏。');
+    process.exit(EXIT_STALE);
+  }
+
   // 跨模块结果单列：它和「本模块落后」是两种债，混在一起报会让人以为 jar 是旧的
   if (upstreamWarn.length) {
     console.log(`UPSTREAM   ${upstreamWarn.length} 项「上游比 jar 新」（需重建评估，${strictUpstream ? '严格模式 → 计入失败' : '默认不拦'}）：`);
-    console.log('   ★ 只说明「可能要用新 API 重编」，不证明真的坏掉 —— 类级精确核对另立一批。');
+    console.log('   ★ 它只说明「上游动过」，不证明这个 jar 真用到了被改的东西。');
+    console.log('     「真的会不会崩」看上面的**类级核对**：引用但不存在 = 一定崩（那是硬判据，默认就拦）。');
     for (const w of upstreamWarn) {
       console.log(`   · [${w.tag}] ${w.jar.padEnd(46)} ← ${w.upstream}（${Math.round(w.gapH)}h）`);
     }
