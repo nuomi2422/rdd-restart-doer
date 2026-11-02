@@ -45,10 +45,29 @@ function Stop-RddMcInstance {
     $procs = @(Get-RddMcProcess -Instance $Instance)
     if ($procs.Count -eq 0) { return "already down" }
     $ids = @($procs | ForEach-Object { $_.ProcessId })
-    Stop-Process -Id $ids -Force -ErrorAction SilentlyContinue
+    # 2026-11-03：原来直接 Stop-Process -Force = 硬杀，integrated server 来不及 save，
+    # 实机出现"矿下 mine 11/11 回执，重启回旧位置/背包、计时器回退"的进度丢失。
+    # 先请求窗口正常关闭（Minecraft 会保存世界再退出），超时才强制。
+    $graceful = $false
+    foreach ($id in $ids) {
+        $proc = Get-Process -Id $id -ErrorAction SilentlyContinue
+        if ($proc -and $proc.MainWindowHandle -ne 0) {
+            $null = $proc.CloseMainWindow()
+            $graceful = $true
+        }
+    }
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        if (-not (Test-RddMcRunning -Instance $Instance)) { return "stopped (pid $($ids -join ','))" }
+        if (-not (Test-RddMcRunning -Instance $Instance)) {
+            return ("{0} (pid {1})" -f ($(if ($graceful) { 'stopped-gracefully' } else { 'stopped' })), ($ids -join ','))
+        }
+        Start-Sleep -Milliseconds 500
+    }
+    # 窗口关不掉（无窗口/卡死）才硬杀；强制路径必须显式报告，不能再静默当正常退出。
+    Stop-Process -Id $ids -Force -ErrorAction SilentlyContinue
+    $deadline = (Get-Date).AddSeconds(5)
+    while ((Get-Date) -lt $deadline) {
+        if (-not (Test-RddMcRunning -Instance $Instance)) { return "stopped-forced (pid $($ids -join ','))" }
         Start-Sleep -Milliseconds 500
     }
     return "STILL RUNNING after ${TimeoutSec}s (pid $($ids -join ','))"
