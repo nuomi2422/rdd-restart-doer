@@ -1,0 +1,618 @@
+﻿[
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\source-diff.patch",
+        "Hash":  "CB21B72CFE5D1C077BE635575E90E82D0C545E4B8EF0B2E50E4C77AA74A5CB75"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\source-head.txt",
+        "Hash":  "B461E445834AE1B2BEDC9E2DCD565474ADD394192DBA90A422593717E60CA4AC"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\source-status.txt",
+        "Hash":  "B63674A3187AC6CB5FDD5E5B451CF81C20BD8C4F5CF3F67C5082C883BEAD1703"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.AssetCraftConversionTest.xml",
+        "Hash":  "900B43F45B9984038E1DF0ADCD61815AC1407A4DBC5E02600714DF211E032BAC"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.AssetHistoryTest.xml",
+        "Hash":  "E92FC624268884E3362FDD4941D3023AA209357EDCB7396019814450F1EA6A53"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.AssetRegistryTest.xml",
+        "Hash":  "D7859911231F55F0BE284029657599F72C352B138D02FB9230D479FDB5F13CCD"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.AssetSnapshotDataChainTest.xml",
+        "Hash":  "84298D1E6359693AF7741FCD78CDBF11C9C23635EF2BFD68CE4B483D9E3704D1"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.BaseSelectorTest.xml",
+        "Hash":  "626BBA63916DD5DC50B9AEB101C105E5887B9F85E8F6BF7AEC2F9E7F164337E8"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.ChainInstanceIdTest.xml",
+        "Hash":  "E026C00DD231A9C15C237699AFA0AFB8802992FC17D798EE01D61F37B1AFF743"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.CompletedFactStoreTest.xml",
+        "Hash":  "E00209036E87143FE3B6FD001E4E2E266B761F4F27545FB3A7E460AB8CC5497B"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.CoordRangeValidationTest.xml",
+        "Hash":  "9F1876235862D6B7FD24A4DEE21D1931EFB6AFF70EB3AC0587CF2B3861E53757"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.D20C2BaselineVisibilityTest.xml",
+        "Hash":  "9854C210CDD735AECA6CCF4CAD41FF84F691CD6E536F34C4D01BE773C7B2F95D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.DangerSpotsTest.xml",
+        "Hash":  "F10D8096C489A02FE991EDD61D7966B06A5848B52BED5964478FC8D548823BA4"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.DeathCauseClassifierTest.xml",
+        "Hash":  "BAA51A6B09196A9C6B155E691E1A1AC6C3580C27DDE8007F01F654E4B2E9CF7A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.DeathCauseFallbackTest.xml",
+        "Hash":  "41917EA87D9F4E90DA2E0C8B53865B1ABEF597CFA8EBDE03B65CB40A490B1F86"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.DependencyGateSnapshotTest.xml",
+        "Hash":  "759671DAEF06FE0C60AF7AEE4D82C8F9C9DD5FF2DD1BB269E4EA5460126208D3"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.G1aAcquireUnknownBaselineTest.xml",
+        "Hash":  "FA0ACE64362035DC9D82CE623A01ED86CFB84B3808AD4AD485F2771A16939E92"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.G3aAttemptEntryTest.xml",
+        "Hash":  "1A5DEE63B1323B821D1D338869E20A4AD02ABFA493243AA0B94277765C3485F3"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.G3bAttemptCasTest.xml",
+        "Hash":  "F7CF4B157CD295FA1862FF5FE66414EA329D551E94EAD5E8171723DCC87CA813"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.G3cPlanPatchTest.xml",
+        "Hash":  "953165E02911CB2475FFF53802414F384FFA7FB076B761538A3A099E3EC6B46B"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.G3eSafePointTest.xml",
+        "Hash":  "236831FADD013602B4CB18AE653B6F3A6EA8D9A6DA75590778FC408200352CBB"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.HardCodedEvaluatorModeTest.xml",
+        "Hash":  "68E15E2BC5949A0EE65326E29A85EECAAFB65466F6391C9E908202449D9656B2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.HardCodedEvaluatorTest.xml",
+        "Hash":  "F288740050F24AAB4B8467CA093C6E481D5E14F60FFDB77654121F7CC5B51E9B"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.HomeAnchorPolicyTest.xml",
+        "Hash":  "806D7897E645AE9C410B5DB2A8A771C3B7C4E6B9EB754AA577D37CE10E885787"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.InstrumentationEventsTest.xml",
+        "Hash":  "ABA83072C7B5DE54DC3ECF4632166D8AAB75463283959C51C63AF526F3B9F4EA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.InventoryGroupsPinTest.xml",
+        "Hash":  "7D1FD3C07BD80B63AF2543C8B265BE3E06D966DBC349FF1C092F4B84D1354E58"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.NegotiationReplanTest.xml",
+        "Hash":  "A391648FEB3F908B673688FEC6FD67E5E4E3563E529598297693D13BA6B1D5F6"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest.xml",
+        "Hash":  "6DED2ECA09B32519CFD59D44827FCAF4C6C9088E84589EED4BE8B44C2D57BCE2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.PlanningAssetTruthRegressionTest.xml",
+        "Hash":  "F5C971AB1F510B27B66D5C1D65B272114347104265027787FC939E374AA29847"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddChainFactoryStagesTest.xml",
+        "Hash":  "AF9F2B115B88900338E2646883C2F18676732F72BB0AE00B0EA0D0BFE4753BEA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddChainFactoryTest.xml",
+        "Hash":  "BF88AE31A353DDB207EE74672DB909D3641C81ABB2EB465675AC61EC4E1D999E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddDeathLedgerBatchTest.xml",
+        "Hash":  "7D64CCFB7DBE83CE401A50237FC9246DDC7FCE9786404D9FE5D4DEA8CA3E9488"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddDeathLedgerTest.xml",
+        "Hash":  "3570B1833513794CBBD7D2BBC137D5D5797087AE175107ECA2FADDA06C577E54"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddRedlineContractPinTest.xml",
+        "Hash":  "4F5A3C07BA602387B38750BCCED9ABC5E105F617F29C0A1931435FA88F56DCFA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddRuntimePauseMarkTest.xml",
+        "Hash":  "4895BCE06D94B28E0C3A6FA205521C4FA02F66E05417074F4A888C9E1F268A95"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.RddRuntimeTest.xml",
+        "Hash":  "E1796832B030903FC5498A379FA2A288C905D4FF4FA20640D633E8621C31A998"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.StaleBasesTest.xml",
+        "Hash":  "E8105214A804818F33B23E8A2B0C6E9A22655703FCF9BCC632446D73F9BB1535"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.SubtaskModeContractTest.xml",
+        "Hash":  "D85A046513B548D08DB7B3681EBC030C7A017AC6EBE4501439DBD9B3445ED500"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainAcquireBaselineTest.xml",
+        "Hash":  "40A88B88F1B031A7F853F78DD883FE58E8C655A191FAE5CE5292CC79283E8ABA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainFuturePrimariesTest.xml",
+        "Hash":  "4589860D78D8D667766034711D043894D147532410E6364051D728C073D5D90F"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainInvariantsTest.xml",
+        "Hash":  "432715631D2F18E8C2E4DB5E9D91125698F064F47706B610AAE9400860EDA5C5"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainPauseTest.xml",
+        "Hash":  "05EB430D0738693E18CF18DEBCB613FC68B416132067A28E5A70A466302988DB"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainRaiseMinimumTest.xml",
+        "Hash":  "A1A1AE3EC5428BF78CC7B9001604A8E4E3DB7D537C9859E997D3E572B772D91A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainReplanStuckTest.xml",
+        "Hash":  "C433A21C8A0C757A8E1FB92E494563A364FB61528ADD476966DD1E112018CD80"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainRestartResetTest.xml",
+        "Hash":  "A5BEB50978B2273D635F849F69A205CA8B93D8641480FDCF19465C76B017E848"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainRestartRoundTripTest.xml",
+        "Hash":  "DF005ECF8B16AD795297B9FDE84BCE7EAEF615C5DEACFA7468932BED81996E75"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainSettleByFactTest.xml",
+        "Hash":  "8D68F415ABE066DEC9DB4F8482DF314AE23E562AF3A9775599F2A47E37DD8E7A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainSkipTest.xml",
+        "Hash":  "0FB36C3CD8A1B364821336A1CFC282C28E1BC7FA6D6D6BFF2810FCC5F33490E6"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainStateMachineExitTest.xml",
+        "Hash":  "20A2470143787D0F8F5148F0D6A908DA28DB2E11C49FEC031269F59E2A55F3B4"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.TaskChainTest.xml",
+        "Hash":  "AB893A8CD5BDF2C6B421FEBE6319F1E1BC06C8881DEC915416FB93BC156F2703"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.VillageNodeTest.xml",
+        "Hash":  "72E736D69E2F62D8B2FEC30C07E3C3B30C60CFBA08B0BF0F4CF9B15B0B01D040"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest.xml",
+        "Hash":  "F6F78CFB95E31E6130D787667EA5F7C8C68BF3D94C75D427BC1F61E55EA8C098"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.core.WorldFactConditionsTest.xml",
+        "Hash":  "25F0C7C4FCF9F6FB5B824291275CD56AD94BA144FBF3EEE171D4D7EA123F5191"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fact.FactProjectionTest.xml",
+        "Hash":  "C2DEA76BA1F37BA6DD281E8E378FD6232C72D41D85199A48E684BBDCF43631CD"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fact.FactShadowReconcilerTest.xml",
+        "Hash":  "DAA5222CD11DE5C9D0E7DDB86FF7C3EBAD629D750A5B179FBBA6FE3073DF5E11"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fact.FactSnapshotTest.xml",
+        "Hash":  "39C81384D10466226DDCB0E4894AAF36860DA4A59DCA5A12F73BA0CD036DFF84"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.FailureClassifierTest.xml",
+        "Hash":  "C155F23A82ED905989972A2B80844CE9F3E4E32CE5DE95C0E8AAA1E58E4C480E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.RecoveryPolicyTest.xml",
+        "Hash":  "7397B13FFA2BABD71D3748839F4B16A7C69B3EBC4D86409992FFE6A7416CA78A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.TaskNegotiationPauseTest.xml",
+        "Hash":  "7F15CF734462DF7F924705B732BE414140649BEA6771355163511787C1A12F01"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.TaskNegotiationPinTest.xml",
+        "Hash":  "4EE8F2007719F10026EAEAC962A6558B888C82AEC3FB53E4638D553EC2459A2D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.TaskNegotiationTest.xml",
+        "Hash":  "3F039DA7BD70049BB42856D920C3C5F4583E02BABE4F07CD614F891D34615A53"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.fail.TaskQualityReportTest.xml",
+        "Hash":  "D1C28B32BCE63A53AF1CADF0134EECC3F9FB1DE31E4DE84AFADF906772984637"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.ArchitectureIdeasTest.xml",
+        "Hash":  "D2AFC22182386E138019A0132A21C52972414A922496946AB8133658D31CB787"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.AssetDerivationTest.xml",
+        "Hash":  "48C6B1839DEE032C3BE605BA356519D6D9C7A7B27FE39D0BD21A48C7B2167E8D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.AssetKeysTest.xml",
+        "Hash":  "F9E2743DBA286833C5868050FCCD3F2C4908CDBDE939CEA239F50322916DBAC8"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.AssetPurposeStoreTest.xml",
+        "Hash":  "B2914CBB9B8C9055BF7AE11B21F8D536616F28857C1B2E1867148D2461813DAC"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.BackpackSpaceTest.xml",
+        "Hash":  "ACB7AAF3CED1BCB791A6E305383D0492DA7744B69E78461438C358618C813523"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.CapabilityWatchTest.xml",
+        "Hash":  "B48D819D2F48804ECCA21AD0CCDEFF5E7F2F3EFCC40603C2EB800AD70B7F2F3C"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.D20C2RequirementShapeTest.xml",
+        "Hash":  "68A5ADB10211E0BA6907ECCB8DCE02BB4914E6232F8D1AF4B65B2C4B649977E1"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.FarmProductionTest.xml",
+        "Hash":  "41207D8A8DF5B1455E35C727B281E96DF5B4876FFF7412F20F5F279D7008F19A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.FirstEntryNoPotionTest.xml",
+        "Hash":  "D52D1F1FEC7C4FF627808E3685025AEC97A087C3BAD62E0CDEAE62F65E43A063"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.FutureNeedScannerTest.xml",
+        "Hash":  "8854803EEEA862DC1AF66097DA9DC1385614C44B8B297B7014BDFE74EF790B90"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.GateObservationTest.xml",
+        "Hash":  "FC9314EA0BB76158F1434749DDDAE5A1BBFD777F6D2FE25CD88C4DEA6150F498"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.HomeBuildPlanTest.xml",
+        "Hash":  "63642BB6F3BEC98F0EB778E9B4AA8F7B01CE7E155E12A0EC2E4B3FD74957950B"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.HomeGateTest.xml",
+        "Hash":  "2BED0E40C0E2A09E2032DCB46714E8B50A023A0B196F9ACE7208E023249F14AD"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.HomeStageTest.xml",
+        "Hash":  "7B0A794C12E64913B71633AD39B1EBA21273E4B1D37F7CE532ED34CF8AFEFBE7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.LossImpactAnalyzerTest.xml",
+        "Hash":  "45045F5B549D5542418901CDE17F27D2FB36E0D40D6AA36A7E34950305D6EC6D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.MeasuredFactsTest.xml",
+        "Hash":  "CE25674F6724D5B1607ED15AB045CC1786AC698841EFD34F057220B1D772BD74"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.NetherArmorSingleSetTest.xml",
+        "Hash":  "90477E963FC5B4FC00477E38041D1B0E50472F8101B0BE4EC0F4140E95EC9799"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.PlanConsistencyTest.xml",
+        "Hash":  "F347DB5C51E7C546D435534FDEE344B955AAC2FAD57C6D8085EEB2A743BD6CBE"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.PreparationGapViewTest.xml",
+        "Hash":  "1432BEF10ED0FB932F039BB3D614AC8847D62A4942E5AB90C31A9B3F3060DCE4"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RddProtectionLevelTest.xml",
+        "Hash":  "5CB833E57E92E47E417FE021ADB38D1A38898A0E8E78F9B3732D8FE95D656006"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RealDataSemanticsTest.xml",
+        "Hash":  "A0CFCF413569F05EB85D7329CB5BD24D0F0186FC96C6AC0ABADD1FCD4C7E1259"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RequirementAssetAuditTest.xml",
+        "Hash":  "1ED69BF61501754634F0A106370A0071888DC1848B8BDAD3789A492053E400E3"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RequirementFactAuditTest.xml",
+        "Hash":  "A91308A8900783DF4106D05C740C92DE35BE37D732F195B6DCAC97EDDDFFC98B"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RequirementViewTest.xml",
+        "Hash":  "6AA5690084C5BDFD1E39AE629C58B1E987034F73FC83CC5C967B2D6AF15984F7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.ReservationLedgerTest.xml",
+        "Hash":  "591D663CED9078091743B471F9F6FB1904F307688071A99E3FA53ADE3DAFBED7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.ReserveActionTest.xml",
+        "Hash":  "41E44BF78A11C4636ED0895DA6D95A75F55D977431C3FCD52944CAF041022ED7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.ResourceBudgetPinTest.xml",
+        "Hash":  "268C27C9E57AB853207E541F73814E5A955A7537743307FAF30DA5AF1374F88C"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.ResourceBudgetTest.xml",
+        "Hash":  "623E05D86512D7513B1A02BE39363F4A328ADAEBC4FCB0CF698A43F11F0E05B1"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RiskGateTest.xml",
+        "Hash":  "962670DE5A0D14EF7C20BDCBE84812FD57F8072926DE1D3350F8F45FE60B45E0"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.RiskLevelTighteningTest.xml",
+        "Hash":  "8C8F8CBE230247347388AB405E1DC28C659F558938F56E3EB55D1CBDFEF1D246"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.StallHintTest.xml",
+        "Hash":  "B84C5550433E2E81912F0D62510820A17352A77E2832C205AB9887843B5590FA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.TaskCostModelTest.xml",
+        "Hash":  "A7C5F8754D4541E64AE3FAADF0C909D56618385E63330A0B2C26EC52BFEEB89E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.TransformationDetectorTest.xml",
+        "Hash":  "5D1A031EF9AAD68EDDDFEDB53E0FF767833A4DC0A7FB8426486B2484E79C40AC"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.VillageRankTest.xml",
+        "Hash":  "E7E8010AF4BF656D16D338B8463C5C29AF3E9AFDF1EFC6F27C5B1B2C57D183FF"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.policy.WorldAssetRetentionTest.xml",
+        "Hash":  "F0A5CE87878216043F6C20D45B429FA41C1ADF5F6C352D46136B8058C5CA5470"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.replan.ReplanContextBuilderTest.xml",
+        "Hash":  "B43BBF11C186E433DECB1D4A8E6DAFEC8C514FE00979C5ACB509477E43B80978"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.ActiveTaskSelectorTest.xml",
+        "Hash":  "A486F84DB0E00BE69F32182EE7722EEACDBFD29B642762AFC434ACF4561AD721"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.death.DeathRecoveryDecisionTest.xml",
+        "Hash":  "9912AA8CC2F0D866C0ABE3B1EA1A2DA8BC953FD3EF0F3791D7AB9B61D95B2EE2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.death.DeathRecoverySideTaskTypeTest.xml",
+        "Hash":  "0DE351C88EEB95A5EBF4CC3CC951A1F1C67411076F26C79F96957133BC37F194"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.death.RecoveryTerminalTest.xml",
+        "Hash":  "4096D4C183D5E79C782D3985DC942B2181FA000537ED8410915D98D7935CE3CF"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.DeathRecoveryRepeatTest.xml",
+        "Hash":  "AA357AE61A08B90FFCC690DA24ECA459543285D9BE706E63C2FAF99E259C4DDA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.recovery.RecoverySideTaskTypeTest.xml",
+        "Hash":  "9140DA7B9746AF35CDBCDFC9C898EABB4468A07FF3EBE31D58F65E4A7E9E7695"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.RecurringSideTaskSpecTest.xml",
+        "Hash":  "F53323D5FD82C08D2DE88D7B6ABDF726BAF144F785222D2EBB3D44F62EAF4EF3"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.SideTaskDeclineTest.xml",
+        "Hash":  "283B93677303B5CDFD26FA2BA05A615B1D890298E58F1225F3F6244C53B4747D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.SideTaskEngineTest.xml",
+        "Hash":  "75602D93F7F1CB27EC07472B0794DCA4A64DF61995017F853162EA08A8770AF2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\TEST-com.dwinovo.numen.rdd.side.SleepSideTaskSpawnBindTest.xml",
+        "Hash":  "8A51E3F266105958F6F446277B861FA96576257CA844E6616D19AAC6F248033F"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.G1b2ManifestCacheTest.xml",
+        "Hash":  "14B4E3AD925258FD450878202DDDF18257E28D3271272D544DF21361A3B06FF6"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest.xml",
+        "Hash":  "1EDF97ACF12FDC87DFE8D51BD1425609ACB43CFC89B75CD65C7F20B61DB9509E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.G1c2FingerprintTest.xml",
+        "Hash":  "0DD3DA5A38D6BAD3B908FF594D3E2230719BA4DB1A2F540320628E7EEFCF7E8A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.G1c3TransformAttributionTest.xml",
+        "Hash":  "14AD2CEB05744BEA5F3EA473ABF7F274586EAF2D0F7951862C6B4B0F9CEB85C4"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest.xml",
+        "Hash":  "26E30AD0AFC832DC2B168E2A9C9229E0A457313D936CC18F2C7E97C61BA0BDB4"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.LlmActivityGateTest.xml",
+        "Hash":  "89483532D557A0804077B049CAA2C11F006CEF5E2DCA8BB4B368C5BC7C1F3447"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddAssetStoreTest.xml",
+        "Hash":  "A43A4AF67FE430BA386559230A771C310059E1FD89B244C5297430CEC5396D6F"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddBodyToolsTest.xml",
+        "Hash":  "A910C2E595B11808F7343309F1C1041711ECFD5E0C8613B2307733AE44BBBA06"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddCallbackGuardTest.xml",
+        "Hash":  "8127C0F912691E0CC38E98948ED519E663489D9E87F74B0BE9355BD8E43ECDCA"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDangerFactsTest.xml",
+        "Hash":  "50ECEF7D4E80FCC23E431E879C32E2315B63DBE3E23849A4D6935AA3DE1303B2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest.xml",
+        "Hash":  "4CF638F82EEA7343B2114C6299E442294F6AC0DE463039412CABF21E114C889F"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDeathRecoveryGuardTest.xml",
+        "Hash":  "4E7914ED79BC3F49930A7B186DE9E3AB9450FF2420222A615F897CAE9B689ABD"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDeathSpotFactsTest.xml",
+        "Hash":  "D3197223A3924A1F95885B26DCE9EBD393FDAE4F68033EDA873B2B8CFE263026"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDeclineSideTypeTest.xml",
+        "Hash":  "58992FF8D477DBA9029605F553F215E988E3DC70291C1012FB8FEF9087784D86"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest.xml",
+        "Hash":  "3AE8D8B35F2A6C4630CDEA860C9590069EE0B4A4EE288144D217298CC64C7B81"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddExpansionPolicyTest.xml",
+        "Hash":  "C6D5BFDF7DB803491E2DED08E11211DC72B2CD16ED4AA1094B7663398ACE4369"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddFactContextTest.xml",
+        "Hash":  "3939D5FCBC0A59AE116F54A87835BEC9EB6A9623DA30A97DB66F4394FC84A6F8"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddInstrumentationTest.xml",
+        "Hash":  "3AD9DEA3B8B08F562026C40C0B58C43FFDEDC60D6C3F161FD3AECAC5731AC0F0"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest.xml",
+        "Hash":  "058527D849EC0A0ABA6F38BFB1F5C7AFFD7D98A27C8A208BA746131578B43EB9"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddMinePlaybookTest.xml",
+        "Hash":  "4240C4D1A0F2E4B4B4FC0863A9054CC7ABA2054BB370950D873F1124FD96452C"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddNeedsTextTest.xml",
+        "Hash":  "7D7E288844F9B14BB9AC2D79BDA459C6CA1C36D7AB1BF493992066EC62BA26F7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddNewlyLostTest.xml",
+        "Hash":  "CCE711C9AE09944E917BB0805F6EA81F3093AEC27C6D030CBE9AFB585C48FB0D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddOptionalFoodPinTest.xml",
+        "Hash":  "0FA61AFB46FE97EED7A8F643CC79C58F5538EF0773F02DA9E2F49879ED71338E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddOptionalFoodTest.xml",
+        "Hash":  "60EBBBC91D62F6E67B1F722638F0D884979A2BF4C37578EE2E89511BEA53D07A"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddParkedAcceptPolicyTest.xml",
+        "Hash":  "2A5DDA258B2D66FE5B117B8E5CFC3F7DC4F4D4BC04F6E86F72955FE95602B4CB"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddPlanGuardTest.xml",
+        "Hash":  "2DBBDDDAB3264CE0B270427ACAD1F1FE6D0CDFB4BAD2994A4E20D0F9F43BD591"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddPlanningKnowledgeTest.xml",
+        "Hash":  "792DCF78C0A1C15261193024F67E75A9F7B7C35CCB9D88539E459DB4DDCE0545"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddPlanningPolicyTest.xml",
+        "Hash":  "F6FADCE7F6DE15F95C55D65BFA272999661987B298CE93A3D2063170AB8FBA49"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddRepairDispatchPinTest.xml",
+        "Hash":  "97EEEA0A7729B9F155CB55D9C1CAA453A0EE9F0F4A78A79ECEEAA8C6FA012A82"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddRepairDispatchTimeoutTest.xml",
+        "Hash":  "5C07AFFD18E51A3D9F5BF5F7E14E2BCF3A047CA0AED9E3D9C707A883317AB697"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddRepeatQueryWatcherTest.xml",
+        "Hash":  "31CD098D28A0449D8F69BD6CEF376A839066704C0EF7396F9EE81A7739596492"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddRiskPlanningTest.xml",
+        "Hash":  "AB7AE126D17C64DC52107CC44DF646BAA7C18DCA2C31A9E48F6EE51AF97E031D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddSituationFactsTest.xml",
+        "Hash":  "764ABA50F1CA5E2986B8D29EE8FC5CE8C0858991B32C084E89779DA4178BDDAC"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddStagePatternsTest.xml",
+        "Hash":  "06ED788BC41B94E373B4EDF69688BC0073A9CB6A9F332C257FE17B818CB1EBA2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest.xml",
+        "Hash":  "0EF0A132C493651F3D316A811687791381C63172A129091D34C82FD51167BA4E"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddStallPolicyBusyTest.xml",
+        "Hash":  "4E9DB33DB02824B58963C51EE4DBD19F486A8CE3FA1DD992D6827D8D00DE76A7"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddStallPolicyTest.xml",
+        "Hash":  "DDAE523729D977A8CA09C860266F4CBB40145567F71E432F2C8A7C92E63240A3"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddStuckWatchTest.xml",
+        "Hash":  "53137C497D87DDE65950D52B1AB287B15F4DEB38F77CFCD2FED1BFEA02E61EB0"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddSurplusTest.xml",
+        "Hash":  "B9AECAFD21D3323A21981682F7AD10CD3542E6AB2B9ECEE8FB19388928DF923C"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddSurvivalDoctrineTest.xml",
+        "Hash":  "D29F69A5AD44236C9DA25BF8E8C0F156402C8E23BC95FBB508633D33333D6665"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest.xml",
+        "Hash":  "2B0B8F5989A2F45B8D63DEB931E380F27336A43D9E5CC15AE064F416E25830C0"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest.xml",
+        "Hash":  "AC2DEDE234BDDAC5AAAB5026964F1C5BAA5CA9EF33CE4548576C44318A7CC9C2"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest.xml",
+        "Hash":  "05A6C4BD82760F0B9A157093366F184594B32179BB646D3DB614D11574ADD0B5"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.RedlineContractPinTest.xml",
+        "Hash":  "BAB6B5945234AA8FFFF191AA6BA9CE913DEA862DB09057EA33135CD509A9C114"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.S1SemanticsWiringTest.xml",
+        "Hash":  "91FCB50B13BAE4748336EE712DF3B97168A6F73A69C62AF37972E50F098C341D"
+    },
+    {
+        "Path":  "D:\\rdd\\workspace\\rdd-selfcompile\\report\\test-evidence\\169-P8d-20261103-004640\\plugins-rdd\\TEST-com.dwinovo.numen.plugins.rdd.TraceRingTest.xml",
+        "Hash":  "309323F7EB0DC9248DE98915CE65392418A1DC139B9775364D2D644251E6A9AE"
+    }
+]

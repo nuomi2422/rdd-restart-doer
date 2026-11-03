@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" tests="8" skipped="0" failures="0" errors="0" timestamp="2026-11-02T16:34:52.165Z" hostname="497opf704wt6o4j" time="0.101">
+  <properties/>
+  <testcase name="rejectsBlankLine()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.001"/>
+  <testcase name="rejectsUnknownSchemaVersion()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.001"/>
+  <testcase name="rejectsMissingRequiredEnvelopeFields()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.009"/>
+  <testcase name="dataDefaultsToEmptyMap()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.083"/>
+  <testcase name="rejectsNullType()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.003"/>
+  <testcase name="lineRoundTripsThroughParse()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.001"/>
+  <testcase name="eventTypesConstantsMatchWorkOrder()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.001"/>
+  <testcase name="rejectsMalformedJson()" classname="com.dwinovo.numen.rdd.core.InstrumentationEventsTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

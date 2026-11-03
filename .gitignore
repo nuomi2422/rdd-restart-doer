@@ -91,3 +91,13 @@ rdd-selfcompile/report/bot-test.js
 rdd-selfcompile/report/fix-triggers.js
 rdd-selfcompile/report/patch-*.ps1
 rdd-selfcompile/report/scan-*.ps1
+
+# ── 2026-11-03 清账：本机工作树副本与运行态 ──
+# numen-audit-wt/ 是审计 worktree，numen-clean/ 是 463MB 的干净副本，都不是源码
+numen-audit-wt/
+numen-clean/
+# stager 每日/采纳曲线是运行数据
+stager/runs/
+# 启动期 stderr（几乎全为 0 字节）与 OC 消息草稿
+rdd-selfcompile/report/*.err
+rdd-selfcompile/msg*.json

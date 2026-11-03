@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:42:51.057Z" hostname="497opf704wt6o4j" time="0.058">
+  <properties/>
+  <testcase name="annexObjectiveMentionsNoNetherEntry()" classname="com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest" time="0.0"/>
+  <testcase name="attachHarnessAppendsWithoutLosingBase()" classname="com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest" time="0.003"/>
+  <testcase name="harnessHintsHasElevenHints()" classname="com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest" time="0.054"/>
+  <testcase name="annexTaskSpecHasTwelveStepsAndDependencyRules()" classname="com.dwinovo.numen.plugins.rdd.RddV32DirectivesTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

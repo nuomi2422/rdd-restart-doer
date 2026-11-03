@@ -958,6 +958,22 @@ CMD.swap = function (a) {
   });
 };
 
+function verify166BatchBeforeNext(st) {
+  // stager selftest uses an isolated temporary runtime; never consult the live 166 lock there.
+  if (process.env.STAGER_RUNTIME || RUNTIME !== realRuntime) return;
+  try {
+    const goalFile = path.join(ROOT, '.stager', 'goal.json');
+    const goal = readJson(goalFile, null);
+    if (!goal || goal.title !== '166 死亡后重要度重规划与稳态主线闭环') return;
+    const gate = path.join(__dirname, 'verify-166-batch.js');
+    const r = execFileSync(process.execPath, [gate, '', '--advance'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+    ok('166 批次门：' + String(r).trim());
+  } catch (e) {
+    const detail = e && e.stderr ? String(e.stderr).trim() : String(e && e.message || e);
+    die('166 批次门未通过，不许进入下一批：\n  ' + detail);
+  }
+}
+
 CMD.next = function (a) {
   // 门禁必须在锁内判：锁外判完再进锁，中间别人推进了就成 TOCTOU
   return withLock(() => {
@@ -972,6 +988,7 @@ CMD.next = function (a) {
         '  补齐：  ' + how + '\n' +
         '  确实要跳：stager next --force --note "为什么跳"');
     }
+    verify166BatchBeforeNext(st);
     return advance(st, a, 'next');
   });
 };

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-02T16:46:32.066Z" hostname="497opf704wt6o4j" time="0.499">
+  <properties/>
+  <testcase name="s41_needsBlockPrefixesCriticalOnly()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.186"/>
+  <testcase name="s40_needsOfMatchesDetectorImportance()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.025"/>
+  <testcase name="s45_manifestRowsTruncateAtCapWithFlag()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.043"/>
+  <testcase name="s40_pureConditionStaysNormal()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.003"/>
+  <testcase name="s45_manifestRowsCarryKeyImportanceMinimum()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.002"/>
+  <testcase name="s41_allMetStillHidesBlock()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.001"/>
+  <testcase name="s42_viewRowCarriesImportanceThrough()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.02"/>
+  <testcase name="s40_waitForBecomesCriticalConditionStaysNormal()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.04"/>
+  <testcase name="s42_replanBlockPrefixesCriticalRows()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.169"/>
+  <testcase name="s40_sameKeyTakesHigherImportance()" classname="com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[SLF4J: No SLF4J providers were found.
+SLF4J: Defaulting to no-operation (NOP) logger implementation
+SLF4J: See https://www.slf4j.org/codes.html#noProviders for further details.
+]]></system-err>
+</testsuite>

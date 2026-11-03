@@ -26,6 +26,7 @@ RDD 要通过真实 Minecraft 长程运行，持续检验 AI 是否能完成任�
 - 退出 Minecraft：跑 postflight，回填验证卡、杂项记录和记忆库。
 - 执行长期目标：读取 `外层编码AI-Goal提示词.md`。
 - 明确要求开 stage：才读取 stage 手册；默认不开 stage。
+- 要拍图/录像/让 AI 当摄影师：读 `D:\rdd\tools\numencam-mcp\README.md`（相机已注册为 `mcp__numencam__*` 工具，2026-11-01）。
 - 上下文接近上限：先写 ctx_notes，再按 smart-compact 指针交接。
 
 ## 3. 项目级硬规则
@@ -36,6 +37,7 @@ RDD 要通过真实 Minecraft 长程运行，持续检验 AI 是否能完成任�
 4. 阻塞项必须记录原因、证据和恢复判据，不得记为通过。
 5. 作弊、人工介入或临时绕过必须单独标注，不能冒充自然行为或自然通关。
 6. 接口改动先查消费者和失败恢复路径；详细工程纪律不在本文件复制。
+7. 退游戏即结算点：`stop-rdd.ps1` 自动记一次退出，累计 2 次会写 `D:\rdd\.harness\audit\AUDIT-REQUIRED.json` 并在输出里打「AUDIT GATE」横幅。看到横幅或该文件存在时，必须先 `peer_send` 审核窗口——只给断言清单和原始路径，不给推理过程——收到 PASS 才跑 `D:\rdd\.harness\audit\clear-audit.ps1`；在此之前任何结论只能标「未审计」。
 
 ## 4. 唯一指针目录
 

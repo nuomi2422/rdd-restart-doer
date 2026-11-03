@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.core.TaskChainTest" tests="15" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:50:22.112Z" hostname="497opf704wt6o4j" time="0.031">
+  <properties/>
+  <testcase name="persistsAndRestoresStateAcrossInstances()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.001"/>
+  <testcase name="hardCodedSubtaskAdvancesWithoutSupervisor()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.001"/>
+  <testcase name="unexpandedChainRoundTripsThroughJson()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.01"/>
+  <testcase name="expandInjectsSecondariesThenDependencyGateAndActivationWork()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.001"/>
+  <testcase name="restoreRegistersMissingStatusEntryWithAccounting()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.002"/>
+  <testcase name="snapshotContainsWholeChainAndCurrentPointer()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.0"/>
+  <testcase name="multiSubtaskStaysActiveUntilLastCompletes()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.0"/>
+  <testcase name="restoreRejectsOutOfRangePointer()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.003"/>
+  <testcase name="legacyJsonWithoutUnexpandedFieldLoadsAndRuns()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.002"/>
+  <testcase name="persistenceKeepsPrimaryDependency()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.002"/>
+  <testcase name="dependencyGatedPrimaryWaitsUntilAssetsPresent()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.001"/>
+  <testcase name="failedSubtaskCanRetry()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.0"/>
+  <testcase name="unexpandedCurrentIsNotRunnableAndReportsCleanly()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.002"/>
+  <testcase name="stalledSubtaskCanResumeAndFail()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.001"/>
+  <testcase name="supervisorMustMatchAwaitingPrimary()" classname="com.dwinovo.numen.rdd.core.TaskChainTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[[rdd] 恢复时清理了脏状态：丢弃 []，补登记 [s1]
+]]></system-err>
+</testsuite>

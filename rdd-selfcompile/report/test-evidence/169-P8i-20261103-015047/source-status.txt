@@ -1,0 +1,40 @@
+﻿ M api/common/src/client/java/com/dwinovo/numen/client/agent/EntityAgentLoop.java
+ M api/common/src/main/java/com/dwinovo/numen/agent/tool/ToolCallObserver.java
+ M api/common/src/main/java/com/dwinovo/numen/entity/Companions.java
+ M api/common/src/main/java/com/dwinovo/numen/entity/NumenPlayer.java
+ M api/common/src/main/java/com/dwinovo/numen/network/payload/ExecuteToolPayload.java
+ M plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceStoreRetrievalBridge.java
+ M plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceVerifyTool.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddChooseDeathRecoveryTool.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTool.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDecomposer.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDetector.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlanGuard.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlugin.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcher.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanning.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddWorldFacts.java
+ M plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/SideTaskHost.java
+ M plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddPlanGuardTest.java
+ M plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcherTest.java
+ M plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanningTest.java
+ M plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddToolContractSnapshotTest.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/core/TaskChain.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/core/WorldFactConditions.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/side/MainlineResumeToken.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoveryDecision.java
+ M rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskType.java
+ M rdd-core/src/test/java/com/dwinovo/numen/rdd/side/SideTaskEngineTest.java
+ M rdd-core/src/test/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskTypeTest.java
+?? api/common/src/main/java/com/dwinovo/numen/entity/DimensionGrace.java
+?? api/common/src/test/java/com/dwinovo/numen/entity/DimensionGraceTest.java
+?? plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeathRecoveryGuard.java
+?? plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRestartMainlineTool.java
+?? plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddSideType.java
+?? plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddDeathRecoveryGuardTest.java
+?? plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTypeTest.java
+?? rdd-core/src/test/java/com/dwinovo/numen/rdd/core/TaskChainRestartResetTest.java
+?? rdd-core/src/test/java/com/dwinovo/numen/rdd/core/TaskChainStatBaselineTest.java
+?? rdd-core/src/test/java/com/dwinovo/numen/rdd/core/WorldFactConditionsBedAliasTest.java
+?? rdd-core/src/test/java/com/dwinovo/numen/rdd/core/WorldFactConditionsScopeTest.java

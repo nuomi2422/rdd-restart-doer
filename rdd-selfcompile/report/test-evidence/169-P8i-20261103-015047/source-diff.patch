@@ -1,0 +1,1742 @@
+﻿diff --git a/api/common/src/client/java/com/dwinovo/numen/client/agent/EntityAgentLoop.java b/api/common/src/client/java/com/dwinovo/numen/client/agent/EntityAgentLoop.java
+index 365bbf03b..9b110525e 100644
+--- a/api/common/src/client/java/com/dwinovo/numen/client/agent/EntityAgentLoop.java
++++ b/api/common/src/client/java/com/dwinovo/numen/client/agent/EntityAgentLoop.java
+@@ -78,6 +78,18 @@ public final class EntityAgentLoop {
+      */
+     private static final String ENTITY_PROMPT = com.dwinovo.numen.agent.prompt.NumenPrompts.ENTITY_PROMPT;
+ 
++    /**
++     * [CLEANUP-2026-11-02] 延迟工具目录去重开关。
++     *
++     * <p>审计背景（2026-11-02，live 请求体实测）：{@code <deferred_tools>} 目录列了 112 条，
++     * 其中 <b>44 条的工具定义本来就以完整 schema 发在同一次请求的 wire tools 里</b>
++     * （白名单放行的工具，{@code ToolVisibility.forExecutor} 不看 residency）——
++     * 一条说了参数、另一条又只列名字，多花 <b>4,259 字符/轮</b>。
++     *
++     * <p>置 false = 回到旧行为（目录列全部延迟工具），一行即可回滚。
++     */
++    private static final boolean CATALOGUE_SKIP_ALREADY_SENT = true;
++
+     /**
+      * 经济预算策略（E1 shadow）：客户端类加载时装一次 {@code config/numen/budget-policy.json}。
+      * 只读一次、失败退回默认；策略与计量见 {@link com.dwinovo.numen.agent.llm.BudgetPolicy}。
+@@ -3089,8 +3101,20 @@ static String renderInventory(ClientNumenState.Snapshot snapshot) {
+         }
+         // 延迟工具目录。它随注册表变(接了 MCP server 会多出几行),但不随回合变,
+         // 所以仍然待得住这个稳定层——与技能表、本能名册同一档。
+-        String catalogue = com.dwinovo.numen.agent.tool.ToolDisclosure
+-                .catalog(ToolRegistry.deferred());
++        // [CLEANUP-2026-11-02] 只列「这次不会发定义」的延迟工具（见 CATALOGUE_SKIP_ALREADY_SENT）。
++        // 白名单关掉的工具仍然会出现在目录里 —— 那是"名字可见、要用先 find_tools"的入口，
++        // 不在此处删；被白名单放行、定义已随请求发出的那些才是纯重复。
++        java.util.List<com.dwinovo.numen.agent.tool.NumenTool> catalogued =
++                new java.util.ArrayList<>(ToolRegistry.deferred());
++        if (CATALOGUE_SKIP_ALREADY_SENT) {
++            java.util.Set<String> alreadySent = new java.util.HashSet<>();
++            for (com.dwinovo.numen.agent.tool.NumenTool sentTool
++                    : com.dwinovo.numen.agent.tool.ToolVisibility.forExecutor(ToolRegistry.all())) {
++                if (sentTool != null) alreadySent.add(sentTool.name());
++            }
++            catalogued.removeIf(t -> t == null || alreadySent.contains(t.name()));
++        }
++        String catalogue = com.dwinovo.numen.agent.tool.ToolDisclosure.catalog(catalogued);
+         if (!catalogue.isEmpty()) {
+             sb.append("\n\n").append(catalogue);
+         }
+diff --git a/api/common/src/main/java/com/dwinovo/numen/agent/tool/ToolCallObserver.java b/api/common/src/main/java/com/dwinovo/numen/agent/tool/ToolCallObserver.java
+index 5b346ccd6..4d68a4dcb 100644
+--- a/api/common/src/main/java/com/dwinovo/numen/agent/tool/ToolCallObserver.java
++++ b/api/common/src/main/java/com/dwinovo/numen/agent/tool/ToolCallObserver.java
+@@ -20,7 +20,7 @@ public final class ToolCallObserver {
+     /** 一次已发生的工具调用（参数只给长度，避免把整段 JSON 传给观察者）。 */
+     @FunctionalInterface
+     public interface Listener {
+-        void onToolCall(UUID companionId, String toolName, int argsChars);
++        void onToolCall(UUID companionId, String toolCallId, String toolName, int argsChars);
+     }
+ 
+     private static volatile Listener listener;
+@@ -36,13 +36,18 @@ public final class ToolCallObserver {
+     }
+ 
+     /** 由服务端工具派发路径调用；任何异常都不许冒泡。 */
+-    public static void fire(UUID companionId, String toolName, int argsChars) {
++    public static void fire(UUID companionId, String toolCallId, String toolName, int argsChars) {
+         Listener l = listener;
+         if (l == null || toolName == null) return;
+         try {
+-            l.onToolCall(companionId, toolName, argsChars);
++            l.onToolCall(companionId, toolCallId == null ? "" : toolCallId, toolName, argsChars);
+         } catch (RuntimeException ignored) {
+             // 观察者自己的问题不许影响工具调用
+         }
+     }
++
++    /** 兼容旧调用点：没有 call id 当作内部调用（""）。 */
++    public static void fire(UUID companionId, String toolName, int argsChars) {
++        fire(companionId, "", toolName, argsChars);
++    }
+ }
+diff --git a/api/common/src/main/java/com/dwinovo/numen/entity/Companions.java b/api/common/src/main/java/com/dwinovo/numen/entity/Companions.java
+index 4095d4eea..ec3cc3c21 100644
+--- a/api/common/src/main/java/com/dwinovo/numen/entity/Companions.java
++++ b/api/common/src/main/java/com/dwinovo/numen/entity/Companions.java
+@@ -321,6 +321,10 @@ public final class Companions {
+                     level.dimension().location(), owner.position());
+         }
+         Vec3 pos = SafeSpawn.findNear(level, owner.position());
++        // 2026-11-02（学习线 death59）：owner 在 the_nether/the_end 时，findNear 会把同伴又拉回危险维度。
++        // 这种维度下无条件退主世界，不管 findNear 是否命中（death59 复活在下界复现过）。
++        boolean ownerInDangerDimension = level.dimension().equals(net.minecraft.world.level.Level.NETHER)
++                || level.dimension().equals(net.minecraft.world.level.Level.END);
+         if (trace || pos != null) {
+             com.dwinovo.numen.Constants.LOG.info("[numen][respawn] 决策 findNear={} standing={}",
+                     pos, pos != null && SafeSpawn.isStanding(level, pos));
+@@ -328,6 +332,54 @@ public final class Companions {
+         if (pos == null && owner.onGround() && SafeSpawn.hasStandingRoom(level, owner.position())) {
+             pos = owner.position();   // non-full-block floor (slab/carpet): the owner's own spot fits
+         }
++        // 2026-11-02（实机 death49–56）：主人在下界岩浆台/洞穴里时 findNear 恒 null，
++        // 同伴就一直 pendingDead（实测 5 分钟不复活），救援命令也打不进去。
++        // 主人身边找不到落脚点 ≠ 不许复活：等够 10 秒就退到主世界出生点附近，
++        // 让它先活过来（宁可远离主人，也不要无限卡在死亡状态）。
++        if ((pos == null || ownerInDangerDimension) && entry.diedAt() > 0) {
++            long waited = respawnTick - entry.diedAt();
++            if (waited > 200L || ownerInDangerDimension) {
++                ServerLevel overworld = server.overworld();
++                net.minecraft.core.BlockPos spawn = overworld.getSharedSpawnPos();
++                // 先试出生点附近的安全格；再按高度图做一圈更宽的搜索；都不行就站地表/水面上，
++                // 宁可落点不完美，也不要永远停在 pendingDead（2026-11-02 实测卡死 12 分钟）。
++                Vec3 fallback = SafeSpawn.findNear(overworld, Vec3.atCenterOf(spawn));
++                if (fallback == null) {
++                    outer:
++                    for (int r = 4; r <= 24; r += 4) {
++                        for (int dx = -r; dx <= r; dx += 4) {
++                            for (int dz = -r; dz <= r; dz += 4) {
++                                int x = spawn.getX() + dx;
++                                int z = spawn.getZ() + dz;
++                                int y = overworld.getHeight(
++                                        net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
++                                        x, z);
++                                Vec3 cand = new Vec3(x + 0.5, y, z + 0.5);
++                                if (SafeSpawn.isStanding(overworld, cand)) {
++                                    fallback = cand;
++                                    break outer;
++                                }
++                            }
++                        }
++                    }
++                }
++                if (fallback == null) {
++                    int surface = overworld.getHeight(
++                            net.minecraft.world.level.levelgen.Heightmap.Types.MOTION_BLOCKING_NO_LEAVES,
++                            spawn.getX(), spawn.getZ());
++                    fallback = new Vec3(spawn.getX() + 0.5, surface, spawn.getZ() + 0.5);
++                }
++                if (trace) {
++                    com.dwinovo.numen.Constants.LOG.warn(
++                            "[numen][respawn] fallback 触发 waited={}s spawn={} cand={} standing={}",
++                            waited / 20L, spawn, fallback, SafeSpawn.isStanding(overworld, fallback));
++                }
++                if (fallback != null) {
++                    level = overworld;
++                    pos = fallback;
++                }
++            }
++        }
+         // H2（106 号）判据①②：落点选定后再终检一次「站得住」。
+         // 2026-10-30 实测出现过重生落到 the_end (166,-269,681)、脚下 void_air、hp=0 的情形——
+         // 与其猜 findNear 为什么没命中，不如在落点确定后按结果判：站不住就不许重生，
+diff --git a/api/common/src/main/java/com/dwinovo/numen/entity/NumenPlayer.java b/api/common/src/main/java/com/dwinovo/numen/entity/NumenPlayer.java
+index 91df978da..25c1be50d 100644
+--- a/api/common/src/main/java/com/dwinovo/numen/entity/NumenPlayer.java
++++ b/api/common/src/main/java/com/dwinovo/numen/entity/NumenPlayer.java
+@@ -481,6 +481,14 @@ public final class NumenPlayer extends ServerPlayer {
+         } catch (RuntimeException ex) {
+             reportTickFailure(ex);
+         }
++        // 2026-11-02（B7 实机）：进下界 1 分钟内立刻站回门 → D-20 兜底 100 tick 后把人送回主世界。
++        // 记下「刚换维度」的时刻，给兜底一个保护期，让「进界先站定/铺台」有窗口。
++        if (level() instanceof ServerLevel levelNow) {
++            if (lastDimension != levelNow.dimension()) {
++                lastDimension = levelNow.dimension();
++                lastDimensionChangeTick = levelNow.getGameTime();
++            }
++        }
+         // 摔落结算是玩家<b>唯一</b>由客户端权威的物理:{@code Entity.move} 里那一处被
+         // {@code isLocalInstanceAuthoritative()} 挡着(Player.isClientAuthoritative()
+         // 恒为 true,服务端算出来就是 false),真正结算的是收到移动包时的
+@@ -509,6 +517,10 @@ public final class NumenPlayer extends ServerPlayer {
+ 
+     /** 站进门框的累计 tick（D-20 兜底用）。 */
+     private int portalStuckTicks = 0;
++    /** 上一次看到的维度与换维度时刻（B7 保护期用）。 */
++    private net.minecraft.resources.ResourceKey<net.minecraft.world.level.Level> lastDimension = null;
++    private long lastDimensionChangeTick = Long.MIN_VALUE;
++    /** 换维度后的保护期：兜底不累计、不传送（见 {@link DimensionGrace}）。 */
+     /** 门兜底的阈值：原版换维度约 80 tick，给到 100 还没走就自己动手。 */
+     private static final int PORTAL_FALLBACK_TICKS = 100;
+ 
+@@ -520,6 +532,10 @@ public final class NumenPlayer extends ServerPlayer {
+      * —— 与 {@code rdd_teleport} 同一入口（那条路实测可用）。
+      */
+     private void tickPortalFallback(ServerLevel serverLevel) {
++        if (DimensionGrace.inGrace(serverLevel.getGameTime(), lastDimensionChangeTick)) {
++            portalStuckTicks = 0;   // 刚换维度：先别让兜底把人弹回去
++            return;
++        }
+         if (!serverLevel.getBlockState(blockPosition()).is(net.minecraft.world.level.block.Blocks.NETHER_PORTAL)) {
+             portalStuckTicks = 0;
+             return;
+diff --git a/api/common/src/main/java/com/dwinovo/numen/network/payload/ExecuteToolPayload.java b/api/common/src/main/java/com/dwinovo/numen/network/payload/ExecuteToolPayload.java
+index fb73675cd..0720f7c00 100644
+--- a/api/common/src/main/java/com/dwinovo/numen/network/payload/ExecuteToolPayload.java
++++ b/api/common/src/main/java/com/dwinovo/numen/network/payload/ExecuteToolPayload.java
+@@ -90,7 +90,7 @@ public record ExecuteToolPayload(UUID entityUuid,
+                 "companion_id", p.entityUuid().toString(), "tool_call_id", p.toolCallId(),
+                 "tool", p.toolName(), "args_chars", p.argumentsJson().length()));
+         // H3（108 号）：旁路观察者（重复查询运行时感知）。只读，不改回执；没人注册时零开销。
+-        com.dwinovo.numen.agent.tool.ToolCallObserver.fire(p.entityUuid(), p.toolName(), p.argumentsJson().length());
++        com.dwinovo.numen.agent.tool.ToolCallObserver.fire(p.entityUuid(), p.toolCallId(), p.toolName(), p.argumentsJson().length());
+ 
+         // -- 0. companion player body (the new architecture). Resolve it (or
+         //       respawn it from the registry on a cold start) and run the tool
+diff --git a/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceStoreRetrievalBridge.java b/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceStoreRetrievalBridge.java
+index 2063c1ffc..9d1938c64 100644
+--- a/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceStoreRetrievalBridge.java
++++ b/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceStoreRetrievalBridge.java
+@@ -276,6 +276,32 @@ public final class ExperienceStoreRetrievalBridge {
+         return body.substring(0, MAX_BODY_CHARS) + "…";
+     }
+ 
++    /**
++     * [CLEANUP-2026-11-02] 标题与正文首行重复时，去掉正文那一行。
++     *
++     * <p>审计背景（2026-11-02，live 请求体实测）：{@code <entry>} 先印 title，再印 body；
++     * 而 body = 机制 + 推荐处理，**机制这一行与 title 是同一句话**（种子条目就是这么写的），
++     * 于是每条经验都把同一句话打两遍 —— 实测 5 条里 4 条命中，共 <b>611 字符/轮</b> 的纯重复。
++     *
++     * <p>只删"逐字相同的第一行"：标题不同、或正文首行是别的内容时，一个字都不动。
++     * 回滚：把 {@link #DROP_TITLE_DUP_IN_BODY} 置 false。
++     */
++    private static final boolean DROP_TITLE_DUP_IN_BODY = true;
++
++    private static String withoutTitleDup(String title, String body) {
++        if (!DROP_TITLE_DUP_IN_BODY) return body;
++        if (body == null || body.isBlank()) return body == null ? "" : body;
++        // 标题可能带「（试用中）」前缀（ExperienceRetrievalProvider 加的），比较前先摘掉，
++        // 否则试用条目永远比不上、去重永远不生效。
++        String t = nz(title).trim();
++        if (t.startsWith("（试用中）")) t = t.substring("（试用中）".length()).trim();
++        if (t.isEmpty()) return body;
++        int nl = body.indexOf('\n');
++        String firstLine = (nl < 0 ? body : body.substring(0, nl)).trim();
++        if (!firstLine.equals(t)) return body;
++        return nl < 0 ? "" : body.substring(nl + 1).stripLeading();
++    }
++
+     private static com.dwinovo.numen.agent.retrieval.Maturity maturity(ExperienceMaturity m) {
+         if (m == null) return com.dwinovo.numen.agent.retrieval.Maturity.OBSERVED;
+         return switch (m) {
+@@ -436,7 +462,7 @@ public final class ExperienceStoreRetrievalBridge {
+                     .append("\" verified=\"").append(e.verifiedCount())
+                     .append("\" pinned=\"true\">")
+                     .append(nz(e.title()));
+-            if (!body.isBlank()) sb.append("\n").append(body);
++            if (!body.isBlank()) sb.append("\n").append(withoutTitleDup(nz(e.title()), body));
+             sb.append("</entry>");
+             pinnedRefs.add(ref);
+             rendered++;
+@@ -462,7 +488,8 @@ public final class ExperienceStoreRetrievalBridge {
+                     .append(d.title());
+             EntryBody body = e.body();
+             if (body != null && !body.content().isBlank()) {
+-                sb.append("\n").append(body.content());
++                // [CLEANUP-2026-11-02] 标题与正文首行逐字相同 → 正文那行不再重打（见 withoutTitleDup）。
++                sb.append("\n").append(withoutTitleDup(d.title(), body.content()));
+             }
+             sb.append("</entry>");
+         }
+diff --git a/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceVerifyTool.java b/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceVerifyTool.java
+index 0ed95b8b4..54731a9c3 100644
+--- a/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceVerifyTool.java
++++ b/plugins/experience/src/main/java/com/dwinovo/numen/plugins/experience/ExperienceVerifyTool.java
+@@ -214,8 +214,13 @@ final class ExperienceVerifyTool implements NumenTool {
+             // 这里只在**验证成功且当前还是 TRIAL** 时补一句可执行的下一步（不改状态机、不自动发布：
+             // 「验证=放行」的暗通道是设计上明确禁止的）。
+             if (in.success() && updated.publication() == com.dwinovo.numen.experience.api.PublicationState.TRIAL) {
+-                out.put("next_step", "这条仍是 TRIAL，TRIAL 不会出现在执行视图里。"
+-                        + "若已无未处理反例，用 experience_publish 把它迁到 PUBLISHED，下次执行才会被检索到。");
++                // 2026-11-03（外部学习者，审核冲突）：旧文案「TRIAL 不会出现在执行视图里」与实现相反。
++                //   ExperienceRetrievalProvider.rolesFor（G6c/G8，2026-10-22）对 TRIAL+OBSERVED 明确发放
++                //   EXECUTOR 角色（仅 audience 显式排除时不给），实机也看到 TRIAL 条目带「试用中」进请求。
++                //   留着这句会让模型以为试用条目不可见，去乱 publish / 甚至发成 SUSPENDED（10-31 已踩过）。
++                out.put("next_step", "这条仍是 TRIAL：TRIAL+OBSERVED 会以「试用中」出现在执行视图（G6c/G8），不是不可见；"
++                        + "audience 显式排除 EXECUTOR 的条目例外。若已无未处理反例，用 experience_publish 迁到 PUBLISHED，"
++                        + "才会长期生效、不再占用试用槽。");
+             }
+             reply.accept(TaskResult.ok("experience verified", out).toJson());
+         } catch (RuntimeException ex) {
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddChooseDeathRecoveryTool.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddChooseDeathRecoveryTool.java
+index 81698592b..7a26955d9 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddChooseDeathRecoveryTool.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddChooseDeathRecoveryTool.java
+@@ -14,11 +14,13 @@ import java.util.function.Consumer;
+  */
+ final class RddChooseDeathRecoveryTool implements NumenTool {
+ 
++
+     private static final String[] DECISIONS = {
+             "RECOVER_DROPS_FIRST",
+             "FETCH_BACKUP_THEN_CONTINUE",
+             "ABANDON_RECOVERY",
+-            "PREPARE_AND_REPLAN"
++            "PREPARE_AND_REPLAN",
++            "RESET_AND_RESTART"
+     };
+ 
+     @Override
+@@ -29,9 +31,10 @@ final class RddChooseDeathRecoveryTool implements NumenTool {
+     @Override
+     public String description() {
+         return "Choose one protected death-recovery strategy only: RECOVER_DROPS_FIRST, "
+-                + "FETCH_BACKUP_THEN_CONTINUE, ABANDON_RECOVERY, or PREPARE_AND_REPLAN. "
++                + "FETCH_BACKUP_THEN_CONTINUE, ABANDON_RECOVERY, PREPARE_AND_REPLAN, or RESET_AND_RESTART. "
+                 + "This changes only the active death_recovery side task decision; it cannot delete tasks, "
+-                + "change facts, confirm loss, or rewrite the mainline. Unknown strategies are rejected.";
++                + "change facts, confirm loss, or rewrite the mainline (RESET_AND_RESTART only freezes the "
++                + "side task until rdd_restart_mainline is called). Unknown strategies are rejected.";
+     }
+ 
+     @Override
+@@ -60,6 +63,23 @@ final class RddChooseDeathRecoveryTool implements NumenTool {
+             reply.accept(TaskResult.fail("reason is required for a death recovery decision").toJson());
+             return;
+         }
++        // 2026-11-02（death49–56 实机）：空手回死亡点捡装备 = 送死。
++        // 上次死因是 lava/onFire/fall 且背包一件不剩时，RECOVER_DROPS_FIRST 直接拒绝，
++        // 逼它先 FETCH_BACKUP_THEN_CONTINUE / PREPARE_AND_REPLAN（拿备用或先补装）。
++        if (parsed == com.dwinovo.numen.rdd.side.death.DeathRecoveryDecision.RECOVER_DROPS_FIRST) {
++            String lastCause = RddDeathRecoveryGuard.lastDeathCause(companion.getUUID());
++            // 2026-11-02（death59 实机）：它捡回 7 件掉落（不算「空手」）但依然无甲，
++            // 于是「空手守卫」放行、它又把自己送回下界死亡点。判据改成「无战斗装备」：
++            // 背包空 或 胸甲槽空 都算没有保命装备。
++            boolean noCombatGear = companion.getInventory().isEmpty()
++                    || companion.getInventory().getArmor(2).isEmpty();
++            if (!RddDeathRecoveryGuard.allowRecoverFirst(noCombatGear, lastCause)) {
++                reply.accept(TaskResult.fail("REFUSED_EMPTY_HANDS: 背包空手且上次死因是 " + lastCause
++                        + "，回死亡点捡装备等于再死一次；先 FETCH_BACKUP_THEN_CONTINUE（拿备用）"
++                        + "或 PREPARE_AND_REPLAN（先补装）。").toJson());
++                return;
++            }
++        }
+         if (!SideTaskHost.chooseDeathRecovery(companion.getUUID(), parsed.name(), reason)) {
+             reply.accept(TaskResult.fail("no active death_recovery side task or decision was stale").toJson());
+             return;
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTool.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTool.java
+index 8b6a14008..dc2d14ead 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTool.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDeclineSideTool.java
+@@ -51,6 +51,7 @@ final class RddDeclineSideTool implements NumenTool {
+                 .build();
+     }
+ 
++
+     @Override
+     public void onServerCall(String toolCallId, JsonObject args, NumenPlayer companion, Consumer<String> reply) {
+         try {
+@@ -65,7 +66,7 @@ final class RddDeclineSideTool implements NumenTool {
+                         "no active side task; nothing to decline").toJson());
+                 return;
+             }
+-            if (!expectedType.isBlank() && !expectedType.equals(currentType)) {
++            if (!expectedType.isBlank() && !RddSideType.matches(expectedType, currentType)) {
+                 reply.accept(com.dwinovo.numen.task.TaskResult.fail(
+                         "decline refused: side task type changed (current=" + currentType + ")").toJson());
+                 return;
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDecomposer.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDecomposer.java
+index a6d8328bb..9c81e4aaa 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDecomposer.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDecomposer.java
+@@ -352,10 +352,19 @@ final class RddDecomposer {
+                 RddPlanningPolicy.block(themeObjective, "stage_b"));
+         String userContent = RddPlanningKnowledge.withKnowledge(RddPlanningKnowledge.HOST, companionId,
+                 base, themeObjective, "stage_b", knownFailures);
++        // 2026-11-02（r25-2→r26-0 实机：counter 说「门没有路」，新计划仍写「借同一扇门」）：
++        // 先证明失败原因到底有没有进 prompt——只记长度与关键词，不存正文。
++        LOG.info("[rdd] stage_b 请求 {} 字 | 失败上下文={} | 含不可达关键词={} | 含 3x3={}",
++                userContent.length(),
++                extraHint != null && !extraHint.isBlank(),
++                userContent.contains("no path") || userContent.contains("不可达")
++                        || userContent.contains("没有路"),
++                userContent.contains("3×3") || userContent.contains("3x3"));
+         RddDecomposer.llmAsk(companionId, "stage_b", userContent,
+                 SYSTEM_PROMPT, DECOMPOSE_TOOL,
+                 args -> {
+-                    RddPlanGuard.Filtered guarded = RddPlanGuard.filterSubtasks(parse(args), themeObjective,
++                    RddPlanGuard.Filtered guarded = RddPlanGuard.filterSubtasks(
++                            RddPlanGuard.normalizeConditions(parse(args)), themeObjective,
+                             snapshot.availableCounts());
+                     RddPlanningKnowledge.publishPolicy(companionId, "stage_b",
+                             RddPlanningPolicy.appliedRules(themeObjective, "stage_b"),
+@@ -558,8 +567,9 @@ final class RddDecomposer {
+                     + "另外三种读周围环境：type=biome(biome ID 或 #tag) 判「站在什么群系」；"
+                     + "type=block_nearby(block ID 或 #tag, radius) 判「附近有没有这类方块」（矿石/刷怪笼/草捆这类没方块实体的也能查到，默认半径8，上限16）；"
+                     + "type=container_nearby(item ID 或 #tag, minimum, radius) 判「附近箱子里有没有这种东西」（默认半径8，上限16）；"
+-                    + "type=block_mined(block ID 或 #tag, minimum) 与 item_crafted/item_used/item_picked_up(item ID 或 #tag, minimum) 判「本人终身统计真的做了 N 次」"
+-                    + "（服务器权威、跨重启；挖矿/合成/使用/拾取各对应一个）；"
++                    + "type=block_mined(block ID 或 #tag, minimum) 与 item_crafted/item_used/item_picked_up(item ID 或 #tag, minimum) "
++                    + "默认判「从本步开始到现在真的做了 N 次」（delta，防历史统计冒充本次）；"
++                    + "只有确实要终身累计时才加 scope=lifetime（服务器权威、跨重启）。"
+                     + "type=dimension(dimension ID) 判「本人在某维度」；type=y_below(y, 可选dimension) 判「本人 Y≤y」；"
+                     + "type=position_at(x,y,z, 可选radius) 判「本人在该点附近」（默认半径4，上限16）；"
+                     + "type=entity_nearby(entity ID 或 #tag, radius) 判「附近有这种实体」；"
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDetector.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDetector.java
+index 9bd9ed735..14f597b0c 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDetector.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddDetector.java
+@@ -1198,9 +1198,15 @@ final class RddDetector {
+     }
+ 
+     static boolean conditionMatches(NumenPlayer ap, Subtask task, Map<String, Integer> counts) {
+-        if (task.condition().containsKey("type") && !"inventory".equals(task.condition().get("type")))
++        if (task.condition().containsKey("type") && !"inventory".equals(task.condition().get("type"))) {
++            // 2026-11-03 实机：item_crafted bread>=1 用终身统计，历史面包把 r3-3 假完成。
++            // 统计类条件必须按「进入本步后的增量」判，而不是终身累计。
++            if (isStatCondition(task.condition())) {
++                return statDeltaSatisfied(ap, task);
++            }
+             return com.dwinovo.numen.rdd.core.WorldFactConditions.valid(task.condition())
+                     && RddWorldFacts.matches(ap, task.condition());
++        }
+         // F5：mode=acquire 的二级按"进入时的基线 + 当前增量"判（hold 走两参重载，行为逐字不变）。
+         // 基线缺失 → evaluator 判 false → 不算达成（宁可漏判，不许假完成）。
+         Map<String, Integer> baseline = acquireBaselineFor(ap, task);
+@@ -1224,6 +1230,42 @@ final class RddDetector {
+         return false;
+     }
+ 
++    private static boolean isStatCondition(Map<String, Object> condition) {
++        Object type = condition == null ? null : condition.get("type");
++        return "item_crafted".equals(type) || "item_used".equals(type)
++                || "item_picked_up".equals(type) || "block_mined".equals(type);
++    }
++
++    /**
++     * 统计类条件的增量判定：首次看到该二级时拍当前累计值为基线并返回 false（宁可晚一拍，不许假完成）；
++     * 之后只要 (current - baseline) >= minimum 才算达成。基线随链持久化（TaskChain.acquireBaselines 同表）。
++     */
++    private static boolean statDeltaSatisfied(NumenPlayer ap, Subtask task) {
++        RddRuntime rt = RddPlugin.runtime(ap.getUUID());
++        if (rt == null) return false;
++        // 旧链（无 statDeltaEnabled 字段）继续 lifetime；显式 scope=lifetime 也走 lifetime。
++        if (!rt.chain().statDeltaEnabled()
++                || com.dwinovo.numen.rdd.core.WorldFactConditions.lifetimeScope(task.condition())) {
++            return com.dwinovo.numen.rdd.core.WorldFactConditions.valid(task.condition())
++                    && RddWorldFacts.matches(ap, task.condition());
++        }
++        // 只对真正在跑的子步拍基线：rdd_status 等纯查询也会调用 conditionMatches，
++        // 若在那里拍，会在动作开始前把基线提前固定，污染增量。PENDING/WAITING 一律只读不拍。
++        boolean running = rt.chain().subtaskStatuses().get(task.id()) == SubtaskStatus.RUNNING;
++        int current = RddWorldFacts.statCount(ap, task.condition());
++        if (current < 0) return false;
++        Map<String, Integer> baseline = rt.chain().statBaseline(task.id());
++        if (baseline == null) {
++            if (!running) return false;
++            rt.chain().captureStatBaseline(task.id(), current);
++            return false;
++        }
++        int base = baseline.getOrDefault("value", current);
++        Object rawMin = task.condition().get("minimum");
++        int minimum = rawMin instanceof Number n && n.intValue() > 0 ? n.intValue() : 1;
++        return current - base >= minimum;
++    }
++
+     /**
+      * 取该二级的 acquire 基线（F5）。
+      *
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlanGuard.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlanGuard.java
+index b4ef72317..49e365958 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlanGuard.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlanGuard.java
+@@ -55,6 +55,155 @@ final class RddPlanGuard {
+ 
+     private RddPlanGuard() {}
+ 
++    /**
++     * 2026-11-02（169 T2 最小版）：正文要求「N 块方块」而 condition 根本不验方块 → 判据不覆盖描述。
++     * 实机形状：r22-0「圆石/深板岩/下界岩都行（8 块）」、r25-1「铁剑 + 32 块圆石/石质方块」。
++     * 判据只验单一 asset_key 时，方块要求永远不参与判定——步骤会在「只拿到剑」时假过。
++     *
++     * @return 未覆盖的要求说明（空 = 覆盖得住）
++     */
++    static List<String> predicateGaps(com.dwinovo.numen.rdd.api.SubtaskSpec s) {
++        List<String> gaps = new ArrayList<>();
++        if (s == null) return gaps;
++        String d = s.description() == null ? "" : s.description();
++        Map<String, Object> c = s.condition();
++        boolean blockCondition = c.containsKey("group") && String.valueOf(c.get("group")).contains("blocks");
++        boolean assetIsBlock = c.get("asset_key") instanceof String k && PLACE_MATERIALS.contains(k);
++        // 2026-11-02（实机 r27-0）：描述是「清点背包（烈焰棒/下界疣/瓶子）」，判据却是
++        // {type:block_nearby, block:nether_wart} —— 用「身边 1 格有疣方块」冒充「背包里有疣」，
++        // 主世界基地永远不满足。背包意图 + 世界方块判据 = 不覆盖。
++        boolean inventoryIntent = d.contains("背包") || d.contains("身上") || d.contains("随身")
++                || d.contains("手上") || d.contains("清点");
++        boolean worldCondition = c.containsKey("block")
++                || (c.get("type") instanceof String t && t.contains("block"));
++        if (inventoryIntent && worldCondition) {
++            gaps.add("背包物品（判据却在验世界方块）");
++        }
++        java.util.regex.Matcher m = BLOCK_COUNT.matcher(d);
++        while (m.find()) {
++            int n = Integer.parseInt(m.group(1));
++            if (n <= 0) continue;
++            if (!blockCondition && !assetIsBlock) {
++                gaps.add("至少 " + n + " 块方块");
++            }
++        }
++        return gaps;
++    }
++
++    /** 「32 块圆石/石质方块」「N 方块」这类数量要求。 */
++    private static final java.util.regex.Pattern BLOCK_COUNT =
++            java.util.regex.Pattern.compile("(\\d{1,3})\\s*(?:块|个)\\s*(?:圆石|石块|方块|石质|垫脚)")
++            ;
++
++    /** 工具/材料名 → 物品 id（用于「工具前提不成立」检查）。 */
++    private static final java.util.Map<String, String> TOOL_WORDS = java.util.Map.of(
++            "钻石镐", "minecraft:diamond_pickaxe",
++            "铁镐", "minecraft:iron_pickaxe",
++            "石镐", "minecraft:stone_pickaxe",
++            "木镐", "minecraft:wooden_pickaxe",
++            "打火石", "minecraft:flint_and_steel",
++            "熔炉", "minecraft:furnace");
++
++    /**
++     * 2026-11-02（实机 r25-2）：描述写「用钻石镐去取黑曜石」，背包里却只有石镐——
++     * 石镐挖黑曜石不掉落，这一步从出生就是死的。判据只认 obsidian，永远等不到。
++     *
++     * <p>只做「用到工具但手上没有」的判定；描述本身是「制作/合成」该工具时不算缺。
++     *
++     * @return 缺失的工具说明（空 = 前提成立或不需要工具）
++     */
++    static List<String> toolGaps(com.dwinovo.numen.rdd.api.SubtaskSpec s, Map<String, Integer> held) {
++        List<String> gaps = new ArrayList<>();
++        if (s == null || held == null) return gaps;
++        String d = s.description() == null ? "" : s.description();
++        // 2026-11-02 实机（恢复安家目标）：Stage-B 首步写「用 2 块木板竖放搓 4 根木棍…做木镐」，
++        // 旧 producing 只认「做一/造一/合成/制作」，于是把「做木镐」误判成「用木镐」并丢弃整步。
++        // 这里补「做/造/搓」等真实制作动词；同时下面只把「用X」当使用证据（提到名字不算用）。
++        boolean producing = d.contains("合成") || d.contains("做") || d.contains("造")
++                || d.contains("制作") || d.contains("搓") || d.contains("备一把");
++        // 2026-11-02（实机 r28-3/death49–58）：往「下界/要塞/烈焰/传送门」去的步骤，背包没甲就不该发布。
++        // 2026-11-03 实机：整段 negatedNether 会误伤「途中不下界，打烈焰人」这类混合句，
++        // 而「不要进入下界」又不在固定否定串里。改为**按分句**判：否定只作用于本分句。
++        com.dwinovo.numen.rdd.policy.RiskLevel risk = com.dwinovo.numen.rdd.policy.RiskGate.levelForText(d);
++        boolean netherBound = clauseNetherBound(d)
++                || risk == com.dwinovo.numen.rdd.policy.RiskLevel.NETHER
++                || risk == com.dwinovo.numen.rdd.policy.RiskLevel.END;
++        boolean hasArmor = held.getOrDefault("minecraft:iron_chestplate", 0) > 0
++                || held.getOrDefault("minecraft:diamond_chestplate", 0) > 0
++                || held.getOrDefault("minecraft:leather_chestplate", 0) > 0
++                || held.getOrDefault("minecraft:chainmail_chestplate", 0) > 0
++                || held.getOrDefault("minecraft:golden_chestplate", 0) > 0;
++        if (netherBound && !hasArmor && !producing) {
++            gaps.add("护甲（去下界前至少一件胸甲）");
++        }
++        for (Map.Entry<String, String> e : TOOL_WORDS.entrySet()) {
++            // 只把「用<工具>」当作"这一步真的要用它"；只是提到名字（例如"做木镐"、"石镐 3 个"）不算。
++            if (!d.contains("用" + e.getKey())) continue;
++            if (producing) continue;
++            int have = held.getOrDefault(e.getValue(), 0);
++            if (have <= 0) gaps.add(e.getKey());
++        }
++        return gaps;
++    }
++
++    /**
++     * 同一批 Stage-B 步骤里，前面某步刚做出来的工具应视为"后续步骤可用"。
++     * 否则一串「做木镐 → 用木镐挖石头 → 做石镐」会在规划时按当前空背包全部判缺工具而整串丢弃。
++     * 只认明确的制作动词；纯提到工具名不算产出。
++     */
++    static java.util.Set<String> producedToolIds(String description) {
++        java.util.Set<String> out = new java.util.LinkedHashSet<>();
++        if (description == null || description.isBlank()) return out;
++        boolean producing = description.contains("做") || description.contains("制作")
++                || description.contains("合成") || description.contains("造")
++                || description.contains("搓") || description.contains("备一把");
++        if (!producing) return out;
++        for (Map.Entry<String, String> e : TOOL_WORDS.entrySet()) {
++            if (description.contains(e.getKey())) out.add(e.getValue());
++        }
++        return out;
++    }
++
++    /** 可作为垫脚/铺路的方块材料（判据写单一 asset_key 时用来归一成 group:blocks）。 */
++    private static final java.util.Set<String> PLACE_MATERIALS = java.util.Set.of(
++            "minecraft:cobblestone", "minecraft:cobbled_deepslate", "minecraft:deepslate",
++            "minecraft:netherrack", "minecraft:blackstone", "minecraft:basalt",
++            "minecraft:dirt", "minecraft:stone", "minecraft:andesite",
++            "minecraft:granite", "minecraft:diorite", "minecraft:polished_blackstone");
++
++    /**
++     * 2026-11-02（实机 r22-0）：描述写「圆石/深板岩/下界岩都行」，判据却是
++     * {@code asset_key=minecraft:cobblestone, minimum=8} —— 在玄武岩三角洲、0 工具时
++     * 这条**永远不可满足**，把撤退步骤卡成死结。
++     *
++     * <p>归一（不改别的）：描述出现「都行/任意/任选/或」且是垫脚/铺路类，且 asset_key 是
++     * 方块材料 → 改写成 {@code {group:blocks, minimum:N}}（检测器已支持 group）。
++     * 纯函数、不做取舍判断，只是让判据与描述一致。
++     */
++    static List<SubtaskSpec> normalizeConditions(List<SubtaskSpec> specs) {
++        if (specs == null || specs.isEmpty()) return List.of();
++        List<SubtaskSpec> out = new ArrayList<>(specs.size());
++        for (SubtaskSpec s : specs) {
++            out.add(normalizeCondition(s));
++        }
++        return List.copyOf(out);
++    }
++
++    static SubtaskSpec normalizeCondition(SubtaskSpec s) {
++        if (s == null) return null;
++        String d = s.description() == null ? "" : s.description();
++        Object key = s.condition().get("asset_key");
++        boolean multi = d.contains("都行") || d.contains("任意") || d.contains("任选") || d.contains("或");
++        boolean placing = d.contains("垫") || d.contains("铺") || d.contains("落脚台") || d.contains("搭") || d.contains("放");
++        if (key instanceof String k && PLACE_MATERIALS.contains(k) && multi && placing) {
++            Map<String, Object> cond = new java.util.LinkedHashMap<>();
++            cond.put("group", "blocks");
++            cond.put("minimum", s.condition().getOrDefault("minimum", 1));
++            return new SubtaskSpec(s.description(), cond, s.body());
++        }
++        return s;
++    }
++
+     /**
+      * 过滤 Stage-B 的子步骤。
+      *
+@@ -67,12 +216,31 @@ final class RddPlanGuard {
+             return new Filtered(List.of(), List.of(), List.of());
+         }
+         boolean optionalAllowed = RddPlanningPolicy.optionalAllowed(objective);
++        // 规划期按"当前背包 + 前面步骤已产出的工具"顺序求值；不是所有步骤都用同一份空背包。
++        Map<String, Integer> effectiveHeld = new java.util.LinkedHashMap<>();
++        if (held != null) effectiveHeld.putAll(held);
+ 
+         List<SubtaskSpec> allowed = new ArrayList<>();
+         List<SubtaskSpec> heldOnes = new ArrayList<>();
+         List<String> dropped = new ArrayList<>();
+         List<String> reused = new ArrayList<>();
+         for (SubtaskSpec spec : specs) {
++            // 2026-11-02（169 T2 最小版）：判据不覆盖描述 → 丢弃该步（宁可不执行，也不要假过）。
++            // 实机：r25-1「铁剑 + 32 块方块」condition 只验铁剑，方块凑没凑齐都不影响判定。
++            List<String> toolMissing = toolGaps(spec, effectiveHeld);
++            if (!toolMissing.isEmpty()) {
++                dropped.add("工具前提不成立（缺 " + String.join("/", toolMissing)
++                        + "）→ 先补工具或换一条走法："
++                        + (spec.description() == null ? "" : spec.description()));
++                continue;
++            }
++            List<String> gaps = predicateGaps(spec);
++            if (!gaps.isEmpty()) {
++                dropped.add("判据不覆盖描述（" + String.join("；", gaps)
++                        + "）→ 请拆成两步：先备方块、再备武器："
++                        + (spec.description() == null ? "" : spec.description()));
++                continue;
++            }
+             String assetKey = assetKeyOf(spec);
+             if (!optionalAllowed && RddPlanningPolicy.optionalAsset(assetKey)) {
+                 dropped.add("可选升级未获要求：" + assetKey);
+@@ -81,9 +249,11 @@ final class RddPlanGuard {
+             if (alreadyHeld(spec, held)) {
+                 reused.add(assetKey);
+                 heldOnes.add(spec);
++                producedToolIds(spec.description()).forEach(id -> effectiveHeld.merge(id, 1, Math::max));
+                 continue;
+             }
+             allowed.add(spec);
++            producedToolIds(spec.description()).forEach(id -> effectiveHeld.merge(id, 1, Math::max));
+         }
+ 
+         if (allowed.isEmpty()) {
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlugin.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlugin.java
+index 0048c1233..73d04239f 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlugin.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddPlugin.java
+@@ -55,6 +55,11 @@ public final class RddPlugin implements NumenPlugin {
+     private static final RddCallbackGuard CALLBACKS = new RddCallbackGuard();
+     /** 懒边界上报去重：uuid → 最近一次已上报的未展开一级 id（避免每秒刷 expansion_needed）。 */
+     private static final Map<UUID, String> LAST_EXPANSION_REPORT = new ConcurrentHashMap<>();
++    /** 169 T6：rdd_restart_mainline 已请求但尚未完成绑定（uuid → 新 objective 归一指纹）。
++     *  只对同一个 goal 正文生效：若规划窗口内又来了新目标，旧请求不得把新链误清。 */
++    private static final Map<UUID, Long> RESTART_PENDING = new ConcurrentHashMap<>();
++    /** 重启请求序号：把 pending 绑定到具体一次 beginPlanning，避免被并发 /goal 认领。 */
++    private static final AtomicLong RESTART_REQUEST_SEQ = new AtomicLong();
+ 
+     /** 167 B1：建家路线每个同伴只发布一次（观测用，不重复刷事件）。 */
+     private static final Set<UUID> HOME_PLAN_PUBLISHED = ConcurrentHashMap.newKeySet();
+@@ -186,18 +191,23 @@ public final class RddPlugin implements NumenPlugin {
+         RddAlarms.install(numen.configDir());
+         // H3（108 号）：重复查询的**运行时**感知（A3 的 redundant_query 是归档后处理，跑的时候不告警）。
+         RddRepeatQueryWatcher.install(numen.configDir());
+-        com.dwinovo.numen.agent.tool.ToolCallObserver.install((companionId, toolName, argsChars) ->
+-                RddRepeatQueryWatcher.observe(companionId, toolName, argsChars,
+-                        com.dwinovo.numen.entity.NumenPlayer.findByUuid(
+-                                net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer(), companionId) == null
+-                                ? System.currentTimeMillis() / 50
+-                                : com.dwinovo.numen.entity.NumenPlayer.findByUuid(
+-                                        net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer(), companionId)
+-                                        .level().getGameTime()));
++        com.dwinovo.numen.agent.tool.ToolCallObserver.install((companionId, toolCallId, toolName, argsChars) -> {
++            // 2026-11-02：MCP 监控面（toolCallId=mcp-*）的轮询不是同伴行为。
++            // 之前把它算进「重复查询」，会因外部采集给 AI 发假的「你刚问过」提醒。
++            if (RddRepeatQueryWatcher.isExternalCall(toolCallId)) {
++                return;
++            }
++            var body = com.dwinovo.numen.entity.NumenPlayer.findByUuid(
++                    net.neoforged.neoforge.server.ServerLifecycleHooks.getCurrentServer(), companionId);
++            long tick = body == null ? System.currentTimeMillis() / 50 : body.level().getGameTime();
++            RddRepeatQueryWatcher.observe(companionId, toolName, argsChars, tick);
++        });
+         // E1 shadow：规划角色的预算策略（与客户端同一份文件，幂等）。
+         com.dwinovo.numen.agent.llm.BudgetPolicy.install(numen.configDir());
+         numen.registerTool(new RddStatusTool());
+         numen.registerTool(new RddSubmitTool());
++        // 169 T6 / 170 §5.1：主线可重启（死亡后旧链不安全时的唯一改单入口）。
++        numen.registerTool(new RddRestartMainlineTool());
+         // 2026-10-08 只读世界事实探针：逐组验证世界判定用（不改状态）。
+         numen.registerTool(new WorldFactProbeTool());
+         // 2026-10-08 只读“成熟作物”扫描：种田 AC 的“扫成熟作物”这一步。
+@@ -427,7 +437,23 @@ public final class RddPlugin implements NumenPlugin {
+      */
+     static void beginPlanning(MinecraftServer server, RddCallbackGuard.Ticket ticket,
+                               String objective, String source) {
++        beginPlanning(server, ticket, objective, source, 0L);
++    }
++
++    /**
++     * @param restartRequestId 非 0 时只认领**这一个**待处理重启请求（原子 remove(key,value)）；
++     *                         普通目标用 0，会清掉任何遗留请求，避免下一次规划误吃重启语义。
++     */
++    static void beginPlanning(MinecraftServer server, RddCallbackGuard.Ticket ticket,
++                              String objective, String source, long restartRequestId) {
+         UUID uuid = ticket.companionId();
++        boolean restartRequested;
++        if (restartRequestId != 0L) {
++            restartRequested = RESTART_PENDING.remove(uuid, restartRequestId);
++        } else {
++            RESTART_PENDING.remove(uuid);
++            restartRequested = false;
++        }
+         // B1/166：切断旧目标必须发生在异步 Stage-A 规划之前。
+         // 否则规划窗口内仍会把旧链投给执行 AI，重启时还会从 rdd-tasks/<uuid>.json 复活。
+         discardPreviousGoalState(uuid, objective);
+@@ -443,7 +469,7 @@ public final class RddPlugin implements NumenPlugin {
+         RddStagePlanner.planStages(uuid, objective, stages -> onServer(server, ticket, () -> {
+             if (!stages.isEmpty()) {
+                 try {
+-                    bindCurrent(uuid, RddChainFactory.fromStages(uuid, objective, stages));
++                    bindCurrent(uuid, RddChainFactory.fromStages(uuid, objective, stages), restartRequested);
+                     RddMonitor.publish("goal_staged", Map.of(
+                             "companionId", uuid.toString(), "objective", objective, "stages", stages.size(),
+                             // A2（94 号）：阶段名必须机读——否则「任务图里有没有准备节点」只能靠文档口号。
+@@ -454,14 +480,14 @@ public final class RddPlugin implements NumenPlugin {
+                 } catch (RuntimeException ex) {
+                     LOG.warn("[rdd] Stage-A 装配失败，回落单遍分解: {}", ex.toString());
+                     DECOMPOSING.add(uuid);
+-                    decomposeSinglePass(server, ticket, objective);
++                    decomposeSinglePass(server, ticket, objective, restartRequested);
+                     return;
+                 }
+                 DECOMPOSING.remove(uuid);
+                 return;
+             }
+             // Fallback belongs to this submission too; a later /goal invalidates both callbacks.
+-            decomposeSinglePass(server, ticket, objective);
++            decomposeSinglePass(server, ticket, objective, restartRequested);
+         }));
+         LOG.info("[rdd] 接管目标，Stage-A 规划中 {}:{} (source={})", uuid, objective, source);
+     }
+@@ -513,6 +539,56 @@ public final class RddPlugin implements NumenPlugin {
+         return "objective accepted by the supervisor (Stage-A planning started)";
+     }
+ 
++    /**
++     * 169 T6 / 170 §5.1：**主线可重启**。死亡/装备全丢后，旧目标（如「再进下界取烈焰棒」）
++     * 已经不安全，但恢复支线只能改策略、不能改主线。本入口是唯一的改单通道：
++     * 丢弃旧链 → 用新 objective 走同一段 Stage-A 规划 → 绑定后清掉历史完成继承。
++     *
++     * <p>与 {@code rdd_supervisor_submit} 的差别只有语义标记与「清继承」：
++     * 规划路径、失败回落、引擎 GoalState 登记完全复用，不另造规划器。
++     *
++     * @param reason 执行 AI 写下的重置理由（必须非空，进事件账）
++     */
++    static String restartMainline(UUID companionId, String objective, String reason) {
++        MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
++        if (server == null) {
++            return "no server: cannot restart the mainline while the game is offline";
++        }
++        if (NumenPlayer.findByUuid(server, companionId) == null) {
++            return "companion not online: rdd_restart_mainline needs an active body";
++        }
++        String obj = objective == null ? "" : objective.strip();
++        if (obj.isBlank()) {
++            return "objective must not be blank";
++        }
++        if (obj.length() > com.dwinovo.numen.rdd.core.RddChainFactory.MAX_OBJECTIVE_CHARS) {
++            return "objective too long (max " + com.dwinovo.numen.rdd.core.RddChainFactory.MAX_OBJECTIVE_CHARS + " chars)";
++        }
++        RddRuntime before = RUNTIMES.get(companionId);
++        long beforeState = before == null ? -1L : before.chain().stateVersion();
++        int beforePlan = before == null ? -1 : before.chain().planRevision();
++        String beforeChain = before == null ? "" : before.chain().chainInstanceId();
++        String beforeGoal = before == null ? "" : before.chain().goal().description();
++        long requestId = RESTART_REQUEST_SEQ.incrementAndGet();
++        RESTART_PENDING.put(companionId, requestId);
++        RddMonitor.publish("mainline_restart_requested", Map.of(
++                "companionId", companionId.toString(),
++                "objective", obj,
++                "reason", reason == null ? "" : reason,
++                "oldGoal", beforeGoal,
++                "oldChainInstanceId", beforeChain,
++                "oldStateVersion", beforeState,
++                "oldPlanRevision", beforePlan,
++                "restartRequestId", requestId));
++        // 2026-11-02 审计：不再走 GoalSinks.submit —— 它会再触发一条 beginPlanning，
++        // 与并发 /goal 抢同一个 UUID pending，且只能靠目标文本判断"这条规划是不是重启"。
++        // 现在直接把 requestId 带进本次 beginPlanning 的闭包，pending 用 remove(key,value) 原子认领；
++        // 普通目标（requestId=0）会清掉遗留请求。代价：不写引擎 GoalState，面板以 rdd_status 为准。
++        RddCallbackGuard.Ticket ticket = CALLBACKS.replace(companionId);
++        onServer(server, ticket, () -> beginPlanning(server, ticket, obj, "rdd_restart_mainline", requestId));
++        return "mainline restart accepted: old chain discarded, new objective is being planned from scratch";
++    }
++
+     /** Exact RDD state block returned to Numen; observation does not own task progress. */
+     private static String renderStateContext(UUID uuid) {
+             // 2026-10-08 支线接管：支线 active 时当前目标投影为睡觉支线，主线上下文让位。
+@@ -941,11 +1017,12 @@ private static String withAssets(UUID companionId, String rddContext) {
+     }
+ 
+     /** Stage-A 退化回落：今天的单遍 decompose -> bind + startCurrent（目标不被吞，行为不劣化）。 */
+-    private static void decomposeSinglePass(MinecraftServer server, RddCallbackGuard.Ticket ticket, String objective) {
++    private static void decomposeSinglePass(MinecraftServer server, RddCallbackGuard.Ticket ticket,
++                                            String objective, boolean restartRequested) {
+         UUID uuid = ticket.companionId();
+         RddDecomposer.decompose(uuid, objective, goal -> onServer(server, ticket, () -> {
+             try {
+-                bindCurrent(uuid, goal);
++                bindCurrent(uuid, goal, restartRequested);
+                 RddRuntime runtime = runtime(uuid);
+                 if (runtime != null) {
+                     runtime.startCurrent();
+@@ -972,6 +1049,14 @@ private static String withAssets(UUID companionId, String rddContext) {
+ 
+     /** Apply a planning result without invalidating that result's own goal generation. */
+     private static void bindCurrent(UUID companionId, Goal goal) {
++        bindCurrent(companionId, goal, false);
++    }
++
++    /**
++     * @param restarted true = 这条链来自 rdd_restart_mainline：不继承历史完成阶段，
++     *                  绑好后立即清一次并 bump planRevision/stateVersion（169 T6 / 170 §5.1）。
++     */
++    private static void bindCurrent(UUID companionId, Goal goal, boolean restarted) {
+         BODY.remove(companionId);
+         DECOMPOSING.remove(companionId);
+         // 换目标 = 旧支线作废：立即取消，且不恢复旧主线（新链自己重新选择）。
+@@ -993,9 +1078,22 @@ private static String withAssets(UUID companionId, String rddContext) {
+         clearNudgeThrottle(companionId);    // 新目标 = 新窗口，保证首次开工拍醒一定发得出去
+         RddGoalDriver.clear(companionId);
+         clearReplanCounts(companionId);   // 新目标 = 新阶段标识，重规划预算清零
+-        // P0：把该目标血缘下"已可靠完成"的阶段事实注入新链 → 已达成一级直接跳过、不再重复规划
+-        RUNTIMES.put(companionId, new RddRuntime(
+-                new TaskChain(goal, facts(companionId).satisfiedStageKeys(goal)), assets(companionId)));
++        // P0：把该目标血缘下"已可靠完成"的阶段事实注入新链 → 已达成一级直接跳过、不再重复规划。
++        // 169 T6：重启主线的链**不注入**继承事实，并在绑定后统一清一次（防相似目标按指纹再次继承）。
++        TaskChain fresh = new TaskChain(goal,
++                restarted ? Set.of() : facts(companionId).satisfiedStageKeys(goal));
++        if (restarted) {
++            fresh.resetForRestart(goal.description());
++            RddMonitor.publish("mainline_restarted", Map.of(
++                    "companionId", companionId.toString(),
++                    "objective", goal.description(),
++                    "chainInstanceId", fresh.chainInstanceId(),
++                    "satisfiedStages", fresh.satisfiedStages().size(),
++                    "planRevision", fresh.planRevision(),
++                    "stateVersion", fresh.stateVersion(),
++                    "note", "inherited stage facts cleared; first primary must be re-earned"));
++        }
++        RUNTIMES.put(companionId, new RddRuntime(fresh, assets(companionId)));
+         // 【架构概念 2/4 接线】一级目标生成时同步产出"需求清单"（元件检测的需求侧）。
+         // 只产"事实"，不在这里做裁决（裁决归 DetectionArbitration），更不在这里改规划。
+         // 2026-10-06：清单不再"算完即丢"——RddFactContext 缓存它，并在检测 tick 里持续对账；
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcher.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcher.java
+index aa6deb2ac..c011ec506 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcher.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcher.java
+@@ -62,6 +62,14 @@ final class RddRepeatQueryWatcher {
+         SEEN.clear();
+     }
+ 
++    /**
++     * 2026-11-02：MCP 监控面（外部采集，tool_call_id=mcp-*）不是同伴行为。
++     * 之前它被算进「重复查询」，会因外部轮询给 AI 发假的「你刚问过」提醒。
++     */
++    static boolean isExternalCall(String toolCallId) {
++        return toolCallId != null && toolCallId.startsWith("mcp-");
++    }
++
+     /** 测试用：替换副作用出口。 */
+     static void installNotifier(Notifier n) {
+         notifier = n;
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanning.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanning.java
+index 65940394d..8e7cb6659 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanning.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanning.java
+@@ -77,7 +77,16 @@ final class RddRiskPlanning {
+                 continue;
+             }
+             if (isFirstStage) {
+-                out.add(stage);
++                out.add(pruneSelfLocked(stage));
++                continue;
++            }
++            // 2026-11-02 实机：验收/收口阶段只是核对已有成果，不是新的高风险行动；
++            // 给它注入下界/末地硬门会把「最终验收」变成永远等两套钻石甲的硬锁。
++            String d = stage.description() == null ? "" : stage.description();
++            boolean acceptance = d.contains("验收") || d.contains("最终确认") || d.contains("最终")
++                    || d.contains("收口") || d.contains("确认");
++            if (acceptance) {
++                out.add(pruneSelfLocked(stage));
+                 continue;
+             }
+             RiskLevel level = RiskGate.levelForText(stage.description());
+@@ -85,7 +94,7 @@ final class RddRiskPlanning {
+             // 不是只够打一次就进门。NORMAL/MINING 与旧行为完全一致（backup 为空）。
+             Map<String, Integer> required = ResourceBudget.requiredWithBackup(level);
+             if (level == RiskLevel.NORMAL || required.isEmpty()) {
+-                out.add(stage);
++                out.add(pruneSelfLocked(stage));
+                 continue;
+             }
+             Map<String, Integer> merged = new LinkedHashMap<>();
+@@ -101,6 +110,12 @@ final class RddRiskPlanning {
+             }
+             List<AssetRequirement> wf = new ArrayList<>();
+             for (Map.Entry<String, Integer> e : merged.entrySet()) {
++                // 2026-11-03 实机：`minecraft:bed` 不是真实物品 ID（床是 *_bed），
++                // 且床通常已放在基地、不在背包；当硬门会永久 WAITING。规划期直接剥掉。
++                if ("minecraft:bed".equals(e.getKey())) continue;
++                // 2026-11-02 实机：阶段自己就会产出 bread/emerald/bed，却把它们写成进入本阶段的
++                // wait_for → 永远等不到（自我依赖死锁）。只剥掉「本阶段明确会产出」的同类项。
++                if (producesInStage(stage.description(), e.getKey())) continue;
+                 wf.add(new AssetRequirement(e.getKey(), e.getValue()));
+             }
+             out.add(new PrimarySpec(stage.description(), wf));
+@@ -108,6 +123,52 @@ final class RddRiskPlanning {
+         return List.copyOf(out);
+     }
+ 
++    /** 去掉「本阶段自己会产出、却被写成进入本阶段前置」的 wait_for（不改其它要求）。 */
++    private static PrimarySpec pruneSelfLocked(PrimarySpec stage) {
++        if (stage == null || stage.waitFor() == null || stage.waitFor().isEmpty()) return stage;
++        List<AssetRequirement> kept = new ArrayList<>();
++        for (AssetRequirement r : stage.waitFor()) {
++            if (!producesInStage(stage.description(), r.assetKey())) kept.add(r);
++        }
++        if (kept.size() == stage.waitFor().size()) return stage;
++        return new PrimarySpec(stage.description(), kept);
++    }
++
++    /** 本阶段描述是否明确会产出该资产（只覆盖最容易自锁的几类）。 */
++    private static boolean producesInStage(String description, String assetKey) {
++        if (description == null || assetKey == null) return false;
++        // 泛化床 ID 不是真实物品，任何阶段都不该当 wait_for 硬门（床可能已放置）。
++        if ("minecraft:bed".equals(assetKey)) return true;
++        String d = description;
++        if (assetKey.endsWith(":bread")) return d.contains("面包");
++        if (assetKey.endsWith(":emerald")) return d.contains("绿宝石") && d.contains("交易");
++        if (assetKey.endsWith("_bed")) return d.contains("床");
++        if (assetKey.endsWith(":wheat")) return d.contains("小麦") && (d.contains("拆") || d.contains("收") || d.contains("合成"));
++        // 2026-11-03 实机：`wait_for cooked_beef×4` 落在「在村庄安家：拆干草块做面包」阶段上；
++        // 该阶段本来就是产食物，靠作弊给了 16 牛肉才通过。食物类前置只在明确产食物的阶段剥离。
++        if (isFoodAsset(assetKey) && isFoodProducingStage(d)) return true;
++        return false;
++    }
++
++    private static boolean isFoodAsset(String assetKey) {
++        return assetKey.endsWith(":bread") || assetKey.endsWith(":cooked_beef")
++                || assetKey.endsWith(":beef") || assetKey.endsWith(":cooked_porkchop")
++                || assetKey.endsWith(":porkchop") || assetKey.endsWith(":cooked_chicken")
++                || assetKey.endsWith(":chicken") || assetKey.endsWith(":cooked_mutton")
++                || assetKey.endsWith(":mutton") || assetKey.endsWith(":baked_potato")
++                || assetKey.endsWith(":potato") || assetKey.endsWith(":carrot")
++                || assetKey.endsWith(":apple") || assetKey.endsWith(":melon_slice")
++                || assetKey.endsWith(":sweet_berries");
++    }
++
++    private static boolean isFoodProducingStage(String d) {
++        // 只认"生产/处理食物"的上下文；`杀`/`猎` 会让「击杀末影龙」被误判成食物阶段，
++        // 从而剥掉它应有的熟牛肉备用门（RddRiskPlanningTest.highRiskStageCarriesBackupSet 回归）。
++        return d.contains("干草") || d.contains("面包") || d.contains("小麦")
++                || d.contains("农田") || d.contains("收") || d.contains("种")
++                || d.contains("烤") || d.contains("食物") || d.contains("吃");
++    }
++
+     private static String levelLabel(RiskLevel level) {
+         return switch (level) {
+             case NORMAL -> "常规";
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddWorldFacts.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddWorldFacts.java
+index d94524b32..56ee8bbe9 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddWorldFacts.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/RddWorldFacts.java
+@@ -108,6 +108,41 @@ public final class RddWorldFacts {
+         return copy;
+     }
+ 
++    /**
++     * 2026-11-03：统计类条件的**当前累计值**（不是布尔）。供检测器拍基线/算增量；
++     * 不支持的 type 返回 -1（调用方判未达成，不猜）。
++     */
++    public static int statCount(NumenPlayer ap, Map<String, Object> condition) {
++        if (ap == null || condition == null) return -1;
++        if (!WorldFactConditions.valid(condition)) return -1;
++        if (condition.containsKey("dimension")) {
++            ResourceLocation wanted = id(condition, "dimension");
++            if (wanted == null || ap.serverLevel() == null
++                    || !ap.serverLevel().dimension().location().equals(wanted)) return -1;
++        }
++        if (ap.getServer() == null || !ap.getServer().isSameThread()) return -1;
++        try {
++            String type = String.valueOf(condition.get("type"));
++            // block_mined 用 block 键；item_* 用 item 键。不能"item 优先"（两字段都在时会错 key）。
++            Object raw = "block_mined".equals(type) ? condition.get("block") : condition.get("item");
++            ResourceLocation key = ResourceLocation.tryParse(WorldFactConditions.tagId(raw));
++            if (key == null) return -1;
++            return switch (type) {
++                case "item_crafted" -> sumStat(ap, Stats.ITEM_CRAFTED, BuiltInRegistries.ITEM, key,
++                        WorldFactConditions.isTag(condition.get("item")));
++                case "item_used" -> sumStat(ap, Stats.ITEM_USED, BuiltInRegistries.ITEM, key,
++                        WorldFactConditions.isTag(condition.get("item")));
++                case "item_picked_up" -> sumStat(ap, Stats.ITEM_PICKED_UP, BuiltInRegistries.ITEM, key,
++                        WorldFactConditions.isTag(condition.get("item")));
++                case "block_mined" -> sumStat(ap, Stats.BLOCK_MINED, BuiltInRegistries.BLOCK, key,
++                        WorldFactConditions.isTag(condition.get("block")));
++                default -> -1;
++            };
++        } catch (RuntimeException ex) {
++            return -1;
++        }
++    }
++
+     public static boolean matches(NumenPlayer ap, Map<String, Object> condition) {
+         // 2026-10-25（主人在实机上指出）：规划器把"回到基地再办"写在**文字**里，
+         // 而条件里没有 anchor ⇒ 判定圆心是"同伴现在站的地方" ⇒ 它就近放下也算完成。
+@@ -362,6 +397,11 @@ public final class RddWorldFacts {
+     private static Predicate<BlockState> blockPredicate(Object raw) {
+         ResourceLocation key = ResourceLocation.tryParse(WorldFactConditions.tagId(raw));
+         if (key == null) return null;
++        // 2026-11-03 实机：判据 white_bed、现场 purple_bed（AI 用紫床）→ 颜色不该让判据永远假。
++        // 只对床做同类归一，其它方块仍走精确 id / tag。
++        if (WorldFactConditions.isBedBlockId(key.toString())) {
++            return state -> state.getBlock() instanceof net.minecraft.world.level.block.BedBlock;
++        }
+         if (WorldFactConditions.isTag(raw)) {
+             TagKey<Block> tag = TagKey.create(Registries.BLOCK, key);
+             return state -> state.is(tag);
+@@ -498,14 +538,18 @@ public final class RddWorldFacts {
+         int total = 0;
+         if (isTag) {
+             var members = registry.getTag(TagKey.create(registry.key(), key));
+-            if (members.isEmpty()) return 0;
++            if (members.isEmpty()) return -1;   // UNKNOWN tag ≠ 0：不能固化成一个合法基线
+             for (Holder<T> holder : members.get()) {
+-                total += statValue(ap, stat, holder.value());
++                int one = statValue(ap, stat, holder.value());
++                if (one < 0) return -1;
++                total += one;
+             }
+         } else {
+             T value = registry.get(key);
+-            if (value == null || !registry.containsKey(key)) return 0;
+-            total += statValue(ap, stat, value);
++            if (value == null || !registry.containsKey(key)) return -1;   // UNKNOWN id ≠ 0
++            int one = statValue(ap, stat, value);
++            if (one < 0) return -1;
++            total += one;
+         }
+         return total;
+     }
+@@ -514,7 +558,7 @@ public final class RddWorldFacts {
+         try {
+             return ap.getStats().getValue(stat, key);
+         } catch (RuntimeException ignored) {
+-            return 0;
++            return -1;   // 读统计失败 = UNKNOWN，调用方不得拍成 0 基线
+         }
+     }
+ 
+diff --git a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/SideTaskHost.java b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/SideTaskHost.java
+index 478b04c3c..a19cce172 100644
+--- a/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/SideTaskHost.java
++++ b/plugins/rdd/src/main/java/com/dwinovo/numen/plugins/rdd/SideTaskHost.java
+@@ -381,7 +381,7 @@ final class SideTaskHost {
+                 return null;
+             }
+             Subtask current = chain.currentSubtask();
+-            return new MainlineResumeToken(companionId, chain.goal().id(),
++            return new MainlineResumeToken(companionId, chain.chainInstanceId(), chain.goal().id(),
+                     chain.currentPrimary() == null ? null : chain.currentPrimary().id(),
+                     current == null ? null : current.id(),
+                     chain.planRevision(), chain.planRevision());
+@@ -406,7 +406,8 @@ final class SideTaskHost {
+             Subtask current = chain.currentSubtask();
+             String primaryId = chain.currentPrimary() == null ? null : chain.currentPrimary().id();
+             String subtaskId = current == null ? null : current.id();
+-            if (!token.matches(chain.goal().id(), primaryId, subtaskId, chain.planRevision())) {
++            if (!token.matches(chain.chainInstanceId(), chain.goal().id(), primaryId, subtaskId,
++                    chain.planRevision())) {
+                 return null;
+             }
+             return token;
+diff --git a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddPlanGuardTest.java b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddPlanGuardTest.java
+index 31241b126..03f0f9b5d 100644
+--- a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddPlanGuardTest.java
++++ b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddPlanGuardTest.java
+@@ -20,6 +20,131 @@ class RddPlanGuardTest {
+         return new SubtaskSpec(description, Map.of("asset_key", assetKey, "minimum", minimum), null);
+     }
+ 
++    // ---------- 2026-11-02（r25-2 实机）：工具前提不成立 ----------
++
++    @Test
++    void 描述要用钻石镐但背包只有石镐_isToolGap() {
++        SubtaskSpec s = new SubtaskSpec(
++                "用钻石镐去 Y<16 或找熔岩湖与水交界处取 10 块黑曜石",
++                Map.of("asset_key", "minecraft:obsidian", "minimum", 10), null);
++        assertEquals(List.of("钻石镐"),
++                RddPlanGuard.toolGaps(s, Map.of("minecraft:stone_pickaxe", 1)));
++    }
++
++    @Test
++    void 去下界而背包无甲_isArmorGap() {
++        SubtaskSpec s = new SubtaskSpec(
++                "借废墟传送门进下界要塞打烈焰人，拿 1 根烈焰棒",
++                Map.of("asset_key", "minecraft:blaze_rod", "minimum", 1), null);
++        assertTrue(RddPlanGuard.toolGaps(s, Map.of("minecraft:stone_sword", 1))
++                .stream().anyMatch(g -> g.contains("护甲")), RddPlanGuard.toolGaps(s, Map.of()).toString());
++    }
++
++    @Test
++    void 途中不下界的走路步骤不报护甲缺() {
++        SubtaskSpec s = new SubtaskSpec("从农田步行前往已知首目标村庄 village_home，途中不下界、不额外囤资源",
++                Map.of("asset_key", "minecraft:stone_pickaxe", "minimum", 1), null);
++        assertTrue(RddPlanGuard.toolGaps(s, Map.of("minecraft:stone_pickaxe", 1)).isEmpty(),
++                RddPlanGuard.toolGaps(s, Map.of()).toString());
++    }
++
++    @Test
++    void 有胸甲时不报护甲缺() {
++        SubtaskSpec s = new SubtaskSpec("进下界要塞打烈焰人",
++                Map.of("asset_key", "minecraft:blaze_rod", "minimum", 1), null);
++        assertTrue(RddPlanGuard.toolGaps(s, Map.of("minecraft:iron_chestplate", 1)).isEmpty());
++    }
++
++    @Test
++    void 描述是制作工具时不算缺() {
++        SubtaskSpec s = new SubtaskSpec("合成一把铁镐",
++                Map.of("asset_key", "minecraft:iron_pickaxe", "minimum", 1), null);
++        assertTrue(RddPlanGuard.toolGaps(s, Map.of()).isEmpty());
++    }
++
++    @Test
++    void 过滤时把工具前提不成立的步骤丢弃() {
++        SubtaskSpec bad = new SubtaskSpec("用钻石镐取 10 块黑曜石",
++                Map.of("asset_key", "minecraft:obsidian", "minimum", 10), null);
++        RddPlanGuard.Filtered out = RddPlanGuard.filterSubtasks(List.of(bad), "酿抗火药",
++                Map.of("minecraft:stone_pickaxe", 1));
++        assertTrue(out.allowed().isEmpty());
++        assertTrue(out.dropped().get(0).contains("工具前提不成立"), out.dropped().toString());
++    }
++
++    @Test
++    void 顺序产出工具时后续步骤不误丢() {
++        // 2026-11-02 实机：Stage-B 首两步行文「搓木棍做木镐」→「用木镐挖石头做石镐」，
++        // 旧实现按当前空背包逐条判，两条全丢，第一步就没人干活。
++        SubtaskSpec make = new SubtaskSpec("用 2 块木板竖放搓 4 根木棍做木镐",
++                Map.of("asset_key", "minecraft:wooden_pickaxe", "minimum", 1), null);
++        SubtaskSpec use = new SubtaskSpec("用木镐挖约 6 个石头做石镐与石斧",
++                Map.of("asset_key", "minecraft:stone_pickaxe", "minimum", 1), null);
++        RddPlanGuard.Filtered out = RddPlanGuard.filterSubtasks(List.of(make, use), "石器开局", Map.of());
++        assertEquals(2, out.allowed().size(), "前一步产出的工具应视为后续可用：" + out.dropped());
++    }
++
++    // ---------- 2026-11-02（169 T2 最小版）：判据不覆盖描述 ----------
++
++    @Test
++    void 描述要三十二块方块而判据只认铁剑_isGap() {
++        SubtaskSpec r25 = new SubtaskSpec(
++                "备齐武器与垫脚方块：一把铁剑加至少 32 块圆石/石质方块用于垫桥",
++                Map.of("asset_key", "minecraft:iron_sword", "minimum", 1), null);
++        assertEquals(List.of("至少 32 块方块"), RddPlanGuard.predicateGaps(r25));
++    }
++
++    @Test
++    void 背包意图配世界方块判据_isGap() {
++        SubtaskSpec r27 = new SubtaskSpec("清点背包：blaze_rod/nether_wart/玻璃瓶/圆石",
++                Map.of("type", "block_nearby", "block", "minecraft:nether_wart", "radius", 1), null);
++        assertTrue(RddPlanGuard.predicateGaps(r27).stream().anyMatch(g -> g.contains("背包物品")),
++                RddPlanGuard.predicateGaps(r27).toString());
++    }
++
++    @Test
++    void 判据是方块组时不算Gap() {
++        SubtaskSpec ok = new SubtaskSpec("在脚下铺 3x3 落脚台，先备 8 块方块",
++                Map.of("group", "blocks", "minimum", 8), null);
++        assertTrue(RddPlanGuard.predicateGaps(ok).isEmpty());
++    }
++
++    @Test
++    void 过滤时把判据不覆盖的步骤丢弃并给出理由() {
++        SubtaskSpec bad = new SubtaskSpec(
++                "备齐武器与垫脚：一把铁剑加至少 32 块圆石/石质方块",
++                Map.of("asset_key", "minecraft:iron_sword", "minimum", 1), null);
++        RddPlanGuard.Filtered out = RddPlanGuard.filterSubtasks(List.of(bad), "酿抗火药", Map.of());
++        assertTrue(out.allowed().isEmpty());
++        assertEquals(1, out.dropped().size());
++        assertTrue(out.dropped().get(0).contains("判据不覆盖描述"), out.dropped().toString());
++    }
++
++    @Test
++    void 没有方块数量要求时不报Gap() {
++        SubtaskSpec s = spec("取 4 块黑曜石", "minecraft:obsidian", 4);
++        assertTrue(RddPlanGuard.predicateGaps(s).isEmpty());
++    }
++
++    // ---------- 2026-11-02：垫脚类「都行」条件归一成 group:blocks（r22-0 实机形状） ----------
++
++    @Test
++    void 垫脚多选材料条件归一为方块组() {
++        SubtaskSpec r22 = spec("用已有的方块（圆石/深板岩/下界岩都行）在脚下铺 3x3 落脚台",
++                "minecraft:cobblestone", 8);
++        SubtaskSpec normalized = RddPlanGuard.normalizeCondition(r22);
++        assertEquals("blocks", normalized.condition().get("group"), normalized.condition().toString());
++        assertEquals(8, normalized.condition().get("minimum"));
++        assertFalse(normalized.condition().containsKey("asset_key"));
++    }
++
++    @Test
++    void 单一材料步骤不被改写() {
++        SubtaskSpec single = spec("取 4 块黑曜石", "minecraft:obsidian", 4);
++        assertEquals("minecraft:obsidian",
++                RddPlanGuard.normalizeCondition(single).condition().get("asset_key"));
++    }
++
+     // ---------- 1 & 3：未要求的可选升级被丢弃，明确要求时放行 ----------
+ 
+     @Test
+diff --git a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcherTest.java b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcherTest.java
+index 30812b8dd..841b87283 100644
+--- a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcherTest.java
++++ b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRepeatQueryWatcherTest.java
+@@ -17,6 +17,14 @@ class RddRepeatQueryWatcherTest {
+ 
+     private static final UUID ID = UUID.fromString("e502d17b-de15-4e5e-9864-9e97b0702546");
+ 
++    @Test
++    void mcpMonitorCallsAreNotCompanionRepeats() {
++        assertTrue(RddRepeatQueryWatcher.isExternalCall("mcp-122"), "MCP 采集面应被识别为外部");
++        assertTrue(RddRepeatQueryWatcher.isExternalCall("mcp-1"), "任何 mcp- 前缀都算");
++        assertFalse(RddRepeatQueryWatcher.isExternalCall("call_00_abc"), "AI 自己的调用不是外部");
++        assertFalse(RddRepeatQueryWatcher.isExternalCall(null), "没有 call id 也不判外部");
++    }
++
+     @Test
+     void firstTwoCallsDoNotNotify() {
+         RddRepeatQueryWatcher.clear(ID);
+diff --git a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanningTest.java b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanningTest.java
+index e594912ab..ef636498d 100644
+--- a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanningTest.java
++++ b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddRiskPlanningTest.java
+@@ -38,7 +38,11 @@ class RddRiskPlanningTest {
+         int chest = out.get(1).waitFor().stream()
+                 .filter(r -> r.assetKey().equals("minecraft:diamond_chestplate"))
+                 .findFirst().orElseThrow().minimum();
+-        assertEquals(2, chest, "下界要求两套钻石甲");
++        assertEquals(1, chest, "166 §72：下界只要求一套钻石甲（旧值 2 = 48 钻，等于把终局装备当前置）");
++        int ironChest = out.get(1).waitFor().stream()
++                .filter(r -> r.assetKey().equals("minecraft:iron_chestplate"))
++                .findFirst().orElseThrow().minimum();
++        assertEquals(2, ironChest, "166 §73：仍要求两套铁甲作为可成建制补回的备用");
+         // §6③：下界阶段追加"床"作为恢复点硬门
+         assertTrue(keys.contains("minecraft:white_bed"), "下界阶段应有床（恢复点）硬门");
+     }
+@@ -87,6 +91,68 @@ class RddRiskPlanningTest {
+         assertEquals(64, arrows, "末地阶段应带备用箭 64（基线 32）");
+     }
+ 
++    @Test void stageThatProducesBreadDoesNotWaitForBread() {
++        // 2026-11-02 实机：Stage-A 把「把干草拆成面包」阶段写成 wait_for bread>=1 →
++        // 进入该阶段前就要求面包，而面包正是该阶段产物，永远等不到。
++        List<PrimarySpec> stages = List.of(
++                new PrimarySpec("石器开局", List.of()),
++                new PrimarySpec("村庄食物与农田：把干草块拆成小麦→合成面包作为主食",
++                        List.of(new AssetRequirement("minecraft:bread", 1))));
++        List<PrimarySpec> out = RddRiskPlanning.injectWaitFor(stages, Map.of());
++        assertTrue(out.get(1).waitFor().stream()
++                        .noneMatch(r -> r.assetKey().equals("minecraft:bread")),
++                "本阶段会产出面包，就不能把面包写成进入本阶段的 wait_for");
++    }
++
++    @Test void foodProducingStageDoesNotWaitForCookedBeef() {
++        List<PrimarySpec> stages = List.of(
++                new PrimarySpec("石器开局", List.of()),
++                new PrimarySpec("在村庄安家：拆干草块做面包，收农田并补种，食物存箱",
++                        List.of(new AssetRequirement("minecraft:cooked_beef", 4))));
++        List<PrimarySpec> out = RddRiskPlanning.injectWaitFor(stages, Map.of());
++        assertTrue(out.get(1).waitFor().stream()
++                        .noneMatch(r -> r.assetKey().equals("minecraft:cooked_beef")),
++                "本阶段会产食物，不能把熟牛肉写成进入本阶段的前置（实机靠作弊 16 牛肉才过）");
++    }
++
++    @Test void genericBedIdIsNotAWaitForGate() {
++        List<PrimarySpec> stages = List.of(
++                new PrimarySpec("石器开局", List.of()),
++                new PrimarySpec("浅层挖煤与铁，做铁甲",
++                        List.of(new AssetRequirement("minecraft:bed", 1))));
++        List<PrimarySpec> out = RddRiskPlanning.injectWaitFor(stages, Map.of());
++        assertTrue(out.get(1).waitFor().stream()
++                        .noneMatch(r -> r.assetKey().equals("minecraft:bed")),
++                "minecraft:bed 不是真实物品 ID；床可能已放置，不能当硬门");
++    }
++
++    @Test void tradeStageDoesNotWaitForEmeraldItProduces() {
++        List<PrimarySpec> stages = List.of(
++                new PrimarySpec("石器开局", List.of()),
++                new PrimarySpec("村民交易闭环：完成一次真实买卖交易（如纸/书/作物→绿宝石）",
++                        List.of(new AssetRequirement("minecraft:emerald", 1))));
++        List<PrimarySpec> out = RddRiskPlanning.injectWaitFor(stages, Map.of());
++        assertTrue(out.get(1).waitFor().stream()
++                        .noneMatch(r -> r.assetKey().equals("minecraft:emerald")),
++                "交易阶段会获得绿宝石，不能把绿宝石写成进入本阶段的前置");
++    }
++
++    @Test void acceptanceStageDoesNotGetNetherGates() {
++        // 2026-11-02 实机：「最终验收…以上完成前不下界」被风险门判成 NETHER，
++        // 注入了两套钻石甲/抗火药等硬门 → 验收阶段永远等不到。
++        List<PrimarySpec> stages = List.of(
++                new PrimarySpec("石器开局", List.of()),
++                new PrimarySpec("最终验收：确认铁甲四部位穿戴与交易完成；以上完成前不下界", List.of()));
++        List<PrimarySpec> out = RddRiskPlanning.injectWaitFor(stages, Map.of());
++        assertTrue(out.get(1).waitFor().isEmpty(),
++                "验收阶段不是新的高风险行动，不得注入下界/末地硬门；实际：" + out.get(1).waitFor());
++    }
++
++    @Test void negationPhraseKeepsFinalAcceptanceOutOfNether() {
++        assertEquals(com.dwinovo.numen.rdd.policy.RiskLevel.NORMAL,
++                com.dwinovo.numen.rdd.policy.RiskGate.levelForText("最终验收：以上完成前不下界"));
++    }
++
+     @Test void lowRiskStageHasNoBackupRequirement() {
+         List<PrimarySpec> stages = List.of(
+                 new PrimarySpec("石器起步", List.of()),
+diff --git a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddToolContractSnapshotTest.java b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddToolContractSnapshotTest.java
+index dbb81526f..16cfe988b 100644
+--- a/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddToolContractSnapshotTest.java
++++ b/plugins/rdd/src/test/java/com/dwinovo/numen/plugins/rdd/RddToolContractSnapshotTest.java
+@@ -169,6 +169,9 @@ class RddToolContractSnapshotTest {
+         // 下达指令/给物品的入口（find_tools 实测无 give / 无 command）。
+         // 安全边界写在该类注释里：白名单动词 + 拒选择器(@a/@e/@r) + 拒 op/ban/stop/kill + confirm。
+         PINNED_NAMES.put("RddAdminCommandTool.java", "rdd_admin_command");
++        // 2026-11-02（169 T6 / 170 §5.1）：死亡后旧主线已不安全时，唯一的主线改单入口。
++        // 它解决：恢复支线按契约只能改策略、不能改主线 → 旧链永远指向已死的计划（death59 又回下界）。
++        PINNED_NAMES.put("RddRestartMainlineTool.java", "rdd_restart_mainline");
+     }
+ 
+     @Test
+@@ -232,6 +235,8 @@ class RddToolContractSnapshotTest {
+         DESCRIPTION_FLOOR.put("RddDeclineSideTool.java", 380);
+         DESCRIPTION_FLOOR.put("RddReplanChainTool.java", 275);
+         DESCRIPTION_FLOOR.put("RddSettleStageTool.java", 550);
++        // 169 T6 主线重启：description 本体是"何时用/不许怎么用"的契约（不能用来跳步、不能重述旧目标）。
++        DESCRIPTION_FLOOR.put("RddRestartMainlineTool.java", 400);
+     }
+ 
+     @Test
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/TaskChain.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/TaskChain.java
+index ba48c3ace..b85bb7c92 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/TaskChain.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/TaskChain.java
+@@ -37,6 +37,11 @@ public final class TaskChain {
+      * 已完成的二级会在重启后重新变成"没达成"。
+      */
+     private final Map<String, Map<String, Integer>> acquireBaselines = new LinkedHashMap<>();
++    /**
++     * 统计条件口径（2026-11-03）：true=delta（本步增量，新建链默认）；false=lifetime（旧链兼容）。
++     * 旧存档没有这个字段 → 恢复为 false，避免把历史累计语义的旧链突然改判成 delta。
++     */
++    private boolean statDeltaEnabled = true;
+     /**
+      * G1a（IC-75-r1 IC04）：哪些二级的基线是「观测失败（UNKNOWN）」而不是「确认真空」。
+      *
+@@ -162,6 +167,38 @@ public final class TaskChain {
+         }
+     }
+     public Goal goal() { return goal; }
++
++    /**
++     * 2026-11-02（169 T6 / 170 §5.1）：在同一份新规划上清掉「历史完成继承」，让任务链真的从头跑。
++     *
++     * <p>为什么需要它：死亡只走「恢复支线」，主线一级与 {@link #satisfiedStages} 都是粘性的；
++     * 新目标正文若与旧目标相似，CompletedFactStore 会按指纹把旧阶段再注进来 →
++     * 「甲/镐/食物全丢」之后链仍把旧阶段当已完成，继续指向下界/烈焰棒，一路送死。
++     *
++     * <p>语义：保留刚绑定的新 goal/primary，只清继承的完成阶段、所有二级状态、跳过/暂停原因、
++     * acquire 基线与当前执行绑定；planRevision++（旧 id 全部作废）、stateVersion++（安全提交）。
++     * 调用方必须先构造好新 goal（Stage-A 结果），再调本方法，然后正常 beginAttempt。
++     */
++    public synchronized void resetForRestart(String objective) {
++        if (objective == null || objective.isBlank()) {
++            throw new IllegalArgumentException("objective required for restart");
++        }
++        this.goal = new Goal(goal.id(), objective, goal.primaryGoals());
++        this.satisfiedStages.clear();
++        this.statuses.replaceAll((id, ignored) -> SubtaskStatus.PENDING);
++        this.skipReasons.clear();
++        this.pauseReasons.clear();
++        this.attempts.clear();
++        this.acquireBaselines.clear();
++        this.unobservedBaselines.clear();
++        this.primaryIndex = 0;
++        this.subtaskIndex = 0;
++        this.primaryStatus = PrimaryGoalStatus.PENDING;
++        this.activeExecutionId = null;
++        this.lastStartedAtMillis = 0L;
++        this.planRevision++;
++        this.stateVersion++;
++    }
+     public synchronized PrimaryGoalStatus primaryStatus() { return primaryStatus; }
+ 
+     /** 链实例身份（见字段注释；只读口，本批无消费者，监测台从 snapshot 读）。 */
+@@ -492,11 +529,37 @@ public final class TaskChain {
+     }
+ 
+     /** 二级离开本轮生命周期（换计划/作废）时连同它的基线一起清掉，避免内存与存档堆积。 */
+-    private void forgetAcquireBaseline(String subtaskId) {
++    void forgetAcquireBaseline(String subtaskId) {
+         acquireBaselines.remove(subtaskId);
++        // 2026-11-03：统计基线用 <id>#stat 独立 key；同 ID 重跑时必须一起清，否则上一轮增量残留会假通过。
++        acquireBaselines.remove(subtaskId + "#stat");
+         unobservedBaselines.remove(subtaskId);
+     }
+ 
++    /**
++     * 2026-11-03 实机：`item_crafted bread>=1` 用**终身统计**判当前步骤 → 历史面包把 r3-3 假完成。
++     * 这里给统计类条件拍「进入本步时的计数」基线，判定只看增量（与 acquire 同思路，独立 key）。
++     */
++    public synchronized void captureStatBaseline(String subtaskId, int value) {
++        if (subtaskId == null) return;
++        acquireBaselines.putIfAbsent(subtaskId + "#stat", Map.of("value", value));
++    }
++
++    /** 该二级的统计基线；未拍过返回 null（调用方必须判未达成，不猜）。 */
++    public synchronized Map<String, Integer> statBaseline(String subtaskId) {
++        return subtaskId == null ? null : acquireBaselines.get(subtaskId + "#stat");
++    }
++
++    /** 本链统计条件是否走 delta；旧链（无此字段恢复）为 false，继续 lifetime。 */
++    public synchronized boolean statDeltaEnabled() {
++        return statDeltaEnabled;
++    }
++
++    /** 新建/重绑链时显式开启 delta（修复旧链时用）。 */
++    public synchronized void enableStatDelta() {
++        statDeltaEnabled = true;
++    }
++
+     /** P0-3 执行身份：宿主开始执行后把真实执行实例 id 绑到当前二级；重复绑定会置换旧 id。 */
+     public synchronized void bindExecution(String subtaskId, String executionId) {
+         if (executionId == null || executionId.isBlank()) throw new IllegalArgumentException("execution id required");
+@@ -1509,6 +1572,7 @@ public final class TaskChain {
+         o.add("pauseReasons", GSON.toJsonTree(pauseReasons));
+         o.add("attempts", GSON.toJsonTree(attempts));
+         o.add("acquireBaselines", GSON.toJsonTree(acquireBaselines));
++        o.addProperty("statDeltaEnabled", statDeltaEnabled);
+         JsonArray sat = new JsonArray();
+         for (String k : satisfiedStages) {
+             sat.add(k);
+@@ -1574,6 +1638,8 @@ public final class TaskChain {
+                 ? o.get("chainInstanceId").getAsString()
+                 : UUID.randomUUID().toString();
+         chain.primaryStatus = PrimaryGoalStatus.valueOf(o.get("primaryStatus").getAsString());
++        // 2026-11-03：旧存档没有 statDeltaEnabled → 保持 lifetime，不把历史语义突然改判。
++        chain.statDeltaEnabled = o.has("statDeltaEnabled") && o.get("statDeltaEnabled").getAsBoolean();
+         if (o.has("skipReasons") && o.get("skipReasons").isJsonObject()) {
+             // 全量载入（不做加载期过滤）：skipReason 指向非 SKIPPED/未知二级属于损坏数据，
+             // 交由 validateRestoredState 大声拒绝，而不是悄悄丢进 /dev/null。
+@@ -1787,7 +1853,9 @@ public final class TaskChain {
+         // 注意**不**校验"该二级必须正在跑"——重试/暂停期间基线继续存在是合法的。
+         java.util.List<String> strayBaselines = new java.util.ArrayList<>();
+         for (String id : acquireBaselines.keySet()) {
+-            if (!expected.contains(id)) strayBaselines.add(id);
++            // 2026-11-03：统计基线用 <subtaskId>#stat 作为独立 key，引用校验要剥后缀再比。
++            String owner = id.endsWith("#stat") ? id.substring(0, id.length() - "#stat".length()) : id;
++            if (!expected.contains(owner)) strayBaselines.add(id);
+         }
+         for (String id : strayBaselines) {
+             acquireBaselines.remove(id);
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/WorldFactConditions.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/WorldFactConditions.java
+index d01207d65..b3c999da2 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/WorldFactConditions.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/core/WorldFactConditions.java
+@@ -61,9 +61,11 @@ public final class WorldFactConditions {
+             case "container_nearby" -> tag(condition.get("item"))
+                     && radius(condition.get("radius"), MAX_NEARBY_RADIUS)
+                     && positive(condition.getOrDefault("minimum", 1));
+-            case "block_mined" -> tag(condition.get("block")) && optionalPositive(condition.get("minimum"));
++            case "block_mined" -> tag(condition.get("block")) && optionalPositive(condition.get("minimum"))
++                    && scopeOk(condition);
+             case "item_crafted", "item_used", "item_picked_up" ->
+-                    tag(condition.get("item")) && optionalPositive(condition.get("minimum"));
++                    tag(condition.get("item")) && optionalPositive(condition.get("minimum"))
++                    && scopeOk(condition);
+             case "dimension" -> id(condition.get("dimension"));
+             case "y_below" -> integer(condition.get("y"));
+             case "position_at" -> coord(condition) && radius(condition.get("radius"), MAX_NEARBY_RADIUS);
+@@ -85,6 +87,26 @@ public final class WorldFactConditions {
+         };
+     }
+ 
++    /**
++     * 2026-11-03 实机：判据写 `white_bed`，现场是 `purple_bed` → 永远判假。
++     * 床的颜色只是外观变体，任何 `*_bed`（含历史泛化 id `minecraft:bed`）都视为同一类方块。
++     */
++    public static boolean isBedBlockId(String id) {
++        if (id == null) return false;
++        return id.equals("minecraft:bed") || id.endsWith("_bed");
++    }
++
++    /** 统计类条件的口径：delta（默认，本步增量）/ lifetime（终身累计）；其它值拒绝。 */
++    private static boolean scopeOk(Map<String, Object> condition) {
++        Object raw = condition.get("scope");
++        return raw == null || "delta".equals(raw) || "lifetime".equals(raw);
++    }
++
++    /** 该统计条件是否显式要求终身口径（检测器据此跳过增量基线）。 */
++    public static boolean lifetimeScope(Object condition) {
++        return condition instanceof Map<?, ?> m && "lifetime".equals(m.get("scope"));
++    }
++
+     public static boolean knownType(Object type) {
+         return type instanceof String s && TYPES.contains(s);
+     }
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
+index a2b2b0e85..daa3bae33 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/policy/RiskGate.java
+@@ -140,9 +140,18 @@ public final class RiskGate {
+         for (String neg : NEGATIONS) {
+             if (before.contains(neg)) return true;
+         }
++        // 2026-11-02 实机：验收阶段写「以上完成前不下界」——目标词前是「不」，但单字「不」不能进
++        // NEGATIONS（会把「不错/差不多」误伤）。这里只认「不 + 明确位移动词」的紧邻组合。
++        for (String neg : NEGATION_PHRASES) {
++            if (before.contains(neg)) return true;
++        }
+         return false;
+     }
+ 
++    /** 由「不 + 位移/进入动词」组成的明确否定短语（只做紧邻匹配，不做句式理解）。 */
++    private static final String[] NEGATION_PHRASES = {
++            "不进入", "不前往", "不下界", "不去", "不打算", "完成前不", "之前不"};
++
+     /** 明确的否定/禁止措辞。刻意只收多字或语义无歧义的单字，避免把「不错」「差不多」当成否定。 */
+     private static final String[] NEGATIONS = {
+             "不要", "不用", "不必", "无需", "禁止", "绝不", "不得", "不能", "不可",
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/MainlineResumeToken.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/MainlineResumeToken.java
+index fa1aa3418..9d82e4c16 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/MainlineResumeToken.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/MainlineResumeToken.java
+@@ -10,14 +10,21 @@ import java.util.UUID;
+  */
+ public record MainlineResumeToken(
+         UUID companionId,
++        String chainInstanceId,
+         String goalId,
+         String primaryId,
+         String subtaskId,
+         int planRevision,
+         long generation) {
+ 
+-    public boolean matches(String goalId, String primaryId, String subtaskId, int planRevision) {
+-        return eq(this.goalId, goalId)
++    /**
++     * 2026-11-02（169 审阅）：同 goalId/同 primaryId/同 planRevision 的两条链可以重名（新链从 0 起），
++     * 只比代次存在 ABA：旧令牌可能在新链同号同版本时误命中。加 chainInstanceId 后跨链必然不等。
++     */
++    public boolean matches(String chainInstanceId, String goalId, String primaryId, String subtaskId,
++                           int planRevision) {
++        return eq(this.chainInstanceId, chainInstanceId)
++                && eq(this.goalId, goalId)
+                 && eq(this.primaryId, primaryId)
+                 && eq(this.subtaskId, subtaskId)
+                 && this.planRevision == planRevision;
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoveryDecision.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoveryDecision.java
+index 0a0f1f2c7..2c019a5bf 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoveryDecision.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoveryDecision.java
+@@ -7,7 +7,10 @@ public enum DeathRecoveryDecision {
+     RECOVER_DROPS_FIRST,
+     FETCH_BACKUP_THEN_CONTINUE,
+     ABANDON_RECOVERY,
+-    PREPARE_AND_REPLAN;
++    PREPARE_AND_REPLAN,
++    /** 2026-11-02（170 §5.1）：旧主线已无意义（装备全丢/路线已死）——作废旧链、按新目标重新规划。
++     * 本档只允许执行 AI 显式选择；选后仍须调用 rdd_restart_mainline 才真的改链。 */
++    RESET_AND_RESTART;
+ 
+     public static DeathRecoveryDecision parse(String raw) {
+         if (raw == null || raw.isBlank()) return null;
+diff --git a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskType.java b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskType.java
+index ed7b2e4b1..afd5f37ff 100644
+--- a/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskType.java
++++ b/rdd-core/src/main/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskType.java
+@@ -24,6 +24,8 @@ public final class DeathRecoverySideTaskType implements SideTaskType {
+     public static final String PHASE_DECIDE = "DECIDE_RECOVERY";
+     public static final String PHASE_RECOVER = "RECOVER_DROPS";
+     public static final String PHASE_REEQUIP = "REEQUIP_AND_RESUME";
++    /** 已选择重置主线：等执行 AI 调 rdd_restart_mainline；不在这里越权改链。 */
++    public static final String PHASE_RESET_MAINLINE = "RESET_MAINLINE";
+     public static final String KEY_DECISION = "decision";
+ 
+     /** 业务保护线；不代表掉落实体已经消失。 */
+@@ -72,6 +74,22 @@ public final class DeathRecoverySideTaskType implements SideTaskType {
+             data.put("terminal_reason", "executor_declined_recovery");
+             return SideTaskVerdict.skip("执行 AI 在有限策略中选择放弃回收；交给损失影响分析", data);
+         }
++        if (decision == DeathRecoveryDecision.RESET_AND_RESTART) {
++            // 169 T6 / 170 §5.1：旧主线（例如「再进下界取烈焰棒」）在装备全丢后已不安全。
++            // 这里只冻结支线并等待执行 AI 显式调用 rdd_restart_mainline；
++            // 不直接改链——策略工具没有、也不该有重写主线的权限。
++            data.put("next_action", "rdd_restart_mainline");
++            if (task.pastDeadline(world.gameTime())) {
++                // 安全兜底：选了重置却一直没调用工具，不能把主线永久冻结。
++                // 保护线到期后解冻，交给恢复规划按 UNKNOWN/未完成处理；不冒充已重置。
++                data.put("terminal_reason", "reset_not_applied_before_deadline");
++                return SideTaskVerdict.skip(
++                        "已选择重置主线，但保护线到期仍未调用 rdd_restart_mainline；解冻主线交回恢复规划"
++                                + "（旧链未被 reset，不能记 PASS）", data);
++            }
++            data.put("terminal_reason", "");
++            return SideTaskVerdict.keep(PHASE_RESET_MAINLINE, data);
++        }
+         data.put("dangerous", Boolean.toString(facts.dangerous()));
+         data.put("backup_available", Boolean.toString(facts.backupAvailable()));
+         data.put("inventory_known", Boolean.toString(facts.inventoryKnown()));
+@@ -112,7 +130,10 @@ public final class DeathRecoverySideTaskType implements SideTaskType {
+                 + "若有备用装备且回死亡点会再次送命，先取备用/重新装战，再决定是否回收；"
+                 + "若就在附近且安全，可以直接回死亡点捡。"
+                 + "只能从固定策略中选择：RECOVER_DROPS_FIRST、FETCH_BACKUP_THEN_CONTINUE、"
+-                + "ABANDON_RECOVERY、PREPARE_AND_REPLAN；未知策略会被拒绝。"
++                + "ABANDON_RECOVERY、PREPARE_AND_REPLAN、RESET_AND_RESTART；未知策略会被拒绝。"
++                + "若旧主线（例如再进下界）在装备全丢后已不安全，选 RESET_AND_RESTART，"
++                + "然后调用 rdd_restart_mainline 提交新目标（带 objective 与 reason）；"
++                + "在重置生效前主线保持冻结。"
+                 + "也可以调用 rdd_decline_side 明确放弃本次回收，写清危险或收益不足；"
+                 + "放弃后才进入重要性损失分析和规划，不会因为五分钟业务保护线自动宣称物品消失。"
+                 + "区块未加载、掉落状态未知都不能当成没有。"
+diff --git a/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/SideTaskEngineTest.java b/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/SideTaskEngineTest.java
+index 0eb27b345..8ecc6e82c 100644
+--- a/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/SideTaskEngineTest.java
++++ b/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/SideTaskEngineTest.java
+@@ -185,7 +185,7 @@ class SideTaskEngineTest {
+ 
+     @Test
+     void capturesMainlineToken() {
+-        MainlineResumeToken token = new MainlineResumeToken(C, "goal-1", "primary-1", "sub-1", 3, 3);
++        MainlineResumeToken token = new MainlineResumeToken(C, "chain-1", "goal-1", "primary-1", "sub-1", 3, 3);
+         SideTaskEngine engine = new SideTaskEngine(new RecordingEvents(), t -> t);
+         engine.registerType(new SleepSideTaskType());
+         engine.registerTrigger(new SleepSideTaskTrigger());
+@@ -202,11 +202,19 @@ class SideTaskEngineTest {
+         engine.registerType(new SleepSideTaskType());
+         engine.registerTrigger(new SleepSideTaskTrigger());
+         engine.tick(C, new FakeWorldPort().at(WINDOW, 0L),
+-                new MainlineResumeToken(C, "g", "p", "s", 1, 1), false);
++                new MainlineResumeToken(C, "chain-g", "g", "p", "s", 1, 1), false);
+         assertTrue(engine.current(C).isPresent());
+         assertNull(engine.current(C).orElseThrow().mainlineToken(), "主线已失效 → 不保存令牌");
+     }
+ 
++    @Test
++    void tokenRequiresSameChainInstance() {
++        MainlineResumeToken token = new MainlineResumeToken(C, "chain-a", "g", "p", "s", 1, 1);
++        assertTrue(token.matches("chain-a", "g", "p", "s", 1));
++        assertFalse(token.matches("chain-b", "g", "p", "s", 1),
++                "同 goalId/primaryId/planRevision 的新链不能复用旧恢复令牌（ABA）");
++    }
++
+     @Test
+     void persistsAndRestores() {
+         RecordingEvents events = new RecordingEvents();
+diff --git a/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskTypeTest.java b/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskTypeTest.java
+index 93beefe02..5f77405fc 100644
+--- a/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskTypeTest.java
++++ b/rdd-core/src/test/java/com/dwinovo/numen/rdd/side/death/DeathRecoverySideTaskTypeTest.java
+@@ -96,6 +96,55 @@ class DeathRecoverySideTaskTypeTest {
+         assertTrue(context.contains("区块未加载"));
+     }
+ 
++    @Test
++    void resetDecisionKeepsBranchFrozenUntilExplicitRestart() {
++        SideTask frozen = new SideTask(C, "death_recovery-2", DeathRecoverySideTaskType.TYPE_ID,
++                1L, 0L, 1000L, 1000L + DeathRecoverySideTaskType.DEADLINE_TICKS,
++                SideTaskState.ACTIVE, DeathRecoverySideTaskType.PHASE_DECIDE,
++                Map.of("death_seq", "7", "dimension", "minecraft:the_nether",
++                        "death_at", "10,64,20",
++                        DeathRecoverySideTaskType.KEY_DECISION, "RESET_AND_RESTART"), null);
++        SideTaskVerdict verdict = new DeathRecoverySideTaskType().evaluate(frozen, new Port());
++        assertEquals(SideTaskVerdict.Kind.CONTINUE, verdict.kind(),
++                "选 RESET_AND_RESTART 后支线必须保持冻结，不能先恢复旧主线");
++        assertEquals(DeathRecoverySideTaskType.PHASE_RESET_MAINLINE, verdict.nextPhase());
++        assertEquals("rdd_restart_mainline", verdict.data().get("next_action"),
++                "必须把真正的改单入口写进上下文，策略工具本身不越权改链");
++    }
++
++    @Test
++    void resetDecisionSkipsAfterDeadlineInsteadOfFreezingForever() {
++        SideTask frozen = new SideTask(C, "death_recovery-3", DeathRecoverySideTaskType.TYPE_ID,
++                1L, 0L, 1000L, 1000L + DeathRecoverySideTaskType.DEADLINE_TICKS,
++                SideTaskState.ACTIVE, DeathRecoverySideTaskType.PHASE_RESET_MAINLINE,
++                Map.of("death_seq", "7", "dimension", "minecraft:the_nether",
++                        "death_at", "10,64,20",
++                        DeathRecoverySideTaskType.KEY_DECISION, "RESET_AND_RESTART"), null);
++        Port port = new Port();
++        port.time = 1000L + DeathRecoverySideTaskType.DEADLINE_TICKS + 1L;
++        SideTaskVerdict verdict = new DeathRecoverySideTaskType().evaluate(frozen, port);
++        assertEquals(SideTaskVerdict.Kind.SKIP, verdict.kind(),
++                "选了重置但保护线到期仍未调用工具时，必须解冻主线，不能永久 keep");
++        assertTrue(verdict.evidence().contains("UNKNOWN") || verdict.evidence().contains("不能记 PASS"));
++    }
++
++    @Test
++    void resetDecisionStillWaitsWhenDropsAreRecovered() {
++        SideTask frozen = new SideTask(C, "death_recovery-4", DeathRecoverySideTaskType.TYPE_ID,
++                1L, 0L, 1000L, 1000L + DeathRecoverySideTaskType.DEADLINE_TICKS,
++                SideTaskState.ACTIVE, DeathRecoverySideTaskType.PHASE_DECIDE,
++                Map.of("death_seq", "7", "dimension", "minecraft:the_nether",
++                        "death_at", "10,64,20",
++                        DeathRecoverySideTaskType.KEY_DECISION, "RESET_AND_RESTART"), null);
++        Port port = new Port();
++        port.facts = new SideTaskWorldPort.DeathRecoveryFacts(
++                SideTaskWorldPort.DeathDropState.RECOVERED, false, false, true, "all tracked items observed");
++        SideTaskVerdict verdict = new DeathRecoverySideTaskType().evaluate(frozen, port);
++        assertEquals(SideTaskVerdict.Kind.CONTINUE, verdict.kind(),
++                "掉落找回不等于旧主线安全；重置未应用前仍保持冻结");
++        assertEquals(DeathRecoverySideTaskType.PHASE_RESET_MAINLINE, verdict.nextPhase());
++    }
++
+     @Test
+     void triggerAllowedDuringDeathOccupancy() {
+         assertTrue(new DeathRecoverySideTaskTrigger().allowedWhileDeathOccupying());

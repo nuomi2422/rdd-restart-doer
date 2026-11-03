@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.policy.ReserveActionTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-02T16:35:03.610Z" hostname="497opf704wt6o4j" time="0.012">
+  <properties/>
+  <testcase name="itemsAlreadyInInventoryBecomePutNotGather()" classname="com.dwinovo.numen.rdd.policy.ReserveActionTest" time="0.01"/>
+  <testcase name="emptyOrMalformedInputIsIgnored()" classname="com.dwinovo.numen.rdd.policy.ReserveActionTest" time="0.0"/>
+  <testcase name="partialShortfallAsksOnlyForTheGap()" classname="com.dwinovo.numen.rdd.policy.ReserveActionTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-02T16:46:32.584Z" hostname="497opf704wt6o4j" time="0.007">
+  <properties/>
+  <testcase name="needsBlockShowsReservedForCriticalRows()" classname="com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest" time="0.001"/>
+  <testcase name="reservationSurvivesTicksButDiesWithThePrimary()" classname="com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest" time="0.004"/>
+  <testcase name="criticalOnlyGetsReservedByPolicy()" classname="com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

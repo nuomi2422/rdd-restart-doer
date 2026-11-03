@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" tests="9" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:42:47.901Z" hostname="497opf704wt6o4j" time="0.375">
+  <properties/>
+  <testcase name="malformedJsonFailsSoftToEmptyLedger(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.022"/>
+  <testcase name="saveOverwritesPreviousLedger(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.068"/>
+  <testcase name="saveThenLoadRoundTripsEverything(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.036"/>
+  <testcase name="renderParseRoundTripsThroughText()" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.001"/>
+  <testcase name="savedFileIsAtomicNoTmpLeftBehind(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.121"/>
+  <testcase name="missingFileLoadsAsEmptyLedgerNotNull(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.01"/>
+  <testcase name="writtenJsonIsUtf8AndSelfDescribing(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.01"/>
+  <testcase name="halfBrokenFileKeepsTheRowsItCanRead(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.018"/>
+  <testcase name="nullDirectoryIsANoOpNotAnException(Path)" classname="com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest" time="0.038"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

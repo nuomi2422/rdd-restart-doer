@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:42:50.533Z" hostname="497opf704wt6o4j" time="0.197">
+  <properties/>
+  <testcase name="clearIsIdempotentAndPreservesOtherCompanionsAndUnrelatedFiles()" classname="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" time="0.125"/>
+  <testcase name="authoritativeDeletionFailureDoesNotReportMemoryRemoval()" classname="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" time="0.007"/>
+  <testcase name="clearRemovesRestorableChainAndStagingBeforeMemory()" classname="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" time="0.01"/>
+  <testcase name="clearBeforePersistenceSetupStillRemovesMemory()" classname="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" time="0.041"/>
+  <testcase name="stagingDeletionFailureRetainsAuthoritativeChainAndMemory()" classname="com.dwinovo.numen.plugins.rdd.RddTaskHandoffTest" time="0.009"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.core.RddChainFactoryTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:50:16.749Z" hostname="497opf704wt6o4j" time="0.012">
+  <properties/>
+  <testcase name="trimsAndRejectsBlank()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.001"/>
+  <testcase name="fromSpecBuildsMultiSubtaskChain()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.0"/>
+  <testcase name="degradedMarkerSurvivesTheLengthCap()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.003"/>
+  <testcase name="buildsUsableChain()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.001"/>
+  <testcase name="fromSpecRejectsInvalidInput()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.003"/>
+  <testcase name="capsObjectiveLength()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.0"/>
+  <testcase name="degradedObjectiveCarriesTheReasonSoSnapshotsExplainThemselves()" classname="com.dwinovo.numen.rdd.core.RddChainFactoryTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

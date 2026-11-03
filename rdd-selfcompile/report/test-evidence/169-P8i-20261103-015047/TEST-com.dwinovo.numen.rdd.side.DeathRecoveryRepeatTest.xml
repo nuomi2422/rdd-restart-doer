@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.side.DeathRecoveryRepeatTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:50:22.766Z" hostname="497opf704wt6o4j" time="0.004">
+  <properties/>
+  <testcase name="engineOpensDeathRecoveryAgainInTheSameGameDay()" classname="com.dwinovo.numen.rdd.side.DeathRecoveryRepeatTest" time="0.003"/>
+  <testcase name="repeatedExpectForSameSeqDoesNotQueueTwice()" classname="com.dwinovo.numen.rdd.side.DeathRecoveryRepeatTest" time="0.001"/>
+  <testcase name="triggerQueuesDifferentDeathBatchesInsteadOfOverwriting()" classname="com.dwinovo.numen.rdd.side.DeathRecoveryRepeatTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

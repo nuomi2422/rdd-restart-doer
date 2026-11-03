@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:42:50.733Z" hostname="497opf704wt6o4j" time="0.323">
+  <properties/>
+  <testcase name="registrationListHasNotGrownOrShrunkSilently()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.051"/>
+  <testcase name="descriptionsHaveNotBeenTruncated()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.105"/>
+  <testcase name="everyPinnedToolIsStillRegistered()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.005"/>
+  <testcase name="statusToolStillWarnsAgainstReplacingTheWholeChain()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.001"/>
+  <testcase name="sourceReadingMechanismItselfWorks()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.007"/>
+  <testcase name="skipToolStillTellsTheModelToReadStatusFirst()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.003"/>
+  <testcase name="skipToolStillPromisesItRecordsSkippedNotCompleted()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.002"/>
+  <testcase name="toolNamesArePinned()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.053"/>
+  <testcase name="submitToolStillListsItsRequiredFields()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.015"/>
+  <testcase name="standbyToolStillSaysItIsOwnerOnly()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.007"/>
+  <testcase name="concernToolStillExplainsTheFourKinds()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.006"/>
+  <testcase name="descriptionHasNoUnexplainedPlaceholder()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.056"/>
+  <testcase name="multiLineDescriptionConcatenationIsCountedNotTruncated()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.002"/>
+  <testcase name="skipToolStillRefusesNonFoodAndNonOptionalSteps()" classname="com.dwinovo.numen.plugins.rdd.RddToolContractSnapshotTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

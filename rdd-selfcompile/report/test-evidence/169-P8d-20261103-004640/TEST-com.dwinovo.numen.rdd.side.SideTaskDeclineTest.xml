@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.side.SideTaskDeclineTest" tests="4" skipped="0" failures="0" errors="0" timestamp="2026-11-02T16:35:03.731Z" hostname="497opf704wt6o4j" time="0.003">
+  <properties/>
+  <testcase name="decliningNothingIsReportedAsFailureNotSilentSuccess()" classname="com.dwinovo.numen.rdd.side.SideTaskDeclineTest" time="0.001"/>
+  <testcase name="withoutWorldInfoTheDeclineStillWorksButOnlyForThisInstance()" classname="com.dwinovo.numen.rdd.side.SideTaskDeclineTest" time="0.0"/>
+  <testcase name="declinedSideTaskStaysDeclinedAcrossRestart()" classname="com.dwinovo.numen.rdd.side.SideTaskDeclineTest" time="0.001"/>
+  <testcase name="declineReleasesMainlineAndLocksTheRestOfTheDay()" classname="com.dwinovo.numen.rdd.side.SideTaskDeclineTest" time="0.001"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

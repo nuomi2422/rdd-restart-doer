@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" tests="10" skipped="0" failures="0" errors="0" timestamp="2026-11-02T17:50:16.705Z" hostname="497opf704wt6o4j" time="0.022">
+  <properties/>
+  <testcase name="worldAssetsDoNotEnterInventoryCounts()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.001"/>
+  <testcase name="worldClaimsCarryWorldRegistrySourceAndObservedAt()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.002"/>
+  <testcase name="invalidAssetsAreReportedLostButDoNotAffectAvailability()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.001"/>
+  <testcase name="claimsCarryLiveScanSourceAndVerifiedAt()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.001"/>
+  <testcase name="claimsVerifiedAtIsNullWhenScanTimeUnknown()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.009"/>
+  <testcase name="claimsNeverPolluteWorldWithInventoryOrViceVersa()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.0"/>
+  <testcase name="availableComesOnlyFromLiveScanEvenIfRegistryHasMore()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.001"/>
+  <testcase name="unknownAssetsAreReportedButDoNotAffectAvailability()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.0"/>
+  <testcase name="emptyRegistryFallsBackToLiveScan()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.0"/>
+  <testcase name="liveScanIsTheOnlyTruthRegistryDoesNotOverride()" classname="com.dwinovo.numen.rdd.core.PlanningAssetSnapshotTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
