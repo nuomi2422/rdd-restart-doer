@@ -21,10 +21,11 @@ $env:RDD_SELF_COMPILE_INSTANCE = if ($Instance) { $Instance } else { 'gpt' }
 # 2026-09-30：判定收进 mc-instance.ps1（单一真源），并回显**实际检查的目录** ——
 # 之前"检查 test 却启动 gpt"的错就是靠手写路径造成的，这里让路径只有一个来源。
 $instanceDir = $global:RDD_SC.MC_GAME_DIR
-$running = @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" |
-    Where-Object { $_.CommandLine -and $_.CommandLine -like "*$instanceDir*" -and $_.CommandLine -notlike "*soul-core-bridge*" })
-Write-Output "LAUNCH_CHECK instance=$($global:RDD_SC.SC_INSTANCE) dir=$instanceDir running=$($running.Count)"
-if ($running.Count -gt 0) {
+. "$PSScriptRoot\mc-instance.ps1"
+$state = Get-RddMcState -Instance $global:RDD_SC.SC_INSTANCE
+Write-Output "LAUNCH_CHECK instance=$($global:RDD_SC.SC_INSTANCE) dir=$instanceDir state=$state"
+if ($state -eq 'UNKNOWN') { Write-Output 'LAUNCH_REFUSED_UNKNOWN'; exit 6 }
+if ($state -eq 'RUNNING') {
     $result = @{ success = $false; stage = "launch-mc"; error = "minecraft already running; refusing to start second instance" }
     if ($MutationId) {
         Write-ResultJson (Join-Path $global:RDD_SC.SC_MUTATIONS (Join-Path $MutationId "phase-launch.json")) $result

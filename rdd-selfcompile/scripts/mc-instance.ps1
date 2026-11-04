@@ -24,7 +24,7 @@ function Get-RddMcProcess {
     param([string]$Instance)
     $dir = Get-RddMcGameDir $Instance
     if ([string]::IsNullOrWhiteSpace($dir)) { return @() }
-    @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" |
+    @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop |
         Where-Object {
             $_.CommandLine -and
             $_.CommandLine -like "*$dir*" -and
@@ -32,16 +32,42 @@ function Get-RddMcProcess {
         })
 }
 
-# 该实例是否在运行
-function Test-RddMcRunning {
+# 三态：STOPPED / RUNNING / UNKNOWN。查询失败或命令行不可读一律 UNKNOWN。
+function Get-RddMcState {
     param([string]$Instance)
-    $p = @(Get-RddMcProcess -Instance $Instance)
-    return ($p.Count -gt 0)
+    try {
+        $dir = Get-RddMcGameDir $Instance
+        if ([string]::IsNullOrWhiteSpace($dir)) { return 'UNKNOWN' }
+        $procs = @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
+    } catch {
+        return 'UNKNOWN'
+    }
+    if ($procs.Count -eq 0) { return 'STOPPED' }
+    foreach ($p in $procs) { if (-not $p.CommandLine) { return 'UNKNOWN' } }
+    $target = [IO.Path]::GetFullPath($dir).TrimEnd('\')
+    $match = @($procs | Where-Object {
+        if ($_.CommandLine -like '*soul-core-bridge*') { return $false }
+        foreach ($tok in ($_.CommandLine -split '\s+')) {
+            $cand = $tok.Trim('"')
+            if ($cand -match '^--gameDir=(.+)$') { $cand = $Matches[1] }
+            try { if ([IO.Path]::GetFullPath($cand).TrimEnd('\') -ieq $target) { return $true } } catch {}
+        }
+        return $false
+    })
+    if ($match.Count -gt 0) { return 'RUNNING' }
+    return 'STOPPED'
 }
 
-# 停掉该实例（只停它自己，不碰别的实例/别的进程）
+# 兼容旧调用：只回答“确定在跑”
+function Test-RddMcRunning {
+    param([string]$Instance)
+    return ((Get-RddMcState -Instance $Instance) -eq 'RUNNING')
+}
+
 function Stop-RddMcInstance {
     param([string]$Instance, [int]$TimeoutSec = 10)
+    $state = Get-RddMcState -Instance $Instance
+    if ($state -eq 'UNKNOWN') { return 'STOP_UNKNOWN: cannot verify target instance' }
     $procs = @(Get-RddMcProcess -Instance $Instance)
     if ($procs.Count -eq 0) { return "already down" }
     $ids = @($procs | ForEach-Object { $_.ProcessId })
@@ -58,7 +84,7 @@ function Stop-RddMcInstance {
     }
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
-        if (-not (Test-RddMcRunning -Instance $Instance)) {
+        if ((Get-RddMcState -Instance $Instance) -eq 'STOPPED') {
             return ("{0} (pid {1})" -f ($(if ($graceful) { 'stopped-gracefully' } else { 'stopped' })), ($ids -join ','))
         }
         Start-Sleep -Milliseconds 500
@@ -67,10 +93,11 @@ function Stop-RddMcInstance {
     Stop-Process -Id $ids -Force -ErrorAction SilentlyContinue
     $deadline = (Get-Date).AddSeconds(5)
     while ((Get-Date) -lt $deadline) {
-        if (-not (Test-RddMcRunning -Instance $Instance)) { return "stopped-forced (pid $($ids -join ','))" }
+        if ((Get-RddMcState -Instance $Instance) -eq 'STOPPED') { return "stopped-forced (pid $($ids -join ','))" }
         Start-Sleep -Milliseconds 500
     }
-    return "STILL RUNNING after ${TimeoutSec}s (pid $($ids -join ','))"
+    $final = Get-RddMcState -Instance $Instance
+    return "STILL $final after ${TimeoutSec}s (pid $($ids -join ','))"
 }
 
 # 「确保它在跑」：已在跑就**直接返回**，绝不重复启动。
