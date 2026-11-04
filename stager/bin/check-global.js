@@ -61,7 +61,8 @@ else { fail.push('外层有 ' + miss.length + ' 条 H2 在全局卡里找不到�
 // ② 指针卡指向的文件必须存在
 const POINTERS = [
   'D:/rdd/harness/rdd-harness/stage.md',
-  'D:/rdd/harness/rdd-harness/进游戏前必读-游戏内能力清单.md',
+  'D:/rdd/docs/rdd-docs/知识库/进游戏验证/001-进游戏核心工具.md',
+  'D:/rdd/docs/rdd-docs/知识库/退游戏/001-退游戏检查单.md',
   'D:/rdd/harness/rdd-harness/registry.json',
   'D:/rdd/harness/rdd-harness/standards.md',
   'D:/rdd/harness/rdd-harness/bin/harness-gate.js',

@@ -21,9 +21,9 @@ RDD 要通过真实 Minecraft 长程运行，持续检验 AI 是否能完成任�
 
 - 观测或复核运行：先读 `bench brief` 指针。
 - 架构状态可能混淆：先读现实状态对照文档。
-- 修改代码或编译部署：读工程纪律和编程规范指针。
-- 进入 Minecraft：读游戏能力清单、preflight 和验证卡规则。
-- 退出 Minecraft：跑 postflight，回填验证卡、杂项记录和记忆库。
+- 修改代码或编译部署：先跑 `node D:\rdd\harness\rdd-harness\bin\code-gate.js`（薄门禁：8 条硬规则 + 台账查重），再读工程纪律和编程规范指针。
+- 进入 Minecraft：读 `D:\rdd\docs\rdd-docs\知识库\进游戏验证\001-进游戏核心工具.md`、preflight 和验证卡规则。
+- 退出 Minecraft：先读 `D:\rdd\docs\rdd-docs\知识库\退游戏\001-退游戏检查单.md`，跑 postflight，回填验证卡和记忆库。
 - 执行长期目标：读取 `外层编码AI-Goal提示词.md`。
 - 明确要求开 stage：才读取 stage 手册；默认不开 stage。
 - 要拍图/录像/让 AI 当摄影师：读 `D:\rdd\tools\numencam-mcp\README.md`（相机已注册为 `mcp__numencam__*` 工具，2026-11-01）。

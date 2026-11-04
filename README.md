@@ -63,7 +63,7 @@ node stager\bin\repo-status.js
 
 ```powershell
 node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" preflight  --since <今天> --keyword <模块> --head <HEAD>
-#   ↑ 进游戏前：读《进游戏前必读-游戏内能力清单.md》（说话/建伙伴/停内脑/视觉/追踪/相机/飞行/看监测台）
+#   ↑ 进游戏前：读《知识库\进游戏验证\001-进游戏核心工具.md》（实验台/任务链/指令+MCP/摄像机）
 node "D:\rdd\harness\rdd-harness\bin\harness-gate.js" postflight --since <今天> --keyword <模块> --head <HEAD>
 #   ↑ 出游戏后：查「写记录 + 写文档 + 灌记忆图谱 + 产物真的落地 + 时间锁更新 + 编号登记 + 游戏已关」
 ```

@@ -102,7 +102,7 @@ const S_NEED = [
   ['机器门 flow-gate', /flow-gate\.js/],
   ['阶段门禁 stager check', /stager\.js" check|bin\\stager\.js check|stager check/],
   ['完成动作', /完成动作（顺序别乱）/],
-  ['进游戏前必读 清单', /进游戏前必读-游戏内能力清单\.md/],
+  ['进游戏核心工具 清单', /001-进游戏核心工具\.md/],
   ['GLM 源码审', /GLM 源码审/],
   ['改流程 stages.json', /stages\.json/],
   ['stager 交接', /STAGER\.md|swap/],
@@ -119,7 +119,7 @@ else if (deadRef.length === 0) good.push('FLOW-MANDATE.md 引用的 ' + fmRefs.l
 else warn.push('FLOW-MANDATE.md 引的小节号已经不存在：' + deadRef.join(' / ') + '（B版瘦身了，要么改引用要么改 FLOW-MANDATE）');
 
 // ⑥ 三份路径存在性
-const P = ['D:/rdd/harness/rdd-harness/stage.md', 'D:/rdd/harness/rdd-harness/进游戏前必读-游戏内能力清单.md'];
+const P = ['D:/rdd/harness/rdd-harness/stage.md', 'D:/rdd/docs/rdd-docs/知识库/进游戏验证/001-进游戏核心工具.md', 'D:/rdd/docs/rdd-docs/知识库/退游戏/001-退游戏检查单.md'];
 const missP = P.filter((p) => !fs.existsSync(p));
 if (missP.length === 0) good.push('细则两份文件真实存在');
 else bad.push('文件不存在：' + missP.join(' / '));
@@ -165,7 +165,7 @@ try {
     ['ASK 提示说明', /☞/],
     ['退出码 0/1/3', /exit=0[\s\S]{0,40}1[\s\S]{0,40}3|退出码/],
     ['外脑可选', /外脑[\s\S]{0,10}可选/],
-    ['能力清单指向', /进游戏前必读-游戏内能力清单\.md/],
+    ['能力清单指向', /001-进游戏核心工具\.md/],
     ['arch 是防迷路的锚', /防迷路的锚/],
   ];
   const missHook = S_HOOK.filter((x) => !x[1].test(s)).map((x) => x[0]);
