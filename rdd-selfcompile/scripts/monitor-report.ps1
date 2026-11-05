@@ -16,13 +16,21 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$file = Join-Path $GameDir 'config/numen/monitor/rdd.jsonl'
+$dir = Join-Path $GameDir 'config/numen/monitor'
+$file = Join-Path $dir 'rdd.jsonl'
 if (-not (Test-Path $file)) { Write-Output "no monitor file: $file"; exit 0 }
 
-$total = (Get-Item $file).Length
+# 2026-11-05: after a rotation the live file holds only a handful of lines, so a report that
+# reads just rdd.jsonl looks empty and hides the run that produced it. Include rotated archives
+# (rdd-<millis>.jsonl) and say how many were folded in.
+$archives = @(Get-ChildItem $dir -Filter 'rdd-*.jsonl' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+$total = (Get-Item $file).Length + (($archives | Measure-Object Length -Sum).Sum)
 $stats = @{}
 $matched = @()
-Get-Content $file -Encoding UTF8 | ForEach-Object {
+$lines = @()
+$lines += @(Get-Content $file -Encoding UTF8)
+foreach ($a in $archives) { $lines += @(Get-Content $a.FullName -Encoding UTF8) }
+$lines | ForEach-Object {
     $line = $_
     if ([string]::IsNullOrWhiteSpace($line)) { return }
     try { $o = $line | ConvertFrom-Json } catch { return }
@@ -33,7 +41,7 @@ Get-Content $file -Encoding UTF8 | ForEach-Object {
     if ($t -eq $Type) { $matched += $o }
 }
 
-Write-Output ("file=" + $file)
+Write-Output ("file=" + $file + " (+" + $archives.Count + " rotated)")
 Write-Output ("bytes=" + $total + " lines=" + (($stats.Values | ForEach-Object { $_.n } | Measure-Object -Sum).Sum))
 Write-Output ''
 Write-Output 'type                             count      bytes   bytes/event'
