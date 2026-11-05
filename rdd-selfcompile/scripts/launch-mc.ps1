@@ -49,6 +49,31 @@ $launcher = Start-Process -FilePath 'cmd.exe' -ArgumentList @('/c', ('"' + $glob
     -WindowStyle Hidden -PassThru
 Start-Sleep -Seconds 3
 
+# 2026-11-05: the launcher bat has its own guard (e.g. audit gate pending -> REFUSED).
+# The old script printed LAUNCH_OK and wrote success=true without checking; now it waits
+# up to 30s for "javaw exists" AND "latest.log advanced", otherwise NOT_STARTED + exit 7.
+$launchStartedAt = Get-Date
+$gameLog = Join-Path $global:RDD_SC.MC_GAME_DIR 'logs/latest.log'
+$beforeLogTime = if (Test-Path $gameLog) { (Get-Item $gameLog).LastWriteTime } else { [datetime]::MinValue }
+$launched = $false
+for ($i = 0; $i -lt 30; $i++) {
+    Start-Sleep -Seconds 1
+    $javaw = @(Get-Process javaw -ErrorAction SilentlyContinue).Count
+    $logAdvanced = (Test-Path $gameLog) -and ((Get-Item $gameLog).LastWriteTime -gt $beforeLogTime)
+    if ($javaw -gt 0 -and $logAdvanced) { $launched = $true; break }
+}
+if (-not $launched) {
+    $errText = ''
+    if (Test-Path "$launchLog.err") { $errText = (Get-Content "$launchLog.err" -Raw -ErrorAction SilentlyContinue) }
+    Write-Output ("LAUNCH_NOT_STARTED after 30s; javaw=" + @(Get-Process javaw -ErrorAction SilentlyContinue).Count + " batErr=" + $errText.Trim())
+    if ($MutationId) {
+        $fail = @{ success = $false; stage = 'launch-mc'; state = 'NOT_STARTED'; instance = $global:RDD_SC.SC_INSTANCE
+                   gameDir = $global:RDD_SC.MC_GAME_DIR; batErr = $errText.Trim(); checkedAt = (Get-Date).ToString('o') }
+        Write-ResultJson (Join-Path $global:RDD_SC.SC_MUTATIONS (Join-Path $MutationId 'phase-launch.json')) $fail
+    }
+    exit 7
+}
+
 # 连带拉起看门狗：到点自动关闭游戏，防止 AI 崩溃/离线时空转耗电
 $watchdog = $null
 if ($AutoStopMinutes -gt 0) {
