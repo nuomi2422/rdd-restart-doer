@@ -23,12 +23,21 @@ param(
 $ErrorActionPreference = 'Stop'
 if (-not (Test-Path $Journal)) { Write-Output ("no journal: " + $Journal); exit 0 }
 
+# 2026-11-05: tools.jsonl rotates at 16 MB (tools-<millis>.jsonl). Reading only the live file
+# reported 4617 calls while the archives held another ~60 MB of history -- same "tool sees one
+# file, so I conclude there is nothing" mistake as monitor-report. Merge the archives by default.
+$dir = Split-Path $Journal -Parent
+$archives = @(Get-ChildItem $dir -Filter 'tools-*.jsonl' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+$allLines = @()
+$allLines += @(Get-Content $Journal -Encoding UTF8)
+foreach ($a in $archives) { $allLines += @(Get-Content $a.FullName -Encoding UTF8) }
+
 $companion = @{}
 $mcp = @{}
 $total = 0
 $companionTotal = 0
 $mcpTotal = 0
-Get-Content $Journal -Encoding UTF8 | ForEach-Object {
+$allLines | ForEach-Object {
     $line = $_
     if ($line -notmatch '"type":"tool_call"') { return }
     try { $o = $line | ConvertFrom-Json } catch { return }
@@ -49,7 +58,7 @@ Get-Content $Journal -Encoding UTF8 | ForEach-Object {
     }
 }
 
-Write-Output ("tool_call total=" + $total + "  companion=" + $companionTotal + "  mcp=" + $mcpTotal)
+Write-Output ("tool_call total=" + $total + "  companion=" + $companionTotal + "  mcp=" + $mcpTotal + "  (+" + $archives.Count + " rotated)")
 Write-Output ''
 Write-Output "--- companion (non mcp-*) ---"
 $companion.GetEnumerator() | Sort-Object Value -Descending | Select-Object -First $Top | ForEach-Object {
