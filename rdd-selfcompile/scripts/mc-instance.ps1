@@ -67,6 +67,7 @@ function Test-RddMcRunning {
 
 function Invoke-RddExitAudit {
     # 2026-11-05：退游戏记账下沉到最底层停止函数；任何调用方（stop-rdd 或直接调本函数）都算一次退出。
+    try { & node 'D:\rdd\harness\rdd-harness\bin\stage-card.js' exit } catch { }
     try { & powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\rdd\.harness\audit\gate.ps1' } catch { }
 }
 
