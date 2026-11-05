@@ -21,11 +21,16 @@ if (-not $Journal) { $Journal = Join-Path $GameDir 'config/numen/monitor/context
 if (-not (Test-Path $Journal)) { Write-Output ("no journal: " + $Journal); exit 0 }
 
 $last = $null
-Get-Content $Journal -Encoding UTF8 | ForEach-Object {
+$dir = Split-Path $Journal -Parent
+$archives = @(Get-ChildItem $dir -Filter 'context-*.jsonl' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+$lines = @()
+$lines += @(Get-Content $Journal -Encoding UTF8)
+foreach ($a in $archives) { $lines += @(Get-Content $a.FullName -Encoding UTF8) }
+$lines | ForEach-Object {
     $line = $_
     if ($line -notmatch '"type":"llm_request"') { return }
     try { $o = $line | ConvertFrom-Json } catch { return }
-    $last = $o
+    if (-not $last -or ([string]$o.timestamp) -gt ([string]$last.timestamp)) { $last = $o }
 }
 if (-not $last) { Write-Output 'no llm_request yet'; exit 0 }
 

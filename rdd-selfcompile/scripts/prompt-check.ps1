@@ -20,12 +20,21 @@ $ErrorActionPreference = 'Stop'
 if (-not $Journal) { $Journal = Join-Path $GameDir 'config/numen/monitor/context.jsonl' }
 if (-not (Test-Path $Journal)) { Write-Output ("no journal: " + $Journal); exit 0 }
 
+# 2026-11-05: context.jsonl rotates at 16 MB (context-<millis>.jsonl). Reading only the live
+# file reports "no llm_request yet" right after a rotation -- the same one-file-myopia that
+# already produced three wrong conclusions tonight. Merge the archives, keep the newest request.
+$dir = Split-Path $Journal -Parent
+$archives = @(Get-ChildItem $dir -Filter 'context-*.jsonl' -ErrorAction SilentlyContinue | Sort-Object LastWriteTime)
+$lines = @()
+$lines += @(Get-Content $Journal -Encoding UTF8)
+foreach ($a in $archives) { $lines += @(Get-Content $a.FullName -Encoding UTF8) }
+
 $last = $null
-Get-Content $Journal -Encoding UTF8 | ForEach-Object {
+$lines | ForEach-Object {
     $line = $_
     if ($line -notmatch '"type":"llm_request"') { return }
     try { $o = $line | ConvertFrom-Json } catch { return }
-    $last = $o
+    if (-not $last -or ([string]$o.timestamp) -gt ([string]$last.timestamp)) { $last = $o }
 }
 if (-not $last) { Write-Output 'no llm_request yet'; exit 0 }
 
