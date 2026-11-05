@@ -17,6 +17,7 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $mon = Join-Path $GameDir 'config/numen/monitor'
+if (-not (Test-Path $mon)) { Write-Output ("no monitor dir: " + $mon); exit 0 }
 # journal timestamps are UTC (Z); compare in the same frame or every row looks "old".
 if (-not $Since) { $Since = (Get-Date).ToUniversalTime().AddMinutes(-120).ToString('yyyy-MM-ddTHH:mm') }
 Write-Output ("window since " + $Since + " UTC (pass -Since in UTC to widen)")
