@@ -44,6 +44,15 @@ $pattern = (Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='java
 # 回收启动器控制台：bat 以 pause 结尾，游戏退出后 cmd.exe 会永远等按键。
 # 不回收就会残留一个空控制台（多次运行会累积），也曾因继承 stdout 管道导致
 # 上层 shell 永不 EOF。只杀本实例 GameDir 对应的 cmd.exe，不碰别的。
+
+# 2026-11-05: every game exit is an audit settlement point (see stop-rdd.ps1 / mc-instance.ps1).
+# The watchdog used to kill javaw with Stop-Process, which bypasses Stop-RddMcInstance and
+# therefore never recorded the exit: a whole run could finish while state.json still showed
+# the previous exit count (observed 12:52-12:58, counter stayed at 12:44). Record it here.
+function Invoke-WatchdogExitAudit {
+    try { & powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\rdd\.harness\audit\gate.ps1' | Out-Null } catch { }
+}
+
 function Remove-StaleLauncherConsole {
     $stale = Get-CimInstance Win32_Process -Filter "Name='cmd.exe'" -ErrorAction SilentlyContinue |
         Where-Object { $_.CommandLine -like ('*' + $GameDir + '*') -and $_.ProcessId -ne $PID }
@@ -68,6 +77,7 @@ while ($true) {
 
     if (-not $alive) {
         Remove-StaleLauncherConsole
+        Invoke-WatchdogExitAudit
         $m = '[' + (Get-Date).ToString('s') + '] WATCHDOG_STOP game already closed; no kill needed; launcher console reaped.'
         Add-Content -LiteralPath $LogPath -Value $m -Encoding UTF8 -ErrorAction SilentlyContinue
         exit 0
@@ -80,6 +90,7 @@ while ($true) {
             Stop-Process -Id $p.ProcessId -Force -ErrorAction SilentlyContinue
         }
         Start-Sleep -Seconds 2
+        Invoke-WatchdogExitAudit
         Remove-StaleLauncherConsole
         $m = '[' + (Get-Date).ToString('s') + '] WATCHDOG_STOP game closed; launcher console reaped.'
         Add-Content -LiteralPath $LogPath -Value $m -Encoding UTF8 -ErrorAction SilentlyContinue
