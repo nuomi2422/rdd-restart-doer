@@ -1,4 +1,4 @@
-﻿# 启动 Minecraft 并进入 gpt 存档
+# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
@@ -13,6 +13,19 @@ param(
 #    改一处不改另一处 = 没改。
 $env:RDD_SELF_COMPILE_INSTANCE = if ($Instance) { $Instance } else { 'gpt' }
 . "$PSScriptRoot\config.ps1"
+
+# STAGE_CARD_BEGIN
+# 2026-11-05: child output is redirected to launch logs, so print the existing card here.
+# A successful print is output delivery only, not proof of reading or adoption.
+$stageCard = Join-Path $PSScriptRoot "..\..\..\harness\rdd-harness\bin\stage-card.js"
+try {
+    if (-not (Test-Path -LiteralPath $stageCard)) { throw "stage-card script missing" }
+    & node $stageCard enter
+    if ($LASTEXITCODE -ne 0) { throw "stage-card exit=$LASTEXITCODE" }
+} catch {
+    Write-Warning ("STAGE_CARD_NOT_DELIVERED: " + $_.Exception.Message)
+}
+# STAGE_CARD_END
 
 # 先检查是否已有游戏在跑
 # 注意：server 目录名可能出现在非游戏进程里（如 WineFox soul-core-bridge 的
