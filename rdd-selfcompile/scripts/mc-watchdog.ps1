@@ -77,7 +77,6 @@ while ($true) {
 
     if (-not $alive) {
         Remove-StaleLauncherConsole
-        Invoke-WatchdogExitAudit
         $m = '[' + (Get-Date).ToString('s') + '] WATCHDOG_STOP game already closed; no kill needed; launcher console reaped.'
         Add-Content -LiteralPath $LogPath -Value $m -Encoding UTF8 -ErrorAction SilentlyContinue
         exit 0
