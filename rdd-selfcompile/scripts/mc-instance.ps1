@@ -11,6 +11,8 @@
 #   路径由 config.ps1 按 $Instance 解析，**检查与启动必然同源**。
 
 # 该实例对应的游戏目录（gpt/test 各自的；不传实例时用默认 gpt）
+. (Join-Path $PSScriptRoot 'mc-identity.ps1')
+
 function Get-RddMcGameDir {
     param([string]$Instance)
     $env:RDD_SELF_COMPILE_INSTANCE = if ([string]::IsNullOrWhiteSpace($Instance)) { 'gpt' } else { $Instance }
@@ -24,44 +26,48 @@ function Get-RddMcProcess {
     param([string]$Instance)
     $dir = Get-RddMcGameDir $Instance
     if ([string]::IsNullOrWhiteSpace($dir)) { return @() }
-    @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop |
-        Where-Object {
-            $_.CommandLine -and
-            $_.CommandLine -like "*$dir*" -and
-            $_.CommandLine -notlike "*soul-core-bridge*"
-        })
+    # 042 R0: identity is decided by mc-identity.ps1 only -- this function and
+    # Get-RddMcState must never use two different matching algorithms.
+    $procs = @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
+    return @($procs | Where-Object { $_.CommandLine -and ((Get-RddMcCommandLineMatch $_.CommandLine $dir) -eq 'MATCH') })
 }
 
-# 三态：STOPPED / RUNNING / UNKNOWN。查询失败或命令行不可读一律 UNKNOWN。
 function Get-RddMcState {
     param([string]$Instance)
+    # 042 R0: only a SUCCESSFUL enumeration may yield STOPPED. Any query failure is UNKNOWN.
     try {
         $dir = Get-RddMcGameDir $Instance
-        if ([string]::IsNullOrWhiteSpace($dir)) { return 'UNKNOWN' }
-        $procs = @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
     } catch {
         return 'UNKNOWN'
     }
-    if ($procs.Count -eq 0) { return 'STOPPED' }
+    if ([string]::IsNullOrWhiteSpace($dir)) { return 'UNKNOWN' }
+
+    # Step 1: is any java/javaw alive at all? Full enumeration, failure is NOT 'none alive'.
+    $all = $null
+    try { $all = @(Get-Process -ErrorAction Stop) } catch { return 'UNKNOWN' }
+    $alive = @($all | Where-Object { Test-RddMcProcessName $_.ProcessName })
+    if ($alive.Count -eq 0) { return 'STOPPED' }
+
+    # Step 2: identifying which instance it is needs command lines; WMI is the only source.
+    $procs = $null
+    try { $procs = @(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop) } catch { return 'UNKNOWN' }
+    if ($procs.Count -eq 0) { return 'UNKNOWN' }   # Get-Process saw java, WMI did not: do not guess
     foreach ($p in $procs) { if (-not $p.CommandLine) { return 'UNKNOWN' } }
-    $target = [IO.Path]::GetFullPath($dir).TrimEnd('\')
-    $match = @($procs | Where-Object {
-        if ($_.CommandLine -like '*soul-core-bridge*') { return $false }
-        foreach ($tok in ($_.CommandLine -split '\s+')) {
-            $cand = $tok.Trim('"')
-            if ($cand -match '^--gameDir=(.+)$') { $cand = $Matches[1] }
-            try { if ([IO.Path]::GetFullPath($cand).TrimEnd('\') -ieq $target) { return $true } } catch {}
-        }
-        return $false
-    })
-    if ($match.Count -gt 0) { return 'RUNNING' }
-    return 'STOPPED'
+
+    # 042 R0: a process whose identity cannot be decided must not be read as "not ours".
+    $matches = @($procs | ForEach-Object { Get-RddMcCommandLineMatch $_.CommandLine $dir })
+    return (Get-RddMcStateFromMatches $matches)
 }
 
 # 兼容旧调用：只回答“确定在跑”
 function Test-RddMcRunning {
     param([string]$Instance)
     return ((Get-RddMcState -Instance $Instance) -eq 'RUNNING')
+}
+
+function Invoke-RddExitAudit {
+    # 2026-11-05：退游戏记账下沉到最底层停止函数；任何调用方（stop-rdd 或直接调本函数）都算一次退出。
+    try { & powershell -NoProfile -ExecutionPolicy Bypass -File 'D:\rdd\.harness\audit\gate.ps1' } catch { }
 }
 
 function Stop-RddMcInstance {
@@ -85,6 +91,7 @@ function Stop-RddMcInstance {
     $deadline = (Get-Date).AddSeconds($TimeoutSec)
     while ((Get-Date) -lt $deadline) {
         if ((Get-RddMcState -Instance $Instance) -eq 'STOPPED') {
+            Invoke-RddExitAudit
             return ("{0} (pid {1})" -f ($(if ($graceful) { 'stopped-gracefully' } else { 'stopped' })), ($ids -join ','))
         }
         Start-Sleep -Milliseconds 500
@@ -93,7 +100,7 @@ function Stop-RddMcInstance {
     Stop-Process -Id $ids -Force -ErrorAction SilentlyContinue
     $deadline = (Get-Date).AddSeconds(5)
     while ((Get-Date) -lt $deadline) {
-        if ((Get-RddMcState -Instance $Instance) -eq 'STOPPED') { return "stopped-forced (pid $($ids -join ','))" }
+        if ((Get-RddMcState -Instance $Instance) -eq 'STOPPED') { Invoke-RddExitAudit; return "stopped-forced (pid $($ids -join ','))" }
         Start-Sleep -Milliseconds 500
     }
     $final = Get-RddMcState -Instance $Instance
