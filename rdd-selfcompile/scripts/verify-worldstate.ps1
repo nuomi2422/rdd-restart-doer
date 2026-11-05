@@ -39,7 +39,13 @@ foreach ($name in $cases.Keys) {
     $argFile = Join-Path $OutDir ($stamp + '-' + $name + '.args.json')
     $outFile = Join-Path $OutDir ($stamp + '-' + $name + '.out.json')
     [System.IO.File]::WriteAllText($argFile, $cases[$name], (New-Object System.Text.UTF8Encoding($false)))
-    $out = & node $mcp 'world_state' $Companion ('@' + $argFile) 2>&1 | Out-String
+    # MCP down must not abort the run: the receipt file with the error text IS the evidence.
+    $prev = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try { $out = & node $mcp 'world_state' $Companion ('@' + $argFile) 2>&1 | Out-String }
+    catch { $out = 'EXCEPTION: ' + $_.Exception.Message }
+    $ErrorActionPreference = $prev
+    if (-not $out) { $out = '(no output)' }
     [System.IO.File]::WriteAllText($outFile, $out, (New-Object System.Text.UTF8Encoding($false)))
     $first = ($out.Trim() -replace '\s+', ' ')
     if ($first.Length -gt 200) { $first = $first.Substring(0, 200) }
