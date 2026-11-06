@@ -57,6 +57,7 @@ const SCRIPTS = ROOT + '/rdd-selfcompile/scripts';
 const LAUNCH = SCRIPTS + '/launch-mc.ps1';
 const PS = 'powershell.exe';
 const GAME = 'D:/rdd/mc/The Best of Twilight Forest';
+const SWITCHES = 'D:/rdd/harness/rdd-harness/gate-switches.json';
 
 const ARGV = process.argv.slice(2);
 const POS = ARGV.filter((a) => !a.startsWith('--'));
@@ -77,8 +78,11 @@ function probe() {
   return {
     java: num('(Get-Process java,javaw -ErrorAction SilentlyContinue | Measure-Object).Count'),
     log: num('(Get-Item "' + GAME + '/logs/latest.log" -EA SilentlyContinue).Length'),
-    lock: psCmd('(Get-Item "' + GAME + '/saves/rdd/session.lock" -EA SilentlyContinue).LastWriteTime.ToString("HH:mm:ss")'),
+    // ★ 2026-11-06：游戏没跑时 session.lock 不存在，原写法 .LastWriteTime.ToString() 空引用
+    //   会让 --status 直接报错退出；改成判空返回 '-'。
+    lock: psCmd('$f=Get-Item "' + GAME + '/saves/rdd/session.lock" -EA SilentlyContinue; if($f){$f.LastWriteTime.ToString("HH:mm:ss")}else{"?"}' ),
     mcp: num('(Get-NetTCPConnection -State Listen -LocalPort 8765 -EA SilentlyContinue | Measure-Object).Count'),
+    monitor: num('(Get-NetTCPConnection -State Listen -LocalPort 8776 -EA SilentlyContinue | Measure-Object).Count'),
     // ★ 2026-10-01 修：FreePhysicalMemory 单位是 KB，原来除以 1MB(1048576)
     //   把 2149MB 算成 "2"，导致 <1200MB 的门永远为真 → 这个启动门一直是死的。
     //   正确换算是 KB→MB 除 1024。备份：mc-start.js.pre-unitfix-20261001.bak
@@ -87,7 +91,7 @@ function probe() {
 }
 function show(p, tag) {
   console.log('  [' + tag + '] java=' + p.java + ' log=' + p.log + 'B lock=' + p.lock +
-    ' mcp=' + p.mcp + ' 空闲=' + p.mem + 'MB');
+     ' mcp=' + p.mcp + ' monitor=' + p.monitor + ' 空闲=' + p.mem + 'MB');
 }
 
 async function main() {
@@ -180,6 +184,33 @@ async function main() {
     if (ok >= 2) {
       console.log('');
       console.log('✔ 起好了。 java=' + q.java + ' mcp8765=' + q.mcp + (grew ? ' log 在增长' : ''));
+      // ★ 2026-11-06 主人要求：开游戏自动挂监测台，可开关（gate-switches.json / RDD_AUTO_MONITOR）。
+      //   只拉 server.mjs 一个服务，不复用 autostart-dev.ps1（那会连带浏览器/opencode/W层，太重）。
+      //   幂等：8776 已在听就跳过；Start-Process 最小化脱离，避免被进程树连坐。
+      try {
+        const sw = JSON.parse(fs.readFileSync(SWITCHES, 'utf8'));
+        const envOff = process.env.RDD_AUTO_MONITOR === '0' || /^(false|off|no)$/i.test(process.env.RDD_AUTO_MONITOR || '');
+        const want = sw.autoMonitor === true && !envOff;
+        if (!want) {
+          console.log('  监测台：已按开关关闭（gate-switches.json autoMonitor=false 或 RDD_AUTO_MONITOR=0）');
+        } else if (q.monitor > 0) {
+          console.log('  监测台：8776 已在监听，跳过（幂等）');
+        } else {
+          const m = sw.monitor || {};
+          const srv = m.server || (ROOT + '/rdd-monitor-publish-20260913/monitoring-station/server.mjs');
+          if (!fs.existsSync(srv)) { console.log('  监测台：找不到 ' + srv + '，跳过'); }
+          else {
+            const cmd = '$env:NUMEN_MONITOR_DIR=' + JSON.stringify(m.monitorDirEnv || (GAME + '/config/numen/monitor')) + '; ' +
+              'Start-Process -FilePath node -ArgumentList ' + JSON.stringify('"' + srv + '"') +
+              ' -WorkingDirectory ' + JSON.stringify(m.workingDir || srv.replace(/server\.mjs$/, '')) +
+              ' -WindowStyle Minimized';
+            execFileSync(PS, ['-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', cmd], { encoding: 'utf8', timeout: 15000 });
+            console.log('  监测台：已拉起 ' + (m.url || 'http://127.0.0.1:8776/') + '（可关：gate-switches.json 把 autoMonitor 设 false）');
+          }
+        }
+      } catch (e) {
+        console.log('  监测台：启动失败（不影响游戏）—— ' + String(e && e.message ? e.message : e).split('\n')[0]);
+      }
       console.log('  ' + MINUTES + ' 分钟后自动关。提前关： node mc-start.js ' + INSTANCE + ' --stop');
       process.exit(0);
     }
