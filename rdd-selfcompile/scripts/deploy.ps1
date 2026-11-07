@@ -14,6 +14,16 @@ $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\mc-instance.ps1"
 
 $state = Get-RddMcState -Instance $global:RDD_SC.SC_INSTANCE
+Write-Output "STATE_PROBE: attempt=1 state=$state"
+if ($state -eq 'UNKNOWN') {
+    # 2026-11-05：刚停游戏时可能残留"正在退出的 java"，WMI 读不到 CommandLine 就判 UNKNOWN。
+    # 等 5 秒再判一次（只重试一次，避免掩盖真正无法判定实例的情况）。
+    # 审计要求：这次重试必须留痕——不能静默掩盖一次"不可判定"。
+    Write-Output "STATE_PROBE: UNKNOWN -> wait 5s -> retry"
+    Start-Sleep -Seconds 5
+    $state = Get-RddMcState -Instance $global:RDD_SC.SC_INSTANCE
+    Write-Output "STATE_PROBE: attempt=2 state=$state"
+}
 if ($state -eq 'RUNNING') {
     Write-Output "DEPLOY_REFUSED_RUNNING: instance '$($global:RDD_SC.SC_INSTANCE)' is running"
     exit 5
