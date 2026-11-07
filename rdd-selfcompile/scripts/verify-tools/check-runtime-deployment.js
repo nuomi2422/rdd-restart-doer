@@ -99,9 +99,11 @@ function git(repo, args) {
  */
 function lastMainChange(repo, dir, opts) {
   const excludeTests = !!(opts && opts.excludeTests);
-  const LOOKS_LIKE_SOURCE = /src[\\/][^\\/]+[\\/]java[\\/]/;
+  // 2026-11-07: resources (including packaged AC scripts) are production inputs too.
+  // Do not exempt scripts by extension; src/main/resources/acx-lib/*.ac still makes a jar stale.
+  const LOOKS_LIKE_SOURCE = /src[\\/][^\\/]+[\\/](?:java|resources)[\\/]|(?:^|[\\/])build\.gradle(?:\.kts)?$/;
   // 上游判据要更保守：只改测试绝不该要求重建（否则一条测试提交会把所有插件判成要重建）
-  const IS_TEST = /src[\\/]test[\\/]|Test\.java$/;
+  const IS_TEST = /src[\\/]test[\\/]/; // A production class named *Test.java still ships.
   const passes = [['-n', '30'], ['-n', '200']];
   for (const extra of passes) {
     const raw = git(repo, ['log', '--format=%H|%ct', '--name-only', ...extra, '--', dir]);
@@ -195,7 +197,7 @@ function main() {
   for (const [jar, info] of Object.entries(JAR_TO_MODULE)) {
     let latest = null;
     for (const d of info.dirs) {
-      const c = lastMainChange(src, d);
+      const c = lastMainChange(src, d, { excludeTests: true });
       if (c && (!latest || c.ts > latest.ts)) latest = { ...c, dir: d };
     }
     modules[jar] = { ...info, latest };
@@ -216,7 +218,7 @@ function main() {
   console.log('');
   console.log('════ 运行时部署检查（源码改了 vs jar 部署了没）════');
   console.log(`源码仓库 : ${src}`);
-  console.log(`判据     : 该模块最后一次改**源码集**（src/*/java，含 client）的提交时间 vs jar LastWriteTime`);
+  console.log(`判据     : 该模块最后一次改生产 Java/资源/构建输入（排除测试）的提交时间 vs jar LastWriteTime`);
   console.log(`           （只改测试 → 不算债；这是第一版的错判点）`);
   console.log(`跨模块   : ${strictUpstream ? '严格模式（上游变更 = STALE）' : '上游变更只报 UPSTREAM 警告，不改变退出码'}`);
   console.log('');
