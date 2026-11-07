@@ -101,3 +101,15 @@ stager/runs/
 # 启动期 stderr（几乎全为 0 字节）与 OC 消息草稿
 rdd-selfcompile/report/*.err
 rdd-selfcompile/msg*.json
+
+# ── 2026-11-07 补齐：别的仓的 worktree / 离线打包产物，本仓不该跟踪 ──
+# 为什么：这些目录不是本仓的文件，而是 minecraft-numen / rdd-harness 两个仓的合法 worktree
+#   （git -C minecraft-numen worktree list 可查），外加离线打包产物；本仓跟踪它们只会让 git status 永远脏。
+# 做法：只加忽略、不删任何目录 —— 并行窗口正在这些工作树里干活，删了会砸别人的活。
+# 案例：2026-11-03 已用同一办法忽略 minecraft-numen/、rdd-monitor-publish-*、numen-audit-wt/、numen-clean/；
+#   后来新增的 wt 命名没跟上，导致 P14「工作区干净」长期红（同 P10 教训：门禁一直红=等于没有）。
+minecraft-numen-wt-*/
+numen-context-wt/
+harness-context-wt/
+packaging/world-context-core-*/
+rdd-selfcompile/backups/
