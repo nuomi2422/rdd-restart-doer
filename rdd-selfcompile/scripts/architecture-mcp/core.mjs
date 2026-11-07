@@ -27,6 +27,18 @@ const statusState = value => {
   return 'unknown';
 };
 const directedTypes = new Set(['contains','dispatches','invokes','executes_through','verifies_with','projects','rechecks_with','relates_to','proposes','delivers_to','feeds_back','proposes_skill','raises_gap','repairs','triggers','informs','provides_context','produces','supplies','uses','binds_to','reviewed_by','guides','coordinates','updates_planning','resupplies_from','first_enables','prioritizes','precedes_in_plan','then_closes','enables_iteration','reads_facts_from','separates','belongs_to','consumes_via']);
+
+/** 每次工具调用都落一行，让「我查过架构」变成盘上的痕迹，而不是聊天里的一句话。 */
+function logCall(name, args, knowledgeRoot) {
+  try {
+    const dir = path.resolve(knowledgeRoot, '../../../.harness/audit');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.appendFileSync(path.join(dir, 'mcp-calls.jsonl'),
+      JSON.stringify({ at: new Date().toISOString(), tool: name, args: args && Object.keys(args).length ? args : undefined }) + '\n', 'utf8');
+  } catch { /* 记账失败不影响工具本身 */ }
+}
+const ROLE_FILES = { commander: '006-指挥官.md', worker: '002-主干活AI.md', learner: '004-外部学习AI.md' };
+
 export class Architecture {
   constructor(file, root) { this.file = file; this.root = fs.realpathSync(root); }
   load() {
@@ -179,8 +191,35 @@ export class Architecture {
       note: '节点史 = 节点自带 history（状态字段变更）+ 决策链里 affects 到它的决策。空 = 还没登记过变更，不代表没变过。',
     };
   }
+  /** 角色卡：把「读角色卡」也变成可留痕的调用，而不是靠自觉。 */
+  roleCard(a) {
+    const role = String(a.focus || a.role || 'commander').toLowerCase();
+    const file = ROLE_FILES[role];
+    if (!file) throw Error('未知角色: ' + role + '（可用 commander / worker / learner）');
+    const full = path.join(this.root, '角色', file);
+    const text = read(full);
+    return { role, file: '角色/' + file, totalLines: text.split(/\r?\n/).length, content: text.slice(0, integer(a.maxChars, 8000, 500, 20000)),
+      note: '这是角色卡正文；读完按上面写的做，别凭记忆。这次调用已记账。' };
+  }
+  /** 自己的任务：把「找自己的任务」变成一次带痕迹的查询。 */
+  myTasks(a) {
+    const dir = path.join(this.root, '施工文档');
+    let files = [];
+    try { files = fs.readdirSync(dir).filter(f => /^\d+.*\.md$/.test(f)); } catch { files = []; }
+    const rows = files.slice(-6).map(f => {
+      const p = path.join(dir, f);
+      const st = fs.statSync(p);
+      return { file: '施工文档/' + f, modified: new Date(st.mtimeMs).toISOString().slice(0, 16) };
+    }).reverse();
+    const plan = files.filter(f => /^044/.test(f));
+    let head = '';
+    if (plan.length) { try { head = read(path.join(dir, plan[0])).slice(0, 1200); } catch { /* 忽略 */ } }
+    return { tasks: rows, planOfRecord: plan[0] ? '施工文档/' + plan[0] : null, planHead: head,
+      note: '先做已布置的文档任务；全做完才推进主线（MC 找锚点、修 AC、修基建）。这次查询已记账。' };
+  }
   call(name,a={}) {
     if (!a || typeof a !== 'object' || Array.isArray(a)) throw Error('参数必须为对象');
+    logCall(name, a, this.root);
     this.load();
     const budget=integer(a.maxChars,14000,2000,40000);
     let result;
@@ -203,6 +242,8 @@ export class Architecture {
     else if(name==='arch_detail') result=this.detail(a);
     else if(name==='arch_decisions') result=this.decisionHistory(a);
     else if(name==='arch_history') result=this.history(a);
+    else if(name==='role_card') result=this.roleCard(a);
+    else if(name==='my_tasks') result=this.myTasks(a);
     else if(name==='arch_next') {
       const n=this.card(a.focus || this.graph.root);
       result={focus:n.id,assessment:n.assessment,lifecycle:n.lifecycle,candidates:(n.gaps||[]).map((gap,i)=>({priority:i+1,proposal:gap,kind:'inference_not_decision',why:'缩小该节点意图与已报告状态的差距',
