@@ -5,7 +5,8 @@
 import { Architecture } from './core.mjs';
 import { graphFile,knowledgeRoot } from './config.mjs';
 try {
- const name=process.argv[2] || 'arch_overview', raw=process.argv[3];
+ const argv=process.argv.slice(2).filter(a=>!a.startsWith('--'));
+ const name=argv[0] || 'arch_overview', raw=argv[1];
  const args=raw ? raw.startsWith('{') ? JSON.parse(raw) : name==='arch_search'?{query:raw}:{focus:raw} : {};
  console.log(JSON.stringify(new Architecture(graphFile,knowledgeRoot).call(name,args),null,2));
 } catch(e) { console.error(e.message); process.exitCode=1; }

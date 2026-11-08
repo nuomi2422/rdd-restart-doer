@@ -29,12 +29,12 @@ const statusState = value => {
 const directedTypes = new Set(['contains','dispatches','invokes','executes_through','verifies_with','projects','rechecks_with','relates_to','proposes','delivers_to','feeds_back','proposes_skill','raises_gap','repairs','triggers','informs','provides_context','produces','supplies','uses','binds_to','reviewed_by','guides','coordinates','updates_planning','resupplies_from','first_enables','prioritizes','precedes_in_plan','then_closes','enables_iteration','reads_facts_from','separates','belongs_to','consumes_via']);
 
 /** 每次工具调用都落一行，让「我查过架构」变成盘上的痕迹，而不是聊天里的一句话。 */
-function logCall(name, args, knowledgeRoot) {
+function logCall(name, args, knowledgeRoot, ok, error) {
   try {
     const dir = path.resolve(knowledgeRoot, '../../../.harness/audit');
     fs.mkdirSync(dir, { recursive: true });
     fs.appendFileSync(path.join(dir, 'mcp-calls.jsonl'),
-      JSON.stringify({ at: new Date().toISOString(), tool: name, args: args && Object.keys(args).length ? args : undefined }) + '\n', 'utf8');
+      JSON.stringify({ at: new Date().toISOString(), tool: name, ok: ok !== false, ...(ok === false && error ? { error: String(error).slice(0, 200) } : {}), args: args && Object.keys(args).length ? args : undefined }) + '\n', 'utf8');
   } catch { /* 记账失败不影响工具本身 */ }
 }
 const ROLE_FILES = { commander: '006-指挥官.md', worker: '002-主干活AI.md', learner: '004-外部学习AI.md' };
@@ -218,8 +218,17 @@ export class Architecture {
       note: '先做已布置的文档任务；全做完才推进主线（MC 找锚点、修 AC、修基建）。这次查询已记账。' };
   }
   call(name,a={}) {
+    try {
+      const result = this._call(name, a);
+      logCall(name, a, this.root, true);
+      return result;
+    } catch (e) {
+      logCall(name, a, this.root, false, e && e.message);
+      throw e;
+    }
+  }
+  _call(name,a={}) {
     if (!a || typeof a !== 'object' || Array.isArray(a)) throw Error('参数必须为对象');
-    logCall(name, a, this.root);
     this.load();
     const budget=integer(a.maxChars,14000,2000,40000);
     let result;
