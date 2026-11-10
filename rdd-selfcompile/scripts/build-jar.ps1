@@ -1,4 +1,4 @@
-# 安全编译 + 打包 selfcompile 插件 jar（期3：正确检测编译失败）
+﻿# 安全编译 + 打包 selfcompile 插件 jar（期3：正确检测编译失败）
 param(
     [string]$MutationId,
     [string]$ModuleOverride,

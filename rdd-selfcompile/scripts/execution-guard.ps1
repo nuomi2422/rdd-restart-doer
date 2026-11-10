@@ -1,4 +1,4 @@
-# execution-guard.ps1 -- pure refusal policy for the incident freeze.
+﻿# execution-guard.ps1 -- pure refusal policy for the incident freeze.
 # No side effects: no file/process/config access. Safe to dot-source for offline checks.
 function Resolve-RddRunMode {
     param(

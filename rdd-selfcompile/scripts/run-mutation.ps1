@@ -1,4 +1,4 @@
-# Self-Compile 单轮闭环编排器
+﻿# Self-Compile 单轮闭环编排器
 # 用法: .\scripts\run-mutation.ps1 [-Requirement "xxx"] [-SkipLaunch] [-SkipMcp]
 param(
     [string]$Requirement = "示例：注册一个 selfcompile_probe 工具，只读返回同伴状态",
