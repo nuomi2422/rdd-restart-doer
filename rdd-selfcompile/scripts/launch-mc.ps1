@@ -11,6 +11,11 @@ param(
 # ⚠️ 这里必须与 config.ps1 的 Select-RddSelfCompileInstance 保持一致 ——
 #    两处不一致时本行会先把 env 写成 test，config 再读到非空 env 就跟着用 test，
 #    改一处不改另一处 = 没改。
+# Incident freeze: launch is refused until commander re-enables it.
+. "$PSScriptRoot\execution-guard.ps1"
+$guard = Get-RddDeployLaunchDecision -Entry 'launch'
+if (-not $guard.ok) { Write-Output ("LAUNCH_REFUSED: " + $guard.reason); exit 2 }
+
 $env:RDD_SELF_COMPILE_INSTANCE = if ($Instance) { $Instance } else { 'gpt' }
 . "$PSScriptRoot\config.ps1"
 

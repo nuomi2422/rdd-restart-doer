@@ -8,6 +8,11 @@ param(
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE
 )
 
+# Incident freeze: deploy is refused until commander re-enables it.
+. "$PSScriptRoot\execution-guard.ps1"
+$guard = Get-RddDeployLaunchDecision -Entry 'deploy'
+if (-not $guard.ok) { Write-Output ("DEPLOY_REFUSED: " + $guard.reason); exit 2 }
+
 if ($Instance) { $env:RDD_SELF_COMPILE_INSTANCE = $Instance } else { $env:RDD_SELF_COMPILE_INSTANCE = 'test' }
 $ErrorActionPreference = 'Stop'
 . "$PSScriptRoot\config.ps1"

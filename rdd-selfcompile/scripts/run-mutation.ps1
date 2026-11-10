@@ -9,6 +9,7 @@ param(
     [string]$Module,
     [switch]$TestOnly,
     [string[]]$Tests = @(),
+    [ValidateSet('test-only','full')][string]$Mode,
     [string]$SourceRoot,
     [string]$ExpectedCommit,
     [switch]$SettleRegression,
@@ -48,6 +49,11 @@ if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -n
 }
 if (-not $TestOnly -and $Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
 if (-not $TestOnly -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) { Write-Error 'SourceRoot/ExpectedCommit are TestOnly-only'; exit 2 }
+
+# Incident freeze: explicit mode required before any config/mutation side effect.
+. "$PSScriptRoot\execution-guard.ps1"
+$modeDecision = Get-RddRunModeDecision -Mode $Mode -TestOnly:$TestOnly -Tests $Tests
+if (-not $modeDecision.ok) { Write-Error ("RUN_REFUSED: " + $modeDecision.reason); exit 2 }
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 # Test mode resolves the module from the fixed allowlist inside build-jar. The env
 # var feeds the "group:name" build path, and config.ps1 resolves it at load time —
