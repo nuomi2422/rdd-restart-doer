@@ -5,10 +5,25 @@ param(
     [string]$MutationId,
     [string]$JarPath,
     [string]$JarName,
-    [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE
+    [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
+    [string]$Mode,
+    [string]$ExpectedCommit,
+    [string]$ExpectedSha256
 )
 
-# Incident freeze: deploy is refused until commander re-enables it.
+# 2026-11-11 explicit fixed test assembly only. Defaults and old overrides still refuse.
+if ($Mode -ceq 'isolated-test' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'test' -and -not $JarPath -and -not $JarName -and $MutationId -and $ExpectedCommit -and $ExpectedSha256) {
+    $ErrorActionPreference='Stop'
+    try {
+        . "$PSScriptRoot\deploy-test-policy.ps1"
+        . "$PSScriptRoot\mc-identity.ps1"
+        $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+        $result=Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/workspace/rdd-selfcompile/instances/test' -Live 'D:/rdd/mc/The Best of Twilight Forest'
+        $result | ConvertTo-Json -Depth 6
+        exit 0
+    } catch { Write-Error ('DEPLOY_TEST_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+# Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
 
