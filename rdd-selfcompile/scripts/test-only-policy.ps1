@@ -29,6 +29,10 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
             'com.dwinovo.numen.api.ExecutorCompanionIsolationTest'
         )
+        'plugins:learner' = @(
+            'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
+            'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest'
+        )
         'core:common' = @(
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
         )
