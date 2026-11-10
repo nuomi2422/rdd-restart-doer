@@ -29,8 +29,17 @@ if ($Mode -eq 'build-only') {
             $env:JAVA_HOME='D:/rdd/tools/jdk21/jdk-21.0.11+10'
             $gradle='D:/rdd/workspace/gradle-9.2.0/bin/gradle.bat'
             $log=Join-Path $dir 'phase-build.log'
-            & $gradle '-p' $source.root $plan.task '--offline' '--no-daemon' '--no-build-cache' '--rerun-tasks' *> $log
-            $code=$LASTEXITCODE; $record.gradleExit=$code
+            # PS5.1 wraps native stderr as errors: warnings must not preempt native exit capture.
+            $nativePreference=$ErrorActionPreference
+            $code=$null
+            try {
+                $ErrorActionPreference='Continue'
+                $global:LASTEXITCODE=$null
+                & $gradle '-p' $source.root $plan.task '--offline' '--no-daemon' '--no-build-cache' '--rerun-tasks' *> $log
+                $code=$global:LASTEXITCODE
+            } finally { $ErrorActionPreference=$nativePreference }
+            if($null -eq $code){throw 'native-process-exit-unavailable'}
+            $record.gradleExit=$code
             $after=Get-RddSourceSnapshot -Root $source.root
             $record.sourceHeadAfter=$after.head;$record.sourceDirtyCountAfter=$after.dirtyCount
             $comparison=Compare-RddSourceSnapshot -Before $source -After $after

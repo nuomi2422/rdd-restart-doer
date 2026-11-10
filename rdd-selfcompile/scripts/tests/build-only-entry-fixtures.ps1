@@ -17,7 +17,10 @@ $cases=@(
  @{name='missing-jar';extra=@('-Mode','build-only','-Instance','test');noJar=$true;fail=$true},
  @{name='classifier';extra=@('-Mode','build-only','-Instance','test');suffix='-api';fail=$true},
  @{name='wrong-version';extra=@('-Mode','build-only','-Instance','test');wrongVersion=$true;fail=$true},
- @{name='post-change';extra=@('-Mode','build-only','-Instance','test');changed=$true;fail=$true}
+ @{name='post-change';extra=@('-Mode','build-only','-Instance','test');changed=$true;fail=$true},
+ @{name='stderr-zero';extra=@('-Mode','build-only','-Instance','test');stderr=$true;fail=$false},
+ @{name='stderr-nine';extra=@('-Mode','build-only','-Instance','test');stderr=$true;gradleExit=9;fail=$true},
+ @{name='launch-missing';extra=@('-Mode','build-only','-Instance','test');missingExe=$true;fail=$true}
 )
 foreach($module in @('api:neoforge','core:neoforge','plugins:rdd','plugins:learner')){
  $cases+=@{name=('ok-'+$module.Replace(':','-'));extra=@('-Mode','build-only','-Instance','test');module=$module;fail=$false}
@@ -54,8 +57,9 @@ function Get-RddSourceSnapshot {param($Root);return @{head='POSTHASH';branch='FI
  $exit=if($case.gradleExit){$case.gradleExit}else{0}
  $cmd="@echo off"+[Environment]::NewLine+"echo BUILD SUCCESSFUL"+[Environment]::NewLine
  if(-not $case.noJar){$cmd+='echo fixture-artifact>'+('"'+$jar+'"')+[Environment]::NewLine}
+ if($case.stderr){$cmd+='echo fixture-warning 1>&2'+[Environment]::NewLine}
  $cmd+='exit /b '+$exit+[Environment]::NewLine
- [IO.File]::WriteAllText($fakeGradle,$cmd,[Text.Encoding]::ASCII)
+ if(-not $case.missingExe){[IO.File]::WriteAllText($fakeGradle,$cmd,[Text.Encoding]::ASCII)}
  $hash=if($case.badHash){'short'}else{'a'*40}
  $argv=@('-NoProfile','-ExecutionPolicy','Bypass','-File',(Join-Path $scripts 'run-mutation.ps1'))+$case.extra+@('-Module',$module,'-SourceRoot',$repo,'-ExpectedCommit',$hash)
  $ErrorActionPreference='Continue'
