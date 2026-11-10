@@ -1,17 +1,51 @@
-# 启动 Minecraft 并进入 gpt 存档
+﻿# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
     # 默认 120（2 小时）—— 2026-10-02 用户定：「不要再加什么十分钟的检测，默认一律 2 小时」。
     # 旧的「用户在场 <=10 分钟/次」铁律作废；自动关只为防空转耗电，不是门禁。
-    [int]$AutoStopMinutes = 120
+    [int]$AutoStopMinutes = 120,
+    [string]$Mode
 )
 
 # 2026-09-30 用户指示：默认 gpt（原来两处 fallback 都是 test，导致"默认跑错存档"）。
 # ⚠️ 这里必须与 config.ps1 的 Select-RddSelfCompileInstance 保持一致 ——
 #    两处不一致时本行会先把 env 写成 test，config 再读到非空 env 就跟着用 test，
 #    改一处不改另一处 = 没改。
-# Incident freeze: launch is refused until commander re-enables it.
+# 2026-11-11: bounded title-only test process, not a world or legacy launch.
+if ($Mode -ceq 'isolated-title' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'test' -and -not $MutationId -and -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -and $args.Count -eq 0) {
+    $ErrorActionPreference='Stop'
+    try {
+        . "$PSScriptRoot\mc-identity.ps1"
+        $root='D:/rdd/workspace/rdd-selfcompile/instances/test'
+        $p=$root
+        while($p){$item=Get-Item -LiteralPath $p -Force;if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'linked test root'};$p=Split-Path $p -Parent}
+        if(@(Get-ChildItem (Join-Path $root 'saves') -Force).Count){throw 'title requires empty saves'}
+        $server=Get-Content (Join-Path $root 'config/numen/mcp_server.json') -Raw | ConvertFrom-Json
+        $clients=Get-Content (Join-Path $root 'config/numen/mcp_clients.json') -Raw | ConvertFrom-Json
+        if($server.enabled -ne $false -or $clients.enabled -ne $false -or @($clients.servers).Count){throw 'external tools must be disabled'}
+        $before=@(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
+        foreach($p in $before){if((Get-RddMcCommandLineMatch $p.CommandLine $root) -ne 'NO_MATCH'){throw 'existing or unknown test process'}}
+        $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
+        $err=$out+'.stderr.txt'
+        $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList @('D:/rdd/tools/mc-launch.mjs','--instance',$root,'--title-only','--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G') -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
+        if(-not $launcher.WaitForExit(30000)){throw 'launcher timeout'}
+        if($launcher.ExitCode -ne 0){throw ('launcher exit '+$launcher.ExitCode+'; '+$err)}
+        $rows=@(Get-Content $out | Where-Object {$_ -match '^\{.*"pid".*\}$'})
+        if($rows.Count -ne 1){throw 'missing unique launcher PID'}
+        $receipt=$rows[0]|ConvertFrom-Json
+        if(-not $receipt.ok -or -not $receipt.pid){throw 'invalid launcher PID'}
+        $java=Get-CimInstance Win32_Process -Filter ('ProcessId='+[int]$receipt.pid) -ErrorAction Stop
+        if(-not $java -or $java.Name -notin @('java.exe','javaw.exe') -or (Get-RddMcCommandLineMatch $java.CommandLine $root) -ne 'MATCH' -or $java.CommandLine -match 'quickPlay|--server|--world'){throw 'new Java identity unknown'}
+        if(@($before|Where-Object {$_.ProcessId -eq $java.ProcessId}).Count){throw 'PID was already present'}
+        $result=@{status='STARTED_TEST_TITLE';titleVerified=$false;instance='test';root=$root;pid=$java.ProcessId;creationTime=$java.CreationDate;gameDir=$root;launcherLog=$out;stderr=$err;gameLog=$receipt.log}
+        $state=Join-Path $root 'logs/title-process.json'
+        [IO.File]::WriteAllText($state,($result|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
+        $result|ConvertTo-Json
+        exit 0
+    }catch{Write-Error ('TITLE_LAUNCH_FAILED: '+$_.Exception.Message);exit 2}
+}
+# All default/gpt/world launches remain frozen.
 Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
 exit 2
 
