@@ -11,7 +11,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',
-            'com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest'
+            'com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest',
+            'com.dwinovo.numen.plugins.rdd.RddPlanningKnowledgeTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
@@ -27,6 +28,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.ExecutorRetrievalInputTest',
             'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
             'com.dwinovo.numen.api.ExecutorCompanionIsolationTest'
+        )
+        'core:common' = @(
+            'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest'
