@@ -10,6 +10,7 @@ param(
     [switch]$TestOnly,
     [string[]]$Tests = @(),
     [switch]$SettleRegression,
+    [switch]$IdentityRegression,
     # 2026-10-02 用户定：默认 120（2 小时），旧的「10 分钟/次」限制作废。
     [int]$AutoStopMinutes = 120,
     # 采集 verify 要求的五件证据；不开则 verify 必然 UNVERIFIED。
@@ -28,9 +29,17 @@ param(
     [int]$Rounds = 0
 )
 
+if ($SettleRegression -and $IdentityRegression) { Write-Error 'SettleRegression conflicts with IdentityRegression'; exit 2 }
 if ($SettleRegression) {
     if (-not $TestOnly -or $Tests.Count -gt 0) { Write-Error 'SettleRegression requires TestOnly and conflicts with Tests'; exit 2 }
+    if ([string]::IsNullOrWhiteSpace($Module)) { $Module = 'plugins:rdd' }
     $Tests = @('com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest', 'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest')
+}
+if ($IdentityRegression) {
+    # -File cannot pass a comma list as one array element, so named suites stay explicit.
+    if (-not $TestOnly -or $Tests.Count -gt 0) { Write-Error 'IdentityRegression requires TestOnly and conflicts with Tests'; exit 2 }
+    if ([string]::IsNullOrWhiteSpace($Module)) { $Module = 'api:common' }
+    $Tests = @('com.dwinovo.numen.api.ServerIdentitySnapshotTest', 'com.dwinovo.numen.monitor.WorldContextStampTest')
 }
 if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -ne 0 -or -not [string]::IsNullOrWhiteSpace($EvidenceTool))) {
     Write-Error 'TestOnly cannot be combined with launch, MCP, evidence, or multi-round options'; exit 2

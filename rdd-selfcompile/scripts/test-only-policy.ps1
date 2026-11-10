@@ -1,11 +1,21 @@
 # Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
-    $allowed = @(
-        'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
-        'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest'
-    )
-    if (($Module.Trim()) -cne 'plugins:rdd') { throw 'test-only module is not allowed' }
+    # Module -> exact test classes. Unknown module or class is refused; never build
+    # a Gradle task or test filter from caller text.
+    $allowlist = @{
+        'plugins:rdd' = @(
+            'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
+            'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest'
+        )
+        'api:common' = @(
+            'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
+            'com.dwinovo.numen.monitor.WorldContextStampTest'
+        )
+    }
+    $module = $Module.Trim()
+    if (-not $allowlist.ContainsKey($module)) { throw 'test-only module is not allowed' }
+    $allowed = $allowlist[$module]
     if (-not $Tests -or $Tests.Count -eq 0) { throw 'at least one exact test class is required' }
     $normalized = @()
     foreach ($name in $Tests) {
@@ -14,7 +24,7 @@ function Get-RddTestOnlyPlan {
         if ($n -cnotin $allowed) { throw "test class is not allowed: $n" }
         if ($n -cnotin $normalized) { $normalized += $n }
     }
-    return @{ Task = ':plugins:rdd:test'; Tests = $normalized }
+    return @{ Task = ":$($module):test"; Tests = $normalized }
 }
 function Test-RddTestOnlyReceipt {
     param([int]$ExitCode, [string]$ReportDir, [string[]]$ExpectedTests)

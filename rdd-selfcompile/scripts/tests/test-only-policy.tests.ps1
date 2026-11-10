@@ -8,6 +8,11 @@ Assert ($p.Task -ceq ':plugins:rdd:test') 'task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd:jar' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('*.test') }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @() }
+MustReject { Get-RddTestOnlyPlan -Module 'core:neoforge' -Tests @($test) }
+$id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest')
+Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
+MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
+MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
 $d=Join-Path $env:TEMP ('rdd-test-policy-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $d | Out-Null
 try {
