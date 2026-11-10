@@ -1,13 +1,65 @@
-﻿# 安全编译 + 打包 selfcompile 插件 jar（期3：正确检测编译失败）
+# 安全编译 + 打包 selfcompile 插件 jar（期3：正确检测编译失败）
 param(
     [string]$MutationId,
     [string]$ModuleOverride,
     [switch]$TestOnly,
     [string[]]$Tests = @(),
     [string]$SourceRoot,
-    [string]$ExpectedCommit
+    [string]$ExpectedCommit,
+    [string]$Mode,
+    [string]$Instance
 )
 
+# 2026-11-11: build-only does not load instance config or enter the legacy closure.
+if ($Mode -eq 'build-only') {
+    $ErrorActionPreference = 'Stop'
+    . "$PSScriptRoot\execution-guard.ps1"
+    try {
+        if ($TestOnly -or $Tests.Count -or $MutationId) { throw 'build-only conflicts with tests or existing mutation' }
+        $plan=Get-RddBuildOnlyPlan -Instance $Instance -InstanceExplicit $PSBoundParameters.ContainsKey('Instance') -Module $ModuleOverride -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+        . "$PSScriptRoot\test-only-policy.ps1"
+        $source=Resolve-RddTrustedSourceRoot -Root $SourceRoot -ExpectedCommit $ExpectedCommit -RepoRoot 'D:/rdd/workspace/minecraft-numen'
+        $id='mutation-build-'+[guid]::NewGuid().ToString('N')
+        $dir=Join-Path (Join-Path (Split-Path $PSScriptRoot -Parent) 'mutations') $id
+        New-Item -ItemType Directory -Path $dir -ErrorAction Stop | Out-Null
+        $state=Join-Path $dir 'phase-build.json'
+        $record=@{stage='build-only';status='pending';success=$false;deployed=$false;module=$ModuleOverride;sourceRoot=$source.root;sourceHead=$source.head;sourceDirtyCount=$source.dirtyCount;expectedCommit=$ExpectedCommit;instance='test';mutationId=$id;sourceProof='pre-check-only'}
+        Write-RddAttemptJson -Path $state -Value $record
+        try {
+            $env:JAVA_HOME='D:/rdd/tools/jdk21/jdk-21.0.11+10'
+            $gradle='D:/rdd/workspace/gradle-9.2.0/bin/gradle.bat'
+            $log=Join-Path $dir 'phase-build.log'
+            & $gradle '-p' $source.root $plan.task '--offline' '--no-daemon' '--no-build-cache' '--rerun-tasks' *> $log
+            $code=$LASTEXITCODE; $record.gradleExit=$code
+            $after=Get-RddSourceSnapshot -Root $source.root
+            $record.sourceHeadAfter=$after.head;$record.sourceDirtyCountAfter=$after.dirtyCount
+            $comparison=Compare-RddSourceSnapshot -Before $source -After $after
+            if(-not $comparison.ok){throw $comparison.reason}
+            $record.sourceProof='pre-post-checks-consistent'
+            if($code -ne 0){throw ('gradle-exit-'+$code)}
+            $libs=Join-Path $source.root $plan.relativeDir
+            $name=Select-RddBuildArtifact -Names @(Get-ChildItem -LiteralPath $libs -File | ForEach-Object Name) -Prefix $plan.artifactPrefix
+            $artifact=Join-Path $libs $name
+            $item=Get-Item -LiteralPath $artifact
+            if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'linked artifact refused'}
+            $sha=(Get-FileHash -LiteralPath $artifact -Algorithm SHA256).Hash
+            $out=Join-Path $dir 'jar';New-Item -ItemType Directory -Path $out | Out-Null
+            $dest=Join-Path $out $name
+            [IO.File]::Copy($artifact,$dest,$false)
+            if((Get-FileHash -LiteralPath $dest -Algorithm SHA256).Hash -cne $sha){throw 'artifact-copy-hash-mismatch'}
+            $record.artifact=$dest;$record.sha256=$sha;$record.bytes=$item.Length
+            $record.status='passed';$record.success=$true
+            Write-RddAttemptJson -Path $state -Value $record
+            Write-Output ('BUILD_ONLY_OK: '+$state)
+            exit 0
+        } catch {
+            $record.status='failed';$record.reason=$_.Exception.Message
+            Write-RddAttemptJson -Path $state -Value $record
+            throw
+        }
+    } catch { Write-Error ('BUILD_ONLY_REFUSED_OR_FAILED: '+$_.Exception.Message); exit 2 }
+}
+if ($Mode -or $Instance) { Write-Error 'explicit Mode/Instance only supported for build-only here'; exit 2 }
 . "$PSScriptRoot\config.ps1"
 
 # 2026-09-29: honour the moduleOverride that AGENTS.md/handoff always demanded.

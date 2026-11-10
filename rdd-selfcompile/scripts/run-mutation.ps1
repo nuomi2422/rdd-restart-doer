@@ -1,4 +1,4 @@
-﻿# Self-Compile 单轮闭环编排器
+# Self-Compile 单轮闭环编排器
 # 用法: .\scripts\run-mutation.ps1 [-Requirement "xxx"] [-SkipLaunch] [-SkipMcp]
 param(
     [string]$Requirement = "示例：注册一个 selfcompile_probe 工具，只读返回同伴状态",
@@ -9,7 +9,7 @@ param(
     [string]$Module,
     [switch]$TestOnly,
     [string[]]$Tests = @(),
-    [ValidateSet('test-only','full')][string]$Mode,
+    [ValidateSet('test-only','build-only','full')][string]$Mode,
     [string]$SourceRoot,
     [string]$ExpectedCommit,
     [switch]$SettleRegression,
@@ -48,7 +48,7 @@ try {
         param($text)
         $ErrorActionPreference = 'Stop'
         . ([ScriptBlock]::Create($text))
-        Export-ModuleMember -Function Resolve-RddRunMode, Test-RddTestSelection
+        Export-ModuleMember -Function Resolve-RddRunMode, Test-RddTestSelection, Get-RddBuildOnlyPlan
     } -ErrorAction Stop
 } catch { Write-Error ("RUN_REFUSED: guard-load-failed: " + $_.Exception.Message); exit 2 }
 $resolveFn = $guardModule.ExportedFunctions['Resolve-RddRunMode']
@@ -58,7 +58,19 @@ try { $modeInfo = & $resolveFn -Mode $Mode -TestOnly:$TestOnly } catch { Write-E
 if ($null -eq $modeInfo -or $null -eq $modeInfo.ok -or $modeInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
 if ($modeInfo.ok -ne $true) { Write-Error ("RUN_REFUSED: " + $modeInfo.reason); exit 2 }
 $effectiveMode = [string]$modeInfo.mode
-if ($effectiveMode -ne 'test-only') { Write-Error 'RUN_REFUSED: incident-freeze: only test-only supported'; exit 2 }
+if ($effectiveMode -eq 'build-only') {
+    try {
+        if ($Tests.Count -or $SettleRegression -or $IdentityRegression -or $CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -ne 0 -or $Round -ne 1 -or $BatchId -or $EvidenceTool -or $PSBoundParameters.ContainsKey('AutoStopMinutes')) { throw 'build-only conflicting options' }
+        $planFn = $guardModule.ExportedFunctions['Get-RddBuildOnlyPlan']
+        if (-not $planFn) { throw 'build-only guard missing' }
+        $null = & $planFn -Instance $Instance -InstanceExplicit $PSBoundParameters.ContainsKey('Instance') -Module $Module -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+    } catch { Write-Error ('RUN_REFUSED: '+$_.Exception.Message); exit 2 }
+    # Separate branch: no new-mutation/config or legacy full closure before validation.
+    & "$PSScriptRoot\build-jar.ps1" -Mode build-only -Instance test -ModuleOverride $Module -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+    $buildExit = $LASTEXITCODE
+    exit $buildExit
+}
+if ($effectiveMode -ne 'test-only') { Write-Error 'RUN_REFUSED: unsupported mode'; exit 2 }
 $TestOnly = $true
 
 if ($SettleRegression -and $IdentityRegression) { Write-Error 'SettleRegression conflicts with IdentityRegression'; exit 2 }
