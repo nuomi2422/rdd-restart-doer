@@ -1,7 +1,9 @@
 ﻿# 安全编译 + 打包 selfcompile 插件 jar（期3：正确检测编译失败）
 param(
     [string]$MutationId,
-    [string]$ModuleOverride
+    [string]$ModuleOverride,
+    [switch]$TestOnly,
+    [string[]]$Tests = @()
 )
 
 . "$PSScriptRoot\config.ps1"
@@ -16,6 +18,13 @@ if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
     Set-RddSelfCompileModule $env:RDD_SELF_COMPILE_MODULE | Out-Null
 }
 $effectiveModule = $global:RDD_SC.PLUGIN_MODULE
+if ($TestOnly) {
+    . "$PSScriptRoot\test-only-policy.ps1"
+    try { $testPlan = Get-RddTestOnlyPlan -Module $effectiveModule -Tests $Tests }
+    catch { Write-Error $_; exit 2 }
+} elseif ($Tests.Count -gt 0) {
+    Write-Error 'Tests requires TestOnly'; exit 2
+}
 
 $dir = Join-Path $global:RDD_SC.SC_MUTATIONS $MutationId
 if (-not (Test-Path $dir)) { throw "mutation not found: $dir" }
@@ -32,10 +41,28 @@ $logFile = Join-Path $dir "phase-build.log"
 # "Cannot locate tasks that match ':'".  Caught 2026-09-29 with
 # -ModuleOverride plugins:learner.  Keep the sub-expression form.
 $gradleTask = ":$($effectiveModule):jar"
+$gradleArgs = @('-p', $global:RDD_SC.NUMMEN_REPO, $gradleTask, '--no-build-cache', '--no-daemon')
+if ($TestOnly) {
+    $gradleArgs = @('-p', $global:RDD_SC.NUMMEN_REPO, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
+    foreach ($testName in $testPlan.Tests) { $gradleArgs += @('--tests', $testName) }
+    $logFile = Join-Path $dir 'phase-test.log'
+    # Isolate reports in this mutation; no old XML can satisfy this invocation.
+    $env:RDD_TEST_REPORT_DIR = Join-Path $dir 'test-results'
+    if (Test-Path -LiteralPath $env:RDD_TEST_REPORT_DIR) { Pop-Location; Write-Error 'test report directory already exists'; exit 2 }
+}
 try {
-    & $global:RDD_SC.GRADLE -p $global:RDD_SC.NUMMEN_REPO $gradleTask --no-build-cache --no-daemon *> $logFile
+    & $global:RDD_SC.GRADLE @gradleArgs *> $logFile
+    $gradleExit = $LASTEXITCODE
 } finally {
+    if ($TestOnly) { Remove-Item Env:RDD_TEST_REPORT_DIR -ErrorAction SilentlyContinue }
     Pop-Location
+}
+if ($TestOnly) {
+    $reportDir = Join-Path $dir 'test-results'
+    $receipt = Test-RddTestOnlyReceipt -ExitCode $gradleExit -ReportDir $reportDir -ExpectedTests $testPlan.Tests
+    Write-ResultJson (Join-Path $dir 'phase-test.json') @{ success=$receipt.ok; stage='test-only'; reason=$receipt.reason; gradleExit=$gradleExit; reportDir=$reportDir; tests=$testPlan.Tests; deployed=$false }
+    if (-not $receipt.ok) { Write-Output ("TEST_FAIL: " + $receipt.reason); exit 1 }
+    Write-Output 'TEST_OK'; exit 0
 }
 
 # 编译日志内容

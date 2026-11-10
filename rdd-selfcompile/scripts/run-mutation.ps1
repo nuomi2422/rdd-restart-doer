@@ -7,6 +7,9 @@ param(
     [switch]$SkipLaunch,
     [switch]$SkipMcp,
     [string]$Module,
+    [switch]$TestOnly,
+    [string[]]$Tests = @(),
+    [switch]$SettleRegression,
     # 2026-10-02 用户定：默认 120（2 小时），旧的「10 分钟/次」限制作废。
     [int]$AutoStopMinutes = 120,
     # 采集 verify 要求的五件证据；不开则 verify 必然 UNVERIFIED。
@@ -25,6 +28,14 @@ param(
     [int]$Rounds = 0
 )
 
+if ($SettleRegression) {
+    if (-not $TestOnly -or $Tests.Count -gt 0) { Write-Error 'SettleRegression requires TestOnly and conflicts with Tests'; exit 2 }
+    $Tests = @('com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest', 'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest')
+}
+if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -ne 0 -or -not [string]::IsNullOrWhiteSpace($EvidenceTool))) {
+    Write-Error 'TestOnly cannot be combined with launch, MCP, evidence, or multi-round options'; exit 2
+}
+if (-not $TestOnly -and $Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 if (-not [string]::IsNullOrWhiteSpace($Module)) { $env:RDD_SELF_COMPILE_MODULE = $Module }
 if (-not [string]::IsNullOrWhiteSpace($BatchId)) { $env:RDD_BATCH_ID = $BatchId }
@@ -45,6 +56,14 @@ if ($LASTEXITCODE -ne 0) { Write-Error "new-mutation 失败"; exit 1 }
 Write-Output "[1/6] mutation-id: $id"
 
 # 2. 安全编译 + 打包
+if ($TestOnly) {
+    $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module -TestOnly -Tests $Tests
+    $testExit = $LASTEXITCODE
+    Write-Output "[test-only] $buildOut"
+    if ($testExit -ne 0) { exit $testExit }
+    # Explicitly return before deploy, launch, MCP, or verify.
+    exit 0
+}
 $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module
 if ($LASTEXITCODE -ne 0) { Write-Error "build-jar 失败: $buildOut"; exit 1 }
 Write-Output "[2/6] $buildOut"
