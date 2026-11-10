@@ -12,6 +12,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
             'com.dwinovo.numen.monitor.WorldContextStampTest'
         )
+        'world-state-core' = @(
+            'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
+        )
     }
     $module = $Module.Trim()
     if (-not $allowlist.ContainsKey($module)) { throw 'test-only module is not allowed' }
@@ -24,7 +27,22 @@ function Get-RddTestOnlyPlan {
         if ($n -cnotin $allowed) { throw "test class is not allowed: $n" }
         if ($n -cnotin $normalized) { $normalized += $n }
     }
-    return @{ Task = ":$($module):test"; Tests = $normalized }
+    return @{ Task = ":$($module):test"; Module = $module; Tests = $normalized }
+}
+# PowerShell 5.1 reads BOM-less UTF-8 as the local code page. A rewrite that drops the
+# BOM turns Chinese comments into a ParserError before any test runs; check bytes, not text.
+function Test-RddPowerShellEncoding {
+    param([string[]]$Paths)
+    foreach ($p in $Paths) {
+        $bytes = [IO.File]::ReadAllBytes($p)
+        $hasBom = $bytes.Length -ge 3 -and $bytes[0] -eq 239 -and $bytes[1] -eq 187 -and $bytes[2] -eq 191
+        if ($hasBom) { continue }
+        $text = [Text.Encoding]::UTF8.GetString($bytes)
+        foreach ($ch in $text.ToCharArray()) {
+            if ([int]$ch -gt 127) { return @{ ok = $false; reason = "missing-bom:$([IO.Path]::GetFileName($p))" } }
+        }
+    }
+    return @{ ok = $true; reason = 'encoding-ok' }
 }
 function Test-RddTestOnlyReceipt {
     param([int]$ExitCode, [string]$ReportDir, [string[]]$ExpectedTests)

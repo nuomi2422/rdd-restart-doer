@@ -46,7 +46,10 @@ if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -n
 }
 if (-not $TestOnly -and $Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
-if (-not [string]::IsNullOrWhiteSpace($Module)) { $env:RDD_SELF_COMPILE_MODULE = $Module }
+# Test mode resolves the module from the fixed allowlist inside build-jar. The env
+# var feeds the "group:name" build path, and config.ps1 resolves it at load time —
+# a top-level module such as world-state-core would throw before any test runs.
+if (-not $TestOnly -and -not [string]::IsNullOrWhiteSpace($Module)) { $env:RDD_SELF_COMPILE_MODULE = $Module }
 if (-not [string]::IsNullOrWhiteSpace($BatchId)) { $env:RDD_BATCH_ID = $BatchId }
 # 收尾闸要读 node 的 UTF-8 输出。PS 5.1 默认按控制台代码页(GBK)解管道，
 # 中文会变成「鈽?涓嬮潰」这种乱码（实测）。改一次输出编码，只影响本进程。

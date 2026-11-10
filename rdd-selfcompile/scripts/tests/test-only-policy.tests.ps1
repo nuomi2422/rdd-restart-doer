@@ -4,6 +4,8 @@ function Assert([bool]$condition, [string]$message) { if (-not $condition) { thr
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
+$ws=Get-RddTestOnlyPlan -Module 'world-state-core' -Tests @('com.dwinovo.numen.worldstate.core.model.WorldIdentityTest')
+Assert ($ws.Task -ceq ':world-state-core:test') 'world-state task must be fixed'
 Assert ($p.Task -ceq ':plugins:rdd:test') 'task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd:jar' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('*.test') }
@@ -13,6 +15,21 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$managed = @()
+$managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
+$managed += (Join-Path $PSScriptRoot '../build-jar.ps1')
+$enc = Test-RddPowerShellEncoding -Paths $managed
+Assert ($enc.ok) ("managed scripts must keep BOM or stay ASCII: " + $enc.reason)
+$plain = Join-Path $env:TEMP ('rdd-plain-' + [guid]::NewGuid().ToString('N') + '.ps1')
+$bomFile = Join-Path $env:TEMP ('rdd-bom-' + [guid]::NewGuid().ToString('N') + '.ps1')
+try {
+    [IO.File]::WriteAllText($plain, '# 中文注释', [Text.UTF8Encoding]::new($false))
+    Assert (-not (Test-RddPowerShellEncoding -Paths @($plain)).ok) 'BOM-less non-ASCII must be rejected'
+    [IO.File]::WriteAllText($bomFile, '# 中文注释', [Text.UTF8Encoding]::new($true))
+    Assert ((Test-RddPowerShellEncoding -Paths @($bomFile)).ok) 'BOM preserved must pass'
+    [IO.File]::WriteAllText($plain, '# ascii only', [Text.UTF8Encoding]::new($false))
+    Assert ((Test-RddPowerShellEncoding -Paths @($plain)).ok) 'ASCII without BOM is safe'
+} finally { Remove-Item -LiteralPath $plain,$bomFile -Force -ErrorAction SilentlyContinue }
 $d=Join-Path $env:TEMP ('rdd-test-policy-'+[guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory $d | Out-Null
 try {

@@ -12,17 +12,24 @@ param(
 # Without this the only way to build e.g. plugins:learner was a hand-written
 # gradle call, which permission.bash denies.  Default behaviour is unchanged.
 $defaultModule = 'plugins:selfcompile'
-if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
-    Set-RddSelfCompileModule $ModuleOverride | Out-Null
-} else {
-    Set-RddSelfCompileModule $env:RDD_SELF_COMPILE_MODULE | Out-Null
-}
-$effectiveModule = $global:RDD_SC.PLUGIN_MODULE
 if ($TestOnly) {
+    # Test mode resolves the module ONLY from the fixed allowlist table. Top-level
+    # modules such as world-state-core have no "group:name" shape, and caller text
+    # must never become a Gradle task.
     . "$PSScriptRoot\test-only-policy.ps1"
-    try { $testPlan = Get-RddTestOnlyPlan -Module $effectiveModule -Tests $Tests }
+    $requested = if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) { $ModuleOverride } else { $env:RDD_SELF_COMPILE_MODULE }
+    try { $testPlan = Get-RddTestOnlyPlan -Module $requested -Tests $Tests }
     catch { Write-Error $_; exit 2 }
-} elseif ($Tests.Count -gt 0) {
+    $effectiveModule = $testPlan.Module
+} else {
+    if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
+        Set-RddSelfCompileModule $ModuleOverride | Out-Null
+    } else {
+        Set-RddSelfCompileModule $env:RDD_SELF_COMPILE_MODULE | Out-Null
+    }
+    $effectiveModule = $global:RDD_SC.PLUGIN_MODULE
+}
+if (-not $TestOnly -and $Tests.Count -gt 0) {
     Write-Error 'Tests requires TestOnly'; exit 2
 }
 
