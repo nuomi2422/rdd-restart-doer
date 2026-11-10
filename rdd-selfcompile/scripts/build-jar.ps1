@@ -3,7 +3,9 @@ param(
     [string]$MutationId,
     [string]$ModuleOverride,
     [switch]$TestOnly,
-    [string[]]$Tests = @()
+    [string[]]$Tests = @(),
+    [string]$SourceRoot,
+    [string]$ExpectedCommit
 )
 
 . "$PSScriptRoot\config.ps1"
@@ -12,6 +14,9 @@ param(
 # Without this the only way to build e.g. plugins:learner was a hand-written
 # gradle call, which permission.bash denies.  Default behaviour is unchanged.
 $defaultModule = 'plugins:selfcompile'
+if (-not $TestOnly -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) {
+    Write-Error 'SourceRoot/ExpectedCommit are TestOnly-only'; exit 2
+}
 if ($TestOnly) {
     # Test mode resolves the module ONLY from the fixed allowlist table. Top-level
     # modules such as world-state-core have no "group:name" shape, and caller text
@@ -21,6 +26,14 @@ if ($TestOnly) {
     try { $testPlan = Get-RddTestOnlyPlan -Module $requested -Tests $Tests }
     catch { Write-Error $_; exit 2 }
     $effectiveModule = $testPlan.Module
+    if ($effectiveModule -eq 'maid-link-core' -and ([string]::IsNullOrWhiteSpace($SourceRoot) -or [string]::IsNullOrWhiteSpace($ExpectedCommit))) {
+        Write-Error 'maid-link-core requires -SourceRoot and -ExpectedCommit'; exit 2
+    }
+    $source = $null
+    if (-not [string]::IsNullOrWhiteSpace($SourceRoot)) {
+        try { $source = Resolve-RddTrustedSourceRoot -Root $SourceRoot -ExpectedCommit $ExpectedCommit -RepoRoot $global:RDD_SC.NUMMEN_REPO }
+        catch { Write-Error $_; exit 2 }
+    }
 } else {
     if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
         Set-RddSelfCompileModule $ModuleOverride | Out-Null
@@ -50,7 +63,8 @@ $logFile = Join-Path $dir "phase-build.log"
 $gradleTask = ":$($effectiveModule):jar"
 $gradleArgs = @('-p', $global:RDD_SC.NUMMEN_REPO, $gradleTask, '--no-build-cache', '--no-daemon')
 if ($TestOnly) {
-    $gradleArgs = @('-p', $global:RDD_SC.NUMMEN_REPO, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
+    $gradleRoot = if ($source) { $source.root } else { $global:RDD_SC.NUMMEN_REPO }
+    $gradleArgs = @('-p', $gradleRoot, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
     foreach ($testName in $testPlan.Tests) { $gradleArgs += @('--tests', $testName) }
     $logFile = Join-Path $dir 'phase-test.log'
     # Isolate reports in this mutation; no old XML can satisfy this invocation.
@@ -60,6 +74,13 @@ if ($TestOnly) {
 try {
     & $global:RDD_SC.GRADLE @gradleArgs *> $logFile
     $gradleExit = $LASTEXITCODE
+    if ($TestOnly -and $source) {
+        $afterHead = (& git -C $source.root rev-parse HEAD 2>$null).Trim()
+        $afterDirty = @(& git -C $source.root status --porcelain 2>$null).Count
+        if ($afterHead -ne $source.head -or $afterDirty -ne $source.dirtyCount) {
+            Write-Error 'source changed during test; result is UNKNOWN'; exit 3
+        }
+    }
 } finally {
     if ($TestOnly) { Remove-Item Env:RDD_TEST_REPORT_DIR -ErrorAction SilentlyContinue }
     Pop-Location
@@ -67,7 +88,7 @@ try {
 if ($TestOnly) {
     $reportDir = Join-Path $dir 'test-results'
     $receipt = Test-RddTestOnlyReceipt -ExitCode $gradleExit -ReportDir $reportDir -ExpectedTests $testPlan.Tests
-    Write-ResultJson (Join-Path $dir 'phase-test.json') @{ success=$receipt.ok; stage='test-only'; reason=$receipt.reason; gradleExit=$gradleExit; reportDir=$reportDir; tests=$testPlan.Tests; deployed=$false }
+    Write-ResultJson (Join-Path $dir 'phase-test.json') @{ success=$receipt.ok; stage='test-only'; reason=$receipt.reason; gradleExit=$gradleExit; reportDir=$reportDir; sourceRoot=($source.root); sourceHead=($source.head); sourceBranch=($source.branch); expectedCommit=$ExpectedCommit; sourceDirtyCount=($source.dirtyCount); module=$effectiveModule; tests=$testPlan.Tests; deployed=$false }
     if (-not $receipt.ok) { Write-Output ("TEST_FAIL: " + $receipt.reason); exit 1 }
     Write-Output 'TEST_OK'; exit 0
 }

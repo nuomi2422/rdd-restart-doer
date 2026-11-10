@@ -24,6 +24,9 @@ function Get-RddTestOnlyPlan {
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
         )
+        'maid-link-core' = @(
+            'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
+        )
     }
     $module = if ($null -eq $Module) { '' } else { $Module.Trim() }
     if ($module -eq '') {
@@ -81,4 +84,47 @@ function Test-RddTestOnlyReceipt {
         if ($tests -le 0 -or $skipped -ge $tests -or $failures -ne 0 -or $errors -ne 0) { return @{ ok=$false; reason="test-failed-or-empty:$name" } }
     }
     return @{ ok=$true; reason='passed' }
+}
+
+# R-11: validate a candidate test source root as a registered, clean worktree of the main repo.
+function Resolve-RddTrustedSourceRoot {
+    param(
+        [Parameter(Mandatory=$true)][string]$Root,
+        [Parameter(Mandatory=$true)][string]$ExpectedCommit,
+        [Parameter(Mandatory=$true)][string]$RepoRoot
+    )
+    if ([string]::IsNullOrWhiteSpace($Root)) { throw 'source root is required' }
+    if ([string]::IsNullOrWhiteSpace($ExpectedCommit)) { throw 'expected commit is required' }
+    $full = [IO.Path]::GetFullPath($Root)
+    if (-not (Test-Path -LiteralPath $full -PathType Container)) { throw "source root not found: $full" }
+    $top = (& git -C $full rev-parse --show-toplevel 2>$null)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($top)) { throw 'source root is not a git worktree' }
+    $topFull = [IO.Path]::GetFullPath($top.Trim())
+    if (-not [string]::Equals($topFull, $full, [StringComparison]::OrdinalIgnoreCase)) { throw 'source root is not the worktree top-level' }
+    $common = (& git -C $full rev-parse --git-common-dir 2>$null)
+    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($common)) { throw 'cannot resolve git common dir' }
+    $commonPath = $common.Trim()
+    if (-not [IO.Path]::IsPathRooted($commonPath)) { $commonPath = Join-Path $full $commonPath }
+    $commonFull = [IO.Path]::GetFullPath($commonPath)
+    $repoGit = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetFullPath($RepoRoot)) '.git'))
+    if (-not [string]::Equals($commonFull, $repoGit, [StringComparison]::OrdinalIgnoreCase)) { throw 'worktree belongs to a different repository' }
+    $listed = @(& git -C $full worktree list --porcelain 2>$null)
+    if ($LASTEXITCODE -ne 0) { throw 'cannot list worktrees' }
+    $norm = { param($p) ([IO.Path]::GetFullPath($p).Replace('\','/')).TrimEnd('/') }
+    $target = & $norm $full
+    $registered = $false
+    foreach ($line in $listed) {
+        if ($line -match '^worktree\s+(.+)$') {
+            $candidate = & $norm $Matches[1].Trim()
+            if ([string]::Equals($candidate, $target, [StringComparison]::OrdinalIgnoreCase)) { $registered = $true; break }
+        }
+    }
+    if (-not $registered) { throw 'worktree is not registered in git worktree list' }
+    $head = (& git -C $full rev-parse HEAD 2>$null).Trim()
+    if ($LASTEXITCODE -ne 0) { throw 'cannot resolve HEAD' }
+    if ($head -ne $ExpectedCommit) { throw "HEAD mismatch: expected $ExpectedCommit, got $head" }
+    $branch = (& git -C $full rev-parse --abbrev-ref HEAD 2>$null).Trim()
+    $dirty = @(& git -C $full status --porcelain 2>$null)
+    if ($dirty.Count -gt 0) { throw "worktree is dirty ($($dirty.Count) entries); authoritative test requires clean source" }
+    return @{ root=$full; head=$head; branch=$branch; dirtyCount=$dirty.Count }
 }

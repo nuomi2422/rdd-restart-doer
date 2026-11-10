@@ -9,6 +9,8 @@ param(
     [string]$Module,
     [switch]$TestOnly,
     [string[]]$Tests = @(),
+    [string]$SourceRoot,
+    [string]$ExpectedCommit,
     [switch]$SettleRegression,
     [switch]$IdentityRegression,
     # 2026-10-02 用户定：默认 120（2 小时），旧的「10 分钟/次」限制作废。
@@ -45,6 +47,7 @@ if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -n
     Write-Error 'TestOnly cannot be combined with launch, MCP, evidence, or multi-round options'; exit 2
 }
 if (-not $TestOnly -and $Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
+if (-not $TestOnly -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) { Write-Error 'SourceRoot/ExpectedCommit are TestOnly-only'; exit 2 }
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 # Test mode resolves the module from the fixed allowlist inside build-jar. The env
 # var feeds the "group:name" build path, and config.ps1 resolves it at load time —
@@ -69,7 +72,7 @@ Write-Output "[1/6] mutation-id: $id"
 
 # 2. 安全编译 + 打包
 if ($TestOnly) {
-    $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module -TestOnly -Tests $Tests
+    $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module -TestOnly -Tests $Tests -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
     $testExit = $LASTEXITCODE
     Write-Output "[test-only] $buildOut"
     if ($testExit -ne 0) { exit $testExit }
