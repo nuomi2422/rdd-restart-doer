@@ -192,6 +192,23 @@ function check(moodsDir) {
     const full = path.join(dir, f);
     loaded.push({ file: f, full, buf: fs.readFileSync(full) });
   }
+  // 2026-11-11: only one-level JarJar metadata registrations count, not arbitrary nested files.
+  for (const outer of [...loaded]) {
+    const entries = listEntries(outer.buf);
+    const metadata = entries.find(e => e.name === 'META-INF/jarjar/metadata.json');
+    if (!metadata) continue;
+    const registered = JSON.parse(readEntry(outer.buf, metadata).toString('utf8'));
+    if (!Array.isArray(registered.jars)) throw new Error('invalid JarJar metadata: ' + outer.file);
+    for (const jar of registered.jars) {
+      if (typeof jar.path !== 'string' || !jar.path.startsWith('META-INF/jarjar/') || !jar.path.endsWith('.jar') || jar.path.includes('..'))
+        throw new Error('invalid JarJar registered path: ' + outer.file);
+      const entry = entries.find(e => e.name === jar.path);
+      if (!entry) throw new Error('missing registered JarJar: ' + jar.path);
+      const buf = readEntry(outer.buf, entry);
+      listEntries(buf); // malformed registered content must propagate environment failure
+      loaded.push({ file: outer.file + '!/' + jar.path, full: outer.full, buf });
+    }
+  }
   // 「可用类」= 所有 numen jar 里声明的类的并集。
   // 为什么是并集而不是只取 api/core：rdd-core 的类内嵌在 plugins/rdd 里、ai/ui 平铺进 api jar，
   // 而 mods 里到底哪几个 jar 共存是运行时的真实状态 —— 用并集才是「运行时能不能加载到」。

@@ -301,7 +301,8 @@ function main() {
           console.log(`   ✔ 类级核对：${cr.jars.length} 个 jar、${totalRefs} 条 numen 引用，全部能解析到实现类`);
         }
       } catch (e) {
-        console.log(`   ? 类级核对跑不起来（${String(e.message).slice(0, 80)}）—— 这是环境问题，不冒充通过`);
+        console.log(`VERDICT=ENVIRONMENT_ERROR classrefs: ${String(e.message).slice(0, 160)}`);
+        process.exit(3);
       }
     }
     console.log('');
