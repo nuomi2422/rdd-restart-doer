@@ -29,8 +29,11 @@ if ($Mode -ceq 'isolated-title' -and $PSBoundParameters.ContainsKey('Instance') 
         $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
         $err=$out+'.stderr.txt'
         $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList @('D:/rdd/tools/mc-launch.mjs','--instance',$root,'--title-only','--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G') -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
+        $null=$launcher.Handle # retain process handle before short-lived node exits
         if(-not $launcher.WaitForExit(30000)){throw 'launcher timeout'}
-        if($launcher.ExitCode -ne 0){throw ('launcher exit '+$launcher.ExitCode+'; '+$err)}
+        $launcher.Refresh()
+        $nativeExit=$launcher.ExitCode
+        if($null -eq $nativeExit -or $nativeExit -ne 0){throw ('launcher exit '+$nativeExit+'; '+$err)}
         $rows=@(Get-Content $out | Where-Object {$_ -match '^\{.*"pid".*\}$'})
         if($rows.Count -ne 1){throw 'missing unique launcher PID'}
         $receipt=$rows[0]|ConvertFrom-Json

@@ -18,7 +18,7 @@ foreach($case in @('default','gpt','env','level','nonzero','no-pid','unknown','v
  $identityRoot=if($case -eq 'unknown'){'D:/other'}else{$root}
  $stub=@'
 function Get-CimInstance {param($ClassName,$Filter,$ErrorAction);if($Filter -like 'ProcessId=*'){return [pscustomobject]@{Name='javaw.exe';ProcessId=12345;CreationDate='fixture-time';CommandLine='java --gameDir "IDENTITY"'}};return @()}
-function Start-Process {param($FilePath,$ArgumentList,$WorkingDirectory,$RedirectStandardOutput,$RedirectStandardError,$WindowStyle,[switch]$PassThru);if($ArgumentList -contains '--level' -or $ArgumentList -notcontains '--title-only'){throw 'wrong arguments'};[IO.File]::WriteAllText($RedirectStandardOutput,'{"ok":true,"pid":PIDVALUE,"log":"fixture"}');[IO.File]::WriteAllText($RedirectStandardError,'');$o=[pscustomobject]@{ExitCode=EXITVALUE};$o|Add-Member ScriptMethod WaitForExit {param($ms);return $true};return $o}
+function Start-Process {param($FilePath,$ArgumentList,$WorkingDirectory,$RedirectStandardOutput,$RedirectStandardError,$WindowStyle,[switch]$PassThru);if($ArgumentList -contains '--level' -or $ArgumentList -notcontains '--title-only'){throw 'wrong arguments'};[IO.File]::WriteAllText($RedirectStandardOutput,'{"ok":true,"pid":PIDVALUE,"log":"fixture"}');[IO.File]::WriteAllText($RedirectStandardError,'');$o=[pscustomobject]@{ExitCode=EXITVALUE};$o|Add-Member ScriptMethod Refresh {}; $o|Add-Member ScriptMethod WaitForExit {param($ms);return $true};return $o}
 '@
  $stub=$stub.Replace('IDENTITY',$identityRoot).Replace('PIDVALUE',[string]$pidValue).Replace('EXITVALUE',[string]$exitCode)
  $runner=Join-Path $d 'run.ps1';Put $runner ($stub+'; $env:RDD_SELF_COMPILE_INSTANCE="test"; & "'+(Join-Path $d 'launch-mc.ps1')+'" '+$extra+'; exit $LASTEXITCODE')
