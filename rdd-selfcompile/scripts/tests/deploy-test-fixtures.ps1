@@ -6,7 +6,7 @@ New-Item -ItemType Directory $EvidenceDir | Out-Null
 $src=Split-Path $PSScriptRoot -Parent
 $utf8=[Text.UTF8Encoding]::new($true)
 function Put($p,$s){[IO.File]::WriteAllText($p,$s,$utf8)}
-$cases=@('missing','gpt','env-only','bad-sha','bad-receipt','escape','running','unknown','copy-failure','core','rdd','learner','repeat','link')
+$cases=@('missing','gpt','env-only','bad-sha','bad-receipt','escape','running','unknown','copy-failure','core','rdd','learner','repeat','link','missing-exit')
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'test';$live=Join-Path $d 'live';$mut=Join-Path $d 'mutations'
@@ -30,6 +30,7 @@ foreach($case in $cases){
  $commit='65ffba3ecdd9171eb59af470ba275f9e6655900f'
  $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
  if($case -eq 'bad-receipt'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'missing-exit'){$r.Remove('gradleExit')}
  if($case -eq 'escape'){$r.artifact=Join-Path $live $names[$module]}
  Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
  $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'old-module'
@@ -38,19 +39,24 @@ foreach($case in $cases){
  $cim=if($case -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
  if($case -eq 'link'){
   # Junction creation only inside fixture: consumer must reject the source parent.
-  $linked=Join-Path $d 'linked';New-Item -ItemType Junction -Path $linked -Target $jd | Out-Null
-  $r.artifact=Join-Path $linked $names[$module];Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+  $payload=Join-Path $d 'source-jar-payload'
+  if([IO.Path]::GetFullPath($jd) -ne [IO.Path]::GetFullPath((Join-Path $md 'jar')) -or (Test-Path $payload)){throw 'unsafe fixture relocation'}
+  [IO.Directory]::Move($jd,$payload)
+  New-Item -ItemType Junction -Path $jd -Target $payload | Out-Null
+  # phase artifact remains the exact expected mutation/jar path.
  }
  $argsText="-Mode isolated-test -Instance test"
  if($case -eq 'missing'){$argsText=''}elseif($case -eq 'gpt'){$argsText='-Mode isolated-test -Instance gpt'}elseif($case -eq 'env-only'){$argsText='-Mode isolated-test'}
  $wanted=if($case -eq 'bad-sha'){'0'*64}else{$sha}
- $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="test"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="test"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+''+$(if($case -eq 'missing-sha'){''}else{' -ExpectedSha256 '+$wanted})+'; exit $LASTEXITCODE'
  $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
  $ok=$case -in @('core','rdd','learner','repeat')
  if(($exit -eq 0) -ne $ok){throw ('unexpected case '+$case+' exit '+$exit)}
  if(Test-Path $poison){throw 'poison invoked'}
+ if($case -eq 'link' -and ($output -join ' ') -notmatch 'linked path refu\s*sed'){throw 'root-link did not reach link guard'}
+ if($case -eq 'missing-exit' -and ($output -join ' ') -notmatch 'invalid\s+build receipt'){throw 'missing-exit wrong refusal'}
  if((Get-FileHash $other).Hash -ne $otherHash){throw 'other mod modified'}
  $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
  if($ok){
