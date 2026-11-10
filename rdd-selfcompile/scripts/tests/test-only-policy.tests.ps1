@@ -4,6 +4,10 @@ function Assert([bool]$condition, [string]$message) { if (-not $condition) { thr
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
+$inferred=Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest')
+Assert ($inferred.Task -ceq ':plugins:rdd:test') 'single-owner inference must pick plugins:rdd'
+MustReject { Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest','com.dwinovo.numen.monitor.WorldContextStampTest') }
+MustReject { Get-RddTestOnlyPlan -Module '' -Tests @() }
 $ws=Get-RddTestOnlyPlan -Module 'world-state-core' -Tests @('com.dwinovo.numen.worldstate.core.model.WorldIdentityTest')
 Assert ($ws.Task -ceq ':world-state-core:test') 'world-state task must be fixed'
 Assert ($p.Task -ceq ':plugins:rdd:test') 'task must be fixed'

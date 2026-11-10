@@ -6,7 +6,8 @@ function Get-RddTestOnlyPlan {
     $allowlist = @{
         'plugins:rdd' = @(
             'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
-            'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest'
+            'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
+            'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
@@ -16,7 +17,18 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
         )
     }
-    $module = $Module.Trim()
+    $module = if ($null -eq $Module) { '' } else { $Module.Trim() }
+    if ($module -eq '') {
+        # No module given: accept only when every requested class belongs to exactly one
+        # allowlisted module. Anything ambiguous stays refused.
+        $owners = @()
+        foreach ($name in @($Tests)) {
+            if ($null -eq $name) { continue }
+            foreach ($k in $allowlist.Keys) { if ($allowlist[$k] -ccontains $name.Trim()) { if ($owners -notcontains $k) { $owners += $k } } }
+        }
+        if ($owners.Count -ne 1) { throw 'test-only module is not allowed (pass an allowlisted module)' }
+        $module = $owners[0]
+    }
     if (-not $allowlist.ContainsKey($module)) { throw 'test-only module is not allowed' }
     $allowed = $allowlist[$module]
     if (-not $Tests -or $Tests.Count -eq 0) { throw 'at least one exact test class is required' }
