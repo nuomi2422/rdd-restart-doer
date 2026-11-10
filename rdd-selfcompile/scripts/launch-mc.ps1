@@ -20,7 +20,10 @@ if ($Mode -ceq 'isolated-title' -and $PSBoundParameters.ContainsKey('Instance') 
         $root='D:/rdd/workspace/rdd-selfcompile/instances/test'
         $p=$root
         while($p){$item=Get-Item -LiteralPath $p -Force;if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'linked test root'};$p=Split-Path $p -Parent}
-        if(@(Get-ChildItem (Join-Path $root 'saves') -Force).Count){throw 'title requires empty saves'}
+        # 2026-11-11: copied old live world explicitly permitted; title launch itself still never quick-plays.
+        foreach($save in @(Get-ChildItem (Join-Path $root 'saves') -Force)){
+            if(-not $save.PSIsContainer -or $save.Name -cne 'live' -or ($save.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'unexpected test save scope'}
+        }
         $server=Get-Content (Join-Path $root 'config/numen/mcp_server.json') -Raw | ConvertFrom-Json
         $clients=Get-Content (Join-Path $root 'config/numen/mcp_clients.json') -Raw | ConvertFrom-Json
         if($server.enabled -ne $false -or $clients.enabled -ne $false -or @($clients.servers).Count){throw 'external tools must be disabled'}
