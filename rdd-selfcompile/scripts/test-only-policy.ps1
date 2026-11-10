@@ -86,30 +86,53 @@ function Test-RddTestOnlyReceipt {
     return @{ ok=$true; reason='passed' }
 }
 
-# R-11: validate a candidate test source root as a registered, clean worktree of the main repo.
+# 2026-11-11 R11: each Git output is usable only after its own exit code.
+function Invoke-RddCheckedGit {
+    param([string]$Root, [string[]]$GitArgs)
+    $output = @(& git -C $Root @GitArgs 2>$null)
+    $code = $LASTEXITCODE
+    if ($code -ne 0) { throw ('git-command-failed: ' + ($GitArgs -join ' ') + '; exit=' + $code) }
+    return $output
+}
+function Get-RddSourceSnapshot {
+    param([string]$Root)
+    $head = @(Invoke-RddCheckedGit -Root $Root -GitArgs @('rev-parse','HEAD'))
+    $branch = @(Invoke-RddCheckedGit -Root $Root -GitArgs @('rev-parse','--abbrev-ref','HEAD'))
+    $dirty = @(Invoke-RddCheckedGit -Root $Root -GitArgs @('status','--porcelain'))
+    if ($head.Count -ne 1 -or [string]::IsNullOrWhiteSpace($head[0]) -or $branch.Count -ne 1 -or [string]::IsNullOrWhiteSpace($branch[0])) { throw 'git-command-failed: empty or ambiguous HEAD/branch' }
+    return @{ head=$head[0].Trim(); branch=$branch[0].Trim(); dirtyCount=$dirty.Count }
+}
+function Test-RddSourcePair {
+    param([string]$SourceRoot, [string]$ExpectedCommit)
+    $hasRoot = -not [string]::IsNullOrWhiteSpace($SourceRoot)
+    $hasCommit = -not [string]::IsNullOrWhiteSpace($ExpectedCommit)
+    if ($hasRoot -xor $hasCommit) { throw 'SourceRoot and ExpectedCommit must be provided together' }
+    return $hasRoot
+}
+function Compare-RddSourceSnapshot {
+    param($Before, $After)
+    if ($null -eq $After) { return @{ok=$false; reason='source-state-unknown'} }
+    if ($Before.head -cne $After.head -or $Before.branch -cne $After.branch -or $After.dirtyCount -ne 0) { return @{ok=$false; reason='source-changed-during-test'} }
+    return @{ok=$true; reason='pre-post-checks-consistent'}
+}
+# Source proof is only the pre/post checks, not an exclusive or immutable build input.
 function Resolve-RddTrustedSourceRoot {
-    param(
-        [Parameter(Mandatory=$true)][string]$Root,
-        [Parameter(Mandatory=$true)][string]$ExpectedCommit,
-        [Parameter(Mandatory=$true)][string]$RepoRoot
-    )
-    if ([string]::IsNullOrWhiteSpace($Root)) { throw 'source root is required' }
-    if ([string]::IsNullOrWhiteSpace($ExpectedCommit)) { throw 'expected commit is required' }
+    param([string]$Root, [string]$ExpectedCommit, [string]$RepoRoot)
+    if (-not (Test-RddSourcePair -SourceRoot $Root -ExpectedCommit $ExpectedCommit)) { throw 'explicit source root and commit required' }
     $full = [IO.Path]::GetFullPath($Root)
     if (-not (Test-Path -LiteralPath $full -PathType Container)) { throw "source root not found: $full" }
-    $top = (& git -C $full rev-parse --show-toplevel 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($top)) { throw 'source root is not a git worktree' }
-    $topFull = [IO.Path]::GetFullPath($top.Trim())
+    $top = @(Invoke-RddCheckedGit -Root $full -GitArgs @('rev-parse','--show-toplevel'))
+    if ($top.Count -ne 1 -or [string]::IsNullOrWhiteSpace($top[0])) { throw 'git-command-failed: invalid toplevel' }
+    $topFull = [IO.Path]::GetFullPath($top[0].Trim())
     if (-not [string]::Equals($topFull, $full, [StringComparison]::OrdinalIgnoreCase)) { throw 'source root is not the worktree top-level' }
-    $common = (& git -C $full rev-parse --git-common-dir 2>$null)
-    if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($common)) { throw 'cannot resolve git common dir' }
-    $commonPath = $common.Trim()
+    $common = @(Invoke-RddCheckedGit -Root $full -GitArgs @('rev-parse','--git-common-dir'))
+    if ($common.Count -ne 1 -or [string]::IsNullOrWhiteSpace($common[0])) { throw 'git-command-failed: invalid common dir' }
+    $commonPath = $common[0].Trim()
     if (-not [IO.Path]::IsPathRooted($commonPath)) { $commonPath = Join-Path $full $commonPath }
     $commonFull = [IO.Path]::GetFullPath($commonPath)
     $repoGit = [IO.Path]::GetFullPath((Join-Path ([IO.Path]::GetFullPath($RepoRoot)) '.git'))
     if (-not [string]::Equals($commonFull, $repoGit, [StringComparison]::OrdinalIgnoreCase)) { throw 'worktree belongs to a different repository' }
-    $listed = @(& git -C $full worktree list --porcelain 2>$null)
-    if ($LASTEXITCODE -ne 0) { throw 'cannot list worktrees' }
+    $listed = @(Invoke-RddCheckedGit -Root $full -GitArgs @('worktree','list','--porcelain'))
     $norm = { param($p) ([IO.Path]::GetFullPath($p).Replace('\','/')).TrimEnd('/') }
     $target = & $norm $full
     $registered = $false
@@ -120,11 +143,41 @@ function Resolve-RddTrustedSourceRoot {
         }
     }
     if (-not $registered) { throw 'worktree is not registered in git worktree list' }
-    $head = (& git -C $full rev-parse HEAD 2>$null).Trim()
-    if ($LASTEXITCODE -ne 0) { throw 'cannot resolve HEAD' }
-    if ($head -ne $ExpectedCommit) { throw "HEAD mismatch: expected $ExpectedCommit, got $head" }
-    $branch = (& git -C $full rev-parse --abbrev-ref HEAD 2>$null).Trim()
-    $dirty = @(& git -C $full status --porcelain 2>$null)
-    if ($dirty.Count -gt 0) { throw "worktree is dirty ($($dirty.Count) entries); authoritative test requires clean source" }
-    return @{ root=$full; head=$head; branch=$branch; dirtyCount=$dirty.Count }
+    $snapshot = Get-RddSourceSnapshot -Root $full
+    if ($ExpectedCommit -cnotmatch '^[0-9a-fA-F]{40}$' -or $snapshot.head -ine $ExpectedCommit) { throw 'HEAD mismatch: full ExpectedCommit required' }
+    if ($snapshot.dirtyCount -ne 0) { throw 'worktree is dirty; test requires clean source' }
+    return @{root=$full; head=$snapshot.head; branch=$snapshot.branch; dirtyCount=0}
+}
+# Attempt IO is deliberately limited to its mutation directory; callers fail closed on IO errors.
+function Write-RddAttemptJson {
+    param([string]$Path, $Value)
+    $temporary = $Path + '.' + [guid]::NewGuid().ToString('N') + '.tmp'
+    [IO.File]::WriteAllText($temporary, ($Value | ConvertTo-Json -Depth 8), [Text.UTF8Encoding]::new($false))
+    if ([IO.Directory]::Exists($Path)) { throw 'attempt state path is a directory' }
+    if ([IO.File]::Exists($Path)) { [IO.File]::Replace($temporary, $Path, [NullString]::Value) }
+    else { [IO.File]::Move($temporary, $Path) }
+}
+function New-RddTestAttempt {
+    param([string]$MutationDir, [string]$Module, [string[]]$Tests)
+    if (-not (Test-Path -LiteralPath $MutationDir -PathType Container)) { throw 'mutation not found' }
+    $id = 'attempt-' + [guid]::NewGuid().ToString('N')
+    $attemptDir = Join-Path $MutationDir $id
+    New-Item -ItemType Directory -Path $attemptDir -ErrorAction Stop | Out-Null
+    $record = @{attemptId=$id; status='pending'; success=$false; stage='test-only'; deployed=$false; module=$Module; tests=@($Tests); startedAt=[datetime]::UtcNow.ToString('o'); reason='not-completed'; sourceVerified=$false; sourceProof='not-provided'; logFile=(Join-Path $attemptDir 'phase-test.log'); reportDir=(Join-Path $attemptDir 'test-results')}
+    $attempt = @{id=$id; dir=$attemptDir; statePath=(Join-Path $attemptDir 'phase-test.json'); currentPath=(Join-Path $MutationDir 'current-attempt.json'); record=$record}
+    Write-RddAttemptJson -Path $attempt.statePath -Value $record
+    Write-RddAttemptJson -Path $attempt.currentPath -Value @{attemptId=$id; statePath=$attempt.statePath; status='pending'; success=$false}
+    return $attempt
+}
+function Complete-RddTestAttempt {
+    param($Attempt, [ValidateSet('passed','failed','unknown')][string]$Status, [string]$Reason, $Details=@{})
+    $existing = Get-Content -LiteralPath $Attempt.statePath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+    if ($existing.attemptId -cne $Attempt.id -or $existing.status -cne 'pending') { throw 'attempt already finalized or mismatched' }
+    $current = Get-Content -LiteralPath $Attempt.currentPath -Raw -Encoding UTF8 -ErrorAction Stop | ConvertFrom-Json
+    if ($current.attemptId -cne $Attempt.id) { throw 'attempt superseded; cannot publish as current' }
+    $record = @{} + $Attempt.record
+    foreach ($key in $Details.Keys) { $record[$key] = $Details[$key] }
+    $record.status=$Status; $record.success=($Status -eq 'passed'); $record.reason=$Reason; $record.finishedAt=[datetime]::UtcNow.ToString('o')
+    Write-RddAttemptJson -Path $Attempt.statePath -Value $record
+    Write-RddAttemptJson -Path $Attempt.currentPath -Value @{attemptId=$Attempt.id; statePath=$Attempt.statePath; status=$Status; success=$record.success}
 }

@@ -83,6 +83,11 @@ if ($null -eq $testsInfo -or $null -eq $testsInfo.ok -or $testsInfo.ok -isnot [b
 if (-not $testsInfo.ok) { Write-Error ("RUN_REFUSED: " + $testsInfo.reason); exit 2 }
 
 
+# 2026-11-11 R11: a lone expected commit must never silently select the main tree.
+$hasSourceRoot = -not [string]::IsNullOrWhiteSpace($SourceRoot)
+$hasExpectedCommit = -not [string]::IsNullOrWhiteSpace($ExpectedCommit)
+if ($hasSourceRoot -xor $hasExpectedCommit) { Write-Error 'RUN_REFUSED: SourceRoot and ExpectedCommit must be provided together'; exit 2 }
+
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 # Test mode resolves the module from the fixed allowlist inside build-jar. The env
 # var feeds the "group:name" build path, and config.ps1 resolves it at load time —

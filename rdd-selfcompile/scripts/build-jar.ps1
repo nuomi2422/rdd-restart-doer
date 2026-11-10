@@ -18,79 +18,94 @@ if (-not $TestOnly -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not
     Write-Error 'SourceRoot/ExpectedCommit are TestOnly-only'; exit 2
 }
 if ($TestOnly) {
-    # Test mode resolves the module ONLY from the fixed allowlist table. Top-level
-    # modules such as world-state-core have no "group:name" shape, and caller text
-    # must never become a Gradle task.
     . "$PSScriptRoot\test-only-policy.ps1"
-    $requested = if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) { $ModuleOverride } else { $env:RDD_SELF_COMPILE_MODULE }
-    try { $testPlan = Get-RddTestOnlyPlan -Module $requested -Tests $Tests }
-    catch { Write-Error $_; exit 2 }
-    $effectiveModule = $testPlan.Module
-    if ($effectiveModule -eq 'maid-link-core' -and ([string]::IsNullOrWhiteSpace($SourceRoot) -or [string]::IsNullOrWhiteSpace($ExpectedCommit))) {
-        Write-Error 'maid-link-core requires -SourceRoot and -ExpectedCommit'; exit 2
-    }
+    $dir = Join-Path $global:RDD_SC.SC_MUTATIONS $MutationId
+    # Fail closed if pending/current cannot be published. No Gradle before both writes.
+    $attempt = New-RddTestAttempt -MutationDir $dir -Module $ModuleOverride -Tests $Tests
+    $details = @{expectedCommit=$ExpectedCommit; requestedSourceRoot=$SourceRoot; sourceVerified=$false; sourceProof='not-provided'; sourceRoot=$global:RDD_SC.NUMMEN_REPO}
     $source = $null
-    if (-not [string]::IsNullOrWhiteSpace($SourceRoot)) {
-        try { $source = Resolve-RddTrustedSourceRoot -Root $SourceRoot -ExpectedCommit $ExpectedCommit -RepoRoot $global:RDD_SC.NUMMEN_REPO }
-        catch { Write-Error $_; exit 2 }
+    $reportEnvironmentWasSet = Test-Path Env:RDD_TEST_REPORT_DIR
+    $previousReportDir = $env:RDD_TEST_REPORT_DIR
+    try {
+        $explicitSource = Test-RddSourcePair -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+        $requested = if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) { $ModuleOverride } else { $env:RDD_SELF_COMPILE_MODULE }
+        $testPlan = Get-RddTestOnlyPlan -Module $requested -Tests $Tests
+        $details.module = $testPlan.Module
+        $details.tests = $testPlan.Tests
+        if ($testPlan.Module -eq 'maid-link-core' -and -not $explicitSource) { throw 'maid-link-core requires -SourceRoot and -ExpectedCommit' }
+        if ($explicitSource) {
+            $source = Resolve-RddTrustedSourceRoot -Root $SourceRoot -ExpectedCommit $ExpectedCommit -RepoRoot $global:RDD_SC.NUMMEN_REPO
+            $details.sourceVerified = $true
+            $details.sourceRoot = $source.root
+            $details.sourceHead = $source.head
+            $details.sourceBranch = $source.branch
+            $details.sourceDirtyCount = $source.dirtyCount
+            $details.sourceProof = 'pre-check-only'
+        }
+        $gradleRoot = $details.sourceRoot
+        $gradleArgs = @('-p', $gradleRoot, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
+        foreach ($testName in $testPlan.Tests) { $gradleArgs += @('--tests', $testName) }
+        $env:RDD_TEST_REPORT_DIR = $attempt.record.reportDir
+        $env:JAVA_HOME = $global:RDD_SC.JAVA_HOME
+        $env:GRADLE_OPTS = $global:RDD_SC.GRADLE_OPTS
+        & $global:RDD_SC.GRADLE @gradleArgs *> $attempt.record.logFile
+        $gradleExit = $LASTEXITCODE
+        $details.gradleExit = $gradleExit
+        if ($source) {
+            $after = Get-RddSourceSnapshot -Root $source.root
+            $details.sourceHeadAfter = $after.head
+            $details.sourceBranchAfter = $after.branch
+            $details.sourceDirtyCountAfter = $after.dirtyCount
+            $comparison = Compare-RddSourceSnapshot -Before $source -After $after
+            if (-not $comparison.ok) {
+                Complete-RddTestAttempt -Attempt $attempt -Status 'unknown' -Reason $comparison.reason -Details $details
+                Write-Output ('TEST_UNKNOWN: ' + $comparison.reason + '; attempt=' + $attempt.id)
+                exit 3
+            }
+            $details.sourceProof = 'pre-post-checks-consistent'
+        }
+        $receipt = Test-RddTestOnlyReceipt -ExitCode $gradleExit -ReportDir $attempt.record.reportDir -ExpectedTests $testPlan.Tests
+        if (-not $receipt.ok) {
+            Complete-RddTestAttempt -Attempt $attempt -Status 'failed' -Reason $receipt.reason -Details $details
+            Write-Output ('TEST_FAIL: ' + $receipt.reason + '; attempt=' + $attempt.id)
+            exit 1
+        }
+        Complete-RddTestAttempt -Attempt $attempt -Status 'passed' -Reason 'passed' -Details $details
+        Write-Output ('TEST_OK: attempt=' + $attempt.id + '; receipt=' + $attempt.statePath)
+        exit 0
+    } catch {
+        $reason = $_.Exception.Message
+        $status = if ($reason -like '*git-command-failed*') { 'unknown' } else { 'failed' }
+        Complete-RddTestAttempt -Attempt $attempt -Status $status -Reason $reason -Details $details
+        Write-Output ('TEST_' + $status.ToUpperInvariant() + ': ' + $reason + '; attempt=' + $attempt.id)
+        if ($status -eq 'unknown') { exit 3 } else { exit 2 }
+    } finally {
+        if ($reportEnvironmentWasSet) { $env:RDD_TEST_REPORT_DIR = $previousReportDir }
+        else { Remove-Item Env:RDD_TEST_REPORT_DIR -ErrorAction SilentlyContinue }
     }
+}
+# Non-test behavior is unreachable from the incident-frozen run-mutation full path.
+if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
+    Set-RddSelfCompileModule $ModuleOverride | Out-Null
 } else {
-    if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) {
-        Set-RddSelfCompileModule $ModuleOverride | Out-Null
-    } else {
-        Set-RddSelfCompileModule $env:RDD_SELF_COMPILE_MODULE | Out-Null
-    }
-    $effectiveModule = $global:RDD_SC.PLUGIN_MODULE
+    Set-RddSelfCompileModule $env:RDD_SELF_COMPILE_MODULE | Out-Null
 }
-if (-not $TestOnly -and $Tests.Count -gt 0) {
-    Write-Error 'Tests requires TestOnly'; exit 2
-}
-
+$effectiveModule = $global:RDD_SC.PLUGIN_MODULE
+if ($Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
 $dir = Join-Path $global:RDD_SC.SC_MUTATIONS $MutationId
 if (-not (Test-Path $dir)) { throw "mutation not found: $dir" }
-
 $env:JAVA_HOME = $global:RDD_SC.JAVA_HOME
 $env:GRADLE_OPTS = $global:RDD_SC.GRADLE_OPTS
-
 Write-Output "编译插件模块 $effectiveModule ..."
 Push-Location $global:RDD_SC.NUMMEN_REPO
-$logFile = Join-Path $dir "phase-build.log"
-# NOTE: must be "$($effectiveModule)", NOT "$effectiveModule".  PowerShell treats
-# ':' as part of a variable name (scope syntax), so ":$effectiveModule:jar"
-# expands to the single char ':' and gradle then reports
-# "Cannot locate tasks that match ':'".  Caught 2026-09-29 with
-# -ModuleOverride plugins:learner.  Keep the sub-expression form.
+$logFile = Join-Path $dir 'phase-build.log'
 $gradleTask = ":$($effectiveModule):jar"
 $gradleArgs = @('-p', $global:RDD_SC.NUMMEN_REPO, $gradleTask, '--no-build-cache', '--no-daemon')
-if ($TestOnly) {
-    $gradleRoot = if ($source) { $source.root } else { $global:RDD_SC.NUMMEN_REPO }
-    $gradleArgs = @('-p', $gradleRoot, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
-    foreach ($testName in $testPlan.Tests) { $gradleArgs += @('--tests', $testName) }
-    $logFile = Join-Path $dir 'phase-test.log'
-    # Isolate reports in this mutation; no old XML can satisfy this invocation.
-    $env:RDD_TEST_REPORT_DIR = Join-Path $dir 'test-results'
-    if (Test-Path -LiteralPath $env:RDD_TEST_REPORT_DIR) { Pop-Location; Write-Error 'test report directory already exists'; exit 2 }
-}
 try {
     & $global:RDD_SC.GRADLE @gradleArgs *> $logFile
     $gradleExit = $LASTEXITCODE
-    if ($TestOnly -and $source) {
-        $afterHead = (& git -C $source.root rev-parse HEAD 2>$null).Trim()
-        $afterDirty = @(& git -C $source.root status --porcelain 2>$null).Count
-        if ($afterHead -ne $source.head -or $afterDirty -ne $source.dirtyCount) {
-            Write-Error 'source changed during test; result is UNKNOWN'; exit 3
-        }
-    }
 } finally {
-    if ($TestOnly) { Remove-Item Env:RDD_TEST_REPORT_DIR -ErrorAction SilentlyContinue }
     Pop-Location
-}
-if ($TestOnly) {
-    $reportDir = Join-Path $dir 'test-results'
-    $receipt = Test-RddTestOnlyReceipt -ExitCode $gradleExit -ReportDir $reportDir -ExpectedTests $testPlan.Tests
-    Write-ResultJson (Join-Path $dir 'phase-test.json') @{ success=$receipt.ok; stage='test-only'; reason=$receipt.reason; gradleExit=$gradleExit; reportDir=$reportDir; sourceRoot=($source.root); sourceHead=($source.head); sourceBranch=($source.branch); expectedCommit=$ExpectedCommit; sourceDirtyCount=($source.dirtyCount); module=$effectiveModule; tests=$testPlan.Tests; deployed=$false }
-    if (-not $receipt.ok) { Write-Output ("TEST_FAIL: " + $receipt.reason); exit 1 }
-    Write-Output 'TEST_OK'; exit 0
 }
 
 # 编译日志内容
