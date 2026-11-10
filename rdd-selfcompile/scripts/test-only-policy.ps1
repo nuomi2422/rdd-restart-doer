@@ -7,11 +7,13 @@ function Get-RddTestOnlyPlan {
         'plugins:rdd' = @(
             'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
             'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
-            'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest'
+            'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
+            'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
-            'com.dwinovo.numen.monitor.WorldContextStampTest'
+            'com.dwinovo.numen.monitor.WorldContextStampTest',
+            'com.dwinovo.numen.api.RationaleContextTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
