@@ -8,12 +8,18 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
             'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
             'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
-            'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest'
+            'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
+            'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
             'com.dwinovo.numen.monitor.WorldContextStampTest',
-            'com.dwinovo.numen.api.RationaleContextTest'
+            'com.dwinovo.numen.api.RationaleContextTest',
+            'com.dwinovo.numen.client.agent.OwnerStopLatchTest',
+            'com.dwinovo.numen.api.EnqueueReceiptTest',
+            'com.dwinovo.numen.api.EnqueueReceiptCompatTest',
+            'com.dwinovo.numen.api.EnqueueTransactionMatrixTest',
+            'com.dwinovo.numen.api.EnqueueTransactionQueueTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
