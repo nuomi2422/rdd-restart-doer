@@ -32,14 +32,31 @@ param(
     [int]$Rounds = 0
 )
 
-# Incident freeze: load the pure guard with closed failure before any config/mutation side effect.
+# Incident freeze: load the guard into an isolated module; functions must come from this file.
 $guardPath = Join-Path $PSScriptRoot 'execution-guard.ps1'
 if (-not (Test-Path -LiteralPath $guardPath -PathType Leaf)) { Write-Error 'RUN_REFUSED: guard-missing'; exit 2 }
-try { . $guardPath } catch { Write-Error ("RUN_REFUSED: guard-load-failed: " + $_.Exception.Message); exit 2 }
-if (-not (Get-Command Resolve-RddRunMode -ErrorAction SilentlyContinue) -or -not (Get-Command Test-RddTestSelection -ErrorAction SilentlyContinue)) { Write-Error 'RUN_REFUSED: guard-functions-missing'; exit 2 }
-try { $modeInfo = Resolve-RddRunMode -Mode $Mode -TestOnly:$TestOnly } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
+try { $guardText = Get-Content -LiteralPath $guardPath -Raw -ErrorAction Stop } catch { Write-Error ("RUN_REFUSED: guard-load-failed: " + $_.Exception.Message); exit 2 }
+if ([string]::IsNullOrWhiteSpace($guardText)) { Write-Error 'RUN_REFUSED: guard-empty'; exit 2 }
+$parseTokens = $null; $parseErrors = $null
+try { $guardAst = [System.Management.Automation.Language.Parser]::ParseInput($guardText, [ref]$parseTokens, [ref]$parseErrors) } catch { Write-Error ("RUN_REFUSED: guard-parse-failed: " + $_.Exception.Message); exit 2 }
+if ($parseErrors -and $parseErrors.Count -gt 0) { Write-Error 'RUN_REFUSED: guard-parse-failed'; exit 2 }
+$definedFunctions = @($guardAst.EndBlock.Statements | Where-Object { $_ -is [System.Management.Automation.Language.FunctionDefinitionAst] } | ForEach-Object { $_.Name })
+if ($definedFunctions -notcontains 'Resolve-RddRunMode' -or $definedFunctions -notcontains 'Test-RddTestSelection') { Write-Error 'RUN_REFUSED: guard-functions-missing'; exit 2 }
+$guardModuleName = 'RddExecutionGuard_' + [guid]::NewGuid().ToString('N')
+try {
+    $guardModule = New-Module -Name $guardModuleName -ArgumentList $guardText -ScriptBlock {
+        param($text)
+        $ErrorActionPreference = 'Stop'
+        . ([ScriptBlock]::Create($text))
+        Export-ModuleMember -Function Resolve-RddRunMode, Test-RddTestSelection
+    } -ErrorAction Stop
+} catch { Write-Error ("RUN_REFUSED: guard-load-failed: " + $_.Exception.Message); exit 2 }
+$resolveFn = $guardModule.ExportedFunctions['Resolve-RddRunMode']
+$testFn = $guardModule.ExportedFunctions['Test-RddTestSelection']
+if (-not $resolveFn -or -not $testFn) { Write-Error 'RUN_REFUSED: guard-functions-missing'; exit 2 }
+try { $modeInfo = & $resolveFn -Mode $Mode -TestOnly:$TestOnly } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
 if ($null -eq $modeInfo -or $null -eq $modeInfo.ok -or $modeInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
-if (-not $modeInfo.ok) { Write-Error ("RUN_REFUSED: " + $modeInfo.reason); exit 2 }
+if ($modeInfo.ok -ne $true) { Write-Error ("RUN_REFUSED: " + $modeInfo.reason); exit 2 }
 $effectiveMode = [string]$modeInfo.mode
 if ($effectiveMode -ne 'test-only') { Write-Error 'RUN_REFUSED: incident-freeze: only test-only supported'; exit 2 }
 $TestOnly = $true
@@ -61,7 +78,7 @@ if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -n
 }
 if ($effectiveMode -ne 'test-only' -and $Tests.Count -gt 0) { Write-Error 'RUN_REFUSED: tests require test-only mode'; exit 2 }
 if ($effectiveMode -ne 'test-only' -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) { Write-Error 'RUN_REFUSED: SourceRoot/ExpectedCommit are TestOnly-only'; exit 2 }
-try { $testsInfo = Test-RddTestSelection -Tests $Tests } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
+try { $testsInfo = & $testFn -Tests $Tests } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
 if ($null -eq $testsInfo -or $null -eq $testsInfo.ok -or $testsInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
 if (-not $testsInfo.ok) { Write-Error ("RUN_REFUSED: " + $testsInfo.reason); exit 2 }
 
