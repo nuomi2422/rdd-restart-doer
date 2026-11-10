@@ -23,7 +23,10 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.EnqueueTransactionMatrixTest',
             'com.dwinovo.numen.api.EnqueueTransactionQueueTest',
             'com.dwinovo.numen.api.CapturedOwnerInputTest',
-            'com.dwinovo.numen.client.chat.QuickVoiceCaptureTest'
+            'com.dwinovo.numen.client.chat.QuickVoiceCaptureTest',
+            'com.dwinovo.numen.api.ExecutorRetrievalInputTest',
+            'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
+            'com.dwinovo.numen.api.ExecutorCompanionIsolationTest'
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest'
