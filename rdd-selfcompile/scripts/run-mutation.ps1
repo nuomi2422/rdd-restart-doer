@@ -32,6 +32,18 @@ param(
     [int]$Rounds = 0
 )
 
+# Incident freeze: load the pure guard with closed failure before any config/mutation side effect.
+$guardPath = Join-Path $PSScriptRoot 'execution-guard.ps1'
+if (-not (Test-Path -LiteralPath $guardPath -PathType Leaf)) { Write-Error 'RUN_REFUSED: guard-missing'; exit 2 }
+try { . $guardPath } catch { Write-Error ("RUN_REFUSED: guard-load-failed: " + $_.Exception.Message); exit 2 }
+if (-not (Get-Command Resolve-RddRunMode -ErrorAction SilentlyContinue) -or -not (Get-Command Test-RddTestSelection -ErrorAction SilentlyContinue)) { Write-Error 'RUN_REFUSED: guard-functions-missing'; exit 2 }
+try { $modeInfo = Resolve-RddRunMode -Mode $Mode -TestOnly:$TestOnly } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
+if ($null -eq $modeInfo -or $null -eq $modeInfo.ok -or $modeInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
+if (-not $modeInfo.ok) { Write-Error ("RUN_REFUSED: " + $modeInfo.reason); exit 2 }
+$effectiveMode = [string]$modeInfo.mode
+if ($effectiveMode -ne 'test-only') { Write-Error 'RUN_REFUSED: incident-freeze: only test-only supported'; exit 2 }
+$TestOnly = $true
+
 if ($SettleRegression -and $IdentityRegression) { Write-Error 'SettleRegression conflicts with IdentityRegression'; exit 2 }
 if ($SettleRegression) {
     if (-not $TestOnly -or $Tests.Count -gt 0) { Write-Error 'SettleRegression requires TestOnly and conflicts with Tests'; exit 2 }
@@ -47,13 +59,13 @@ if ($IdentityRegression) {
 if ($TestOnly -and ($CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -ne 0 -or -not [string]::IsNullOrWhiteSpace($EvidenceTool))) {
     Write-Error 'TestOnly cannot be combined with launch, MCP, evidence, or multi-round options'; exit 2
 }
-if (-not $TestOnly -and $Tests.Count -gt 0) { Write-Error 'Tests requires TestOnly'; exit 2 }
-if (-not $TestOnly -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) { Write-Error 'SourceRoot/ExpectedCommit are TestOnly-only'; exit 2 }
+if ($effectiveMode -ne 'test-only' -and $Tests.Count -gt 0) { Write-Error 'RUN_REFUSED: tests require test-only mode'; exit 2 }
+if ($effectiveMode -ne 'test-only' -and (-not [string]::IsNullOrWhiteSpace($SourceRoot) -or -not [string]::IsNullOrWhiteSpace($ExpectedCommit))) { Write-Error 'RUN_REFUSED: SourceRoot/ExpectedCommit are TestOnly-only'; exit 2 }
+try { $testsInfo = Test-RddTestSelection -Tests $Tests } catch { Write-Error ("RUN_REFUSED: guard-call-failed: " + $_.Exception.Message); exit 2 }
+if ($null -eq $testsInfo -or $null -eq $testsInfo.ok -or $testsInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
+if (-not $testsInfo.ok) { Write-Error ("RUN_REFUSED: " + $testsInfo.reason); exit 2 }
 
-# Incident freeze: explicit mode required before any config/mutation side effect.
-. "$PSScriptRoot\execution-guard.ps1"
-$modeDecision = Get-RddRunModeDecision -Mode $Mode -TestOnly:$TestOnly -Tests $Tests
-if (-not $modeDecision.ok) { Write-Error ("RUN_REFUSED: " + $modeDecision.reason); exit 2 }
+
 $env:RDD_SELF_COMPILE_INSTANCE = $Instance
 # Test mode resolves the module from the fixed allowlist inside build-jar. The env
 # var feeds the "group:name" build path, and config.ps1 resolves it at load time —
