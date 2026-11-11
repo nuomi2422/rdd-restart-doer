@@ -80,7 +80,9 @@ function Invoke-RddTestAssembly {
  param($Source,[string]$Root,[string]$Live,[switch]$Original)
  Assert-RddOrdinaryPath $Root;Assert-RddOrdinaryPath $Live
  if($Original){
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb')){throw 'unapproved original deployment'}
+  # 2026-11-12: original live learner exception is this exact managed source tuple only.
+  $fixedLearner=$Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.commit -ceq '65ffba3ecdd9171eb59af470ba275f9e6655900f' -and $Source.sha -ieq 'BED02091A09889ECBC0DFCF094CAB89B94C9162AB3AD03D93FBE24660660868A'
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedLearner -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
