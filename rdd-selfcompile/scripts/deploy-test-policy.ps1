@@ -49,6 +49,10 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-8fe58bf41a5f456fbc5d407e2484fae3'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','F90EB4AC7A80EA6D0188432A75A5B9362BFE17E61E45158369588EAC66C54753')}
   $commit='7cf784df48d0362e60fa70e300b7711feaaa9452'
  }
+ if($MutationId -ceq 'mutation-build-84a320cad8ea474cab53da9d17480292'){
+  $fixed=@{'mutation-build-84a320cad8ea474cab53da9d17480292'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','ACB70945FAE340207EE7D3E08B24547512B522E7ADD475DB0189F05AF94640D9')}
+  $commit='7cc063c55b86a1bff83d90237c61a3cd12928abb'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
