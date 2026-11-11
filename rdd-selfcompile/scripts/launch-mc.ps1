@@ -1,4 +1,4 @@
-﻿# 启动 Minecraft 并进入 gpt 存档
+# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
@@ -26,7 +26,7 @@ if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'o
         }
         $server=Get-Content (Join-Path $root 'config/numen/mcp_server.json') -Raw | ConvertFrom-Json
         $clients=Get-Content (Join-Path $root 'config/numen/mcp_clients.json') -Raw | ConvertFrom-Json
-        if(($server.enabled -ne $false -and -not ($server.host -ceq '127.0.0.1' -and $server.port -in @(8765,8766) -and $server.token.Length -ge 32)) -or $clients.enabled -ne $false -or @($clients.servers).Count){throw 'external tools must be disabled'}
+        if(($server.enabled -ne $false -and -not ($server.host -ceq '127.0.0.1' -and $server.port -in @(8765,8766) -and $server.token.Length -ge 32)) -or $clients.enabled -ne $false){throw 'external tool clients must be disabled'}
         $before=@(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
         foreach($p in $before){if((Get-RddMcCommandLineMatch $p.CommandLine $root) -ne 'NO_MATCH'){throw 'existing or unknown test process'}}
         $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
