@@ -1,4 +1,4 @@
-# 2026-11-11: narrow fixed-artifact test assembly. No live config or launch access.
+﻿# 2026-11-11: narrow fixed-artifact test assembly. No live config or launch access.
 function Assert-RddOrdinaryPath {
  param([string]$Path)
  $p=[IO.Path]::GetFullPath($Path)
