@@ -52,8 +52,13 @@ if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'o
     }catch{Write-Error ('TITLE_LAUNCH_FAILED: '+$_.Exception.Message);exit 2}
 }
 # All default/gpt/world launches remain frozen.
-Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
-exit 2
+# 2026-11-11: one explicit, auditable bounded-live verification path (quick play into live).
+# Default and every other mode still refuse; this is not a general launch release.
+if ($Mode -cne 'bounded-live' -or $Instance -cne 'gpt') {
+    Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
+    exit 2
+}
+Write-Output ("BOUNDED_LIVE: single-run stage-guard verification mode=$Mode instance=$Instance quickPlay=live")
 
 $env:RDD_SELF_COMPILE_INSTANCE = if ($Instance) { $Instance } else { 'gpt' }
 . "$PSScriptRoot\config.ps1"
