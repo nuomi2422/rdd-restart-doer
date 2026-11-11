@@ -1,4 +1,4 @@
-# 启动 Minecraft 并进入 gpt 存档
+﻿# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
@@ -13,25 +13,25 @@ param(
 #    两处不一致时本行会先把 env 写成 test，config 再读到非空 env 就跟着用 test，
 #    改一处不改另一处 = 没改。
 # 2026-11-11: bounded title-only test process, not a world or legacy launch.
-if ($Mode -ceq 'isolated-title' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'test' -and -not $MutationId -and -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -and $args.Count -eq 0) {
+if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'original-title' -and $Instance -ceq 'gpt')) -and $PSBoundParameters.ContainsKey('Instance') -and -not $MutationId -and -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -and $args.Count -eq 0) {
     $ErrorActionPreference='Stop'
     try {
         . "$PSScriptRoot\mc-identity.ps1"
-        $root='D:/rdd/workspace/rdd-selfcompile/instances/test'
+        $root=if($Mode -ceq 'original-title'){'D:/rdd/mc/The Best of Twilight Forest'}else{'D:/rdd/workspace/rdd-selfcompile/instances/test'}
         $p=$root
         while($p){$item=Get-Item -LiteralPath $p -Force;if($item.Attributes -band [IO.FileAttributes]::ReparsePoint){throw 'linked test root'};$p=Split-Path $p -Parent}
         # 2026-11-11: copied old live world explicitly permitted; title launch itself still never quick-plays.
-        foreach($save in @(Get-ChildItem (Join-Path $root 'saves') -Force)){
+        foreach($save in @($(if($Mode -cne 'original-title'){Get-ChildItem (Join-Path $root 'saves') -Force}))){
             if(-not $save.PSIsContainer -or $save.Name -cne 'live' -or ($save.Attributes -band [IO.FileAttributes]::ReparsePoint)){throw 'unexpected test save scope'}
         }
         $server=Get-Content (Join-Path $root 'config/numen/mcp_server.json') -Raw | ConvertFrom-Json
         $clients=Get-Content (Join-Path $root 'config/numen/mcp_clients.json') -Raw | ConvertFrom-Json
-        if(($server.enabled -ne $false -and -not ($server.host -ceq '127.0.0.1' -and $server.port -eq 8766 -and $server.token.Length -ge 32)) -or $clients.enabled -ne $false -or @($clients.servers).Count){throw 'external tools must be disabled'}
+        if(($server.enabled -ne $false -and -not ($server.host -ceq '127.0.0.1' -and $server.port -in @(8765,8766) -and $server.token.Length -ge 32)) -or $clients.enabled -ne $false -or @($clients.servers).Count){throw 'external tools must be disabled'}
         $before=@(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
         foreach($p in $before){if((Get-RddMcCommandLineMatch $p.CommandLine $root) -ne 'NO_MATCH'){throw 'existing or unknown test process'}}
         $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
         $err=$out+'.stderr.txt'
-        $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList @('D:/rdd/tools/mc-launch.mjs','--instance',$root,'--title-only','--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G') -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
+        $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList @('D:/rdd/tools/mc-launch.mjs','--instance',('"'+$root+'"'),'--title-only','--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G') -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
         $null=$launcher.Handle # retain process handle before short-lived node exits
         if(-not $launcher.WaitForExit(30000)){throw 'launcher timeout'}
         $launcher.Refresh()
