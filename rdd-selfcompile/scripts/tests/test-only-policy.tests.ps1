@@ -1,4 +1,4 @@
-$ErrorActionPreference = 'Stop'
+﻿$ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\test-only-policy.ps1')
 function Assert([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
@@ -39,6 +39,11 @@ $evidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($evidence
 Assert ($evidencePlan.Task -ceq ':plugins:learner:test' -and $evidencePlan.Tests.Count -eq 1) 'experience evidence test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($evidenceTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.ExperienceSevenFields*') }
+$reviewerEvidenceTest = 'com.dwinovo.numen.plugins.learner.LearnerReviewerEvidenceTest'
+$reviewerEvidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewerEvidenceTest)
+Assert ($reviewerEvidencePlan.Task -ceq ':plugins:learner:test' -and $reviewerEvidencePlan.Tests.Count -eq 1) 'reviewer evidence test must map only to the learner task'
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reviewerEvidenceTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerReviewerEvidence*') }
 $dailyCoreTest = 'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest'
 $dailyShellTest = 'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
 $dailyCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyCoreTest)
