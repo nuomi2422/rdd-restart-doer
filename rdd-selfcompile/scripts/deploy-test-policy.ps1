@@ -17,6 +17,11 @@ function Get-RddTestDeploySource {
   'mutation-build-52876a2a2dd44cc68009c3ad4992de35'=@('plugins:learner','numen-plugin-learner-1.21.1-0.1.3-dev.jar','BED02091A09889ECBC0DFCF094CAB89B94C9162AB3AD03D93FBE24660660868A')
  }
  $commit='65ffba3ecdd9171eb59af470ba275f9e6655900f'
+ # 2026-11-11: bounded no-chain observation fix, only this new RDD artifact.
+ if($MutationId -ceq 'mutation-build-6b8413e1eb554f6db920c9760c89a270'){
+  $fixed=@{'mutation-build-6b8413e1eb554f6db920c9760c89a270'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','E06DAA86F139312CEB7A7ED4DED5D7312C3DCD2DD6DB6114049AAFF2CD243EFD')}
+  $commit='7760964f2f6e0b41d5a56e91d3ba835df9d92530'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
