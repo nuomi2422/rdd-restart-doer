@@ -1,4 +1,4 @@
-﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 # H1-min 收敛：mods 只由本入口写；写入前用 mc-instance 的三态拒绝运行中/未知部署。
 # 回滚不再自己 copy，改为调用本入口 -JarPath（同一落点）。
 param(
@@ -22,6 +22,14 @@ if ($Mode -ceq 'isolated-test' -and $PSBoundParameters.ContainsKey('Instance') -
         $result | ConvertTo-Json -Depth 6
         exit 0
     } catch { Write-Error ('DEPLOY_TEST_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+# 2026-11-11 owner selected original live; exact pending-expansion RDD artifact only.
+if ($Mode -ceq 'original-rdd' -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -ceq 'mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590') {
+ . "$PSScriptRoot\deploy-test-policy.ps1"
+ . "$PSScriptRoot\mc-identity.ps1"
+ $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+ Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+ exit 0
 }
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
