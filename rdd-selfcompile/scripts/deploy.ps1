@@ -42,6 +42,18 @@ if ($Mode -ceq 'original-learner' -and $PSBoundParameters.ContainsKey('Instance'
   exit 0
  } catch { Write-Error ('DEPLOY_LEARNER_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
+# 2026-11-12: one accepted integration, exact managed tuples; no generic deployment.
+if ($Mode -ceq 'original-accepted' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-14e46e1075514aed872cd27fe75b4a4a','mutation-build-34ab8109f7e042559e1de20539924c4d','mutation-build-7130759b9c3044de8a1a8da8c5d1d881') -and $ExpectedCommit -ceq 'bb0f1fd8507d82c4a3d3f9ecc9c6aa5fe5fb94ec' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_ACCEPTED_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
