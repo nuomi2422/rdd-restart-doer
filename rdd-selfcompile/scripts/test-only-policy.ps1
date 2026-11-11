@@ -40,14 +40,18 @@ function Get-RddTestOnlyPlan {
         )
         'plugins:learner' = @(
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
-            'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest'
+            'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest',
+            'com.dwinovo.numen.plugins.learner.skills.SkillBodyDeliveryIntegrityTest',
+            'com.dwinovo.numen.plugins.learner.skills.SkillBodyStoreTest'
         )
         'core:common' = @(
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
-            'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest'
+            'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
+            'com.dwinovo.numen.rdd.side.FoodSupplySideTaskTypeTest',
+            'com.dwinovo.numen.rdd.side.SideTaskEngineTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
