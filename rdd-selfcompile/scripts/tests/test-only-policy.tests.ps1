@@ -29,6 +29,11 @@ $candidatePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($candida
 Assert ($candidatePlan.Task -ceq ':plugins:learner:test' -and $candidatePlan.Tests.Count -eq 1) 'candidate gate test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.CandidateGate*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($candidateTest) }
+$announceTest = 'com.dwinovo.numen.plugins.learner.core.AnnounceTextTest'
+$announcePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($announceTest)
+Assert ($announcePlan.Task -ceq ':plugins:learner:test' -and $announcePlan.Tests.Count -eq 1) 'announce text test must map only to the learner task'
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.AnnounceText*') }
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($announceTest) }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')
