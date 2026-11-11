@@ -45,6 +45,10 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-7a2cded71c3e4230b7cca93ab67aa06f'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','04A5195DD1AEE334F20B8B4017E195D8DB360D2614E5E9B8710E2E4AB303562D')}
   $commit='d06618143655f7608890c86ea48a8dcb43dc1341'
  }
+ if($MutationId -ceq 'mutation-build-8fe58bf41a5f456fbc5d407e2484fae3'){
+  $fixed=@{'mutation-build-8fe58bf41a5f456fbc5d407e2484fae3'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','F90EB4AC7A80EA6D0188432A75A5B9362BFE17E61E45158369588EAC66C54753')}
+  $commit='7cf784df48d0362e60fa70e300b7711feaaa9452'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -72,7 +76,7 @@ function Invoke-RddTestAssembly {
  param($Source,[string]$Root,[string]$Live,[switch]$Original)
  Assert-RddOrdinaryPath $Root;Assert-RddOrdinaryPath $Live
  if($Original){
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341')){throw 'unapproved original deployment'}
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452')){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
