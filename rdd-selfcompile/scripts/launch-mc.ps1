@@ -32,11 +32,11 @@ if ((($Mode -cin @('isolated-title','isolated-bed') -and $Instance -ceq 'test') 
         # 2026-11-11 reversible bed mechanism fixture only; never original live.
         if($Mode -ceq 'isolated-bed'){
             if($root -cne 'D:/rdd/workspace/rdd-selfcompile/instances/test'){throw 'isolated bed root mismatch'}
-            $proof=Get-Content -LiteralPath 'D:/rdd/tmp/bed-isolated-safety-prepared-20261111.json' -Raw -Encoding UTF8|ConvertFrom-Json
+            $proof=Get-Content -LiteralPath 'D:/rdd/tmp/executor-reason-safety-prepared-20261111.json' -Raw -Encoding UTF8|ConvertFrom-Json
             if($proof.root -cne $root -or $proof.intervened -ne $true){throw 'missing isolated preparation proof'}
             foreach($f in $proof.proof){if((Get-FileHash -LiteralPath (Join-Path $root $f.rel)).Hash -ine $f.after){throw 'isolated preparation changed'}}
             if($server.enabled -ne $true -or $server.assist -ne $false -or $server.quiet_fallback -ne $false -or $server.port -ne 8766){throw 'isolated driving mode not ready'}
-            if((Get-FileHash -LiteralPath ($root+'/mods/numen-plugin-rdd-1.21.1-0.1.3-dev.jar')).Hash -cne 'F90EB4AC7A80EA6D0188432A75A5B9362BFE17E61E45158369588EAC66C54753'){throw 'isolated bed artifact mismatch'}
+            if((Get-FileHash -LiteralPath ($root+'/mods/numen-plugin-rdd-1.21.1-0.1.3-dev.jar')).Hash -cne 'ACB70945FAE340207EE7D3E08B24547512B522E7ADD475DB0189F05AF94640D9'){throw 'isolated bed artifact mismatch'}
         }
         $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
         $err=$out+'.stderr.txt'
