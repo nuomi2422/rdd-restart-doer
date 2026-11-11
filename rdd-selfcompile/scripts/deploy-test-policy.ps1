@@ -53,6 +53,11 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-84a320cad8ea474cab53da9d17480292'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','ACB70945FAE340207EE7D3E08B24547512B522E7ADD475DB0189F05AF94640D9')}
   $commit='7cc063c55b86a1bff83d90237c61a3cd12928abb'
  }
+ # 2026-11-12: food cooldown safety fix; same SHA passed kernel and host tests.
+ if($MutationId -ceq 'mutation-build-19ecce8338544ef789794af2c268c681'){
+  $fixed=@{'mutation-build-19ecce8338544ef789794af2c268c681'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','E13FD247A7627D37135DC060AD31A1D596E53F07AB3D5D150ACB84FBBF4DFE3E')}
+  $commit='6d848bdae594859c24e2d3d5e3d0ac48d931f439'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -82,7 +87,7 @@ function Invoke-RddTestAssembly {
  if($Original){
   # 2026-11-12: original live learner exception is this exact managed source tuple only.
   $fixedLearner=$Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.commit -ceq '65ffba3ecdd9171eb59af470ba275f9e6655900f' -and $Source.sha -ieq 'BED02091A09889ECBC0DFCF094CAB89B94C9162AB3AD03D93FBE24660660868A'
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedLearner -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb'))){throw 'unapproved original deployment'}
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedLearner -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
