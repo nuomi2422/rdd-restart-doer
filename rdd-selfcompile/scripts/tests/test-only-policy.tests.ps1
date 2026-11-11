@@ -24,6 +24,11 @@ $skillPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $skillTests
 Assert ($skillPlan.Task -ceq ':plugins:learner:test' -and $skillPlan.Tests.Count -eq 2) 'skill delivery tests must map to the learner test task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillBody*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $skillTests }
+$candidateTest = 'com.dwinovo.numen.plugins.learner.core.CandidateGateTest'
+$candidatePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($candidateTest)
+Assert ($candidatePlan.Task -ceq ':plugins:learner:test' -and $candidatePlan.Tests.Count -eq 1) 'candidate gate test must map only to the learner task'
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.CandidateGate*') }
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($candidateTest) }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')

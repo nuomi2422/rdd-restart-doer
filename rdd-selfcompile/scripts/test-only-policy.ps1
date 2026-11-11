@@ -42,7 +42,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
             'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillBodyDeliveryIntegrityTest',
-            'com.dwinovo.numen.plugins.learner.skills.SkillBodyStoreTest'
+            'com.dwinovo.numen.plugins.learner.skills.SkillBodyStoreTest',
+            'com.dwinovo.numen.plugins.learner.core.CandidateGateTest'
         )
         'core:common' = @(
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
