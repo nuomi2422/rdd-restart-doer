@@ -17,6 +17,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',
             'com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanningKnowledgeTest',
+            'com.dwinovo.numen.plugins.rdd.RddSurvivalDoctrineTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
             'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest'
