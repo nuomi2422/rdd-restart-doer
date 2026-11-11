@@ -9,6 +9,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
             'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest',
+            'com.dwinovo.numen.plugins.rdd.RddPersonalRespawnPolicyTest',
+            'com.dwinovo.numen.plugins.rdd.RddExternalResetWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',
@@ -20,6 +22,7 @@ function Get-RddTestOnlyPlan {
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
+            'com.dwinovo.numen.api.ExternalCommandPolicyTest',
             'com.dwinovo.numen.monitor.WorldContextStampTest',
             'com.dwinovo.numen.api.RationaleContextTest',
             'com.dwinovo.numen.client.agent.OwnerStopLatchTest',

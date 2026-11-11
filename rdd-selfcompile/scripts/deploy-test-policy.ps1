@@ -34,6 +34,13 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-60befb539f4e4c24b129e05c2f434d6b'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','CF2D115CC63997473668EEF6A13A5F259A4E483FE517BE66F2194B88862509CF')}
   $commit='a5c47538f38ece2b65c0ef863bde865627eb4310'
  }
+ if($MutationId -cin @('mutation-build-3fde7607688541eb99b3de87fbbf6ad7','mutation-build-fc5f2711d6a545338719cc95750ce50d')){
+  $fixed=@{
+   'mutation-build-3fde7607688541eb99b3de87fbbf6ad7'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','6F543C5CF947F9CE163691663F3124EF3F91C1B6AC79E3A3118D7173BA420E64')
+   'mutation-build-fc5f2711d6a545338719cc95750ce50d'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','40D367375CBCEE41723B8162F70F69DB732A4B9CACE2DEE74FAE5AB02A7219E8')
+  }
+  $commit='e1ad23d0fbb4679e3af749d377b39b6b2da45fbe'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -61,7 +68,7 @@ function Invoke-RddTestAssembly {
  param($Source,[string]$Root,[string]$Live,[switch]$Original)
  Assert-RddOrdinaryPath $Root;Assert-RddOrdinaryPath $Live
  if($Original){
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310')){throw 'unapproved original deployment'}
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe')){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
