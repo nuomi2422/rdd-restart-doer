@@ -34,6 +34,11 @@ $announcePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($announce
 Assert ($announcePlan.Task -ceq ':plugins:learner:test' -and $announcePlan.Tests.Count -eq 1) 'announce text test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.AnnounceText*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($announceTest) }
+$evidenceTest = 'com.dwinovo.numen.plugins.learner.core.ExperienceSevenFieldsTest'
+$evidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($evidenceTest)
+Assert ($evidencePlan.Task -ceq ':plugins:learner:test' -and $evidencePlan.Tests.Count -eq 1) 'experience evidence test must map only to the learner task'
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($evidenceTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.ExperienceSevenFields*') }
 $dailyCoreTest = 'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest'
 $dailyShellTest = 'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
 $dailyCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyCoreTest)
