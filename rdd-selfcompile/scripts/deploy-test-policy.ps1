@@ -26,6 +26,10 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','9FCA8846600702A092FC8ED299FAD76CBFC9167039B5A434BDFBDFBCC25CBA9D')}
   $commit='6b87976f9726936497544703fa596088a5ad6f5f'
  }
+ if($MutationId -ceq 'mutation-build-a4d56867456a4f18820d070a167ffa0a'){
+  $fixed=@{'mutation-build-a4d56867456a4f18820d070a167ffa0a'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','70526EA8562A8B03EB36324D529604D1A8AC2FB1EDA7666106B4301D50FB7D17')}
+  $commit='cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -53,7 +57,7 @@ function Invoke-RddTestAssembly {
  param($Source,[string]$Root,[string]$Live,[switch]$Original)
  Assert-RddOrdinaryPath $Root;Assert-RddOrdinaryPath $Live
  if($Original){
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cne '6b87976f9726936497544703fa596088a5ad6f5f'){throw 'unapproved original deployment'}
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2')){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}

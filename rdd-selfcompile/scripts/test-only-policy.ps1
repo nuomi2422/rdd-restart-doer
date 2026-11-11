@@ -40,7 +40,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
         )
         'rdd-core' = @(
-            'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest'
+            'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
+            'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
