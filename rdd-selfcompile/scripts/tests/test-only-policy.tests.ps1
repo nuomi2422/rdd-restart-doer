@@ -34,6 +34,16 @@ $announcePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($announce
 Assert ($announcePlan.Task -ceq ':plugins:learner:test' -and $announcePlan.Tests.Count -eq 1) 'announce text test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.AnnounceText*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($announceTest) }
+$dailyCoreTest = 'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest'
+$dailyShellTest = 'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
+$dailyCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyCoreTest)
+$dailyShellPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($dailyShellTest)
+Assert ($dailyCorePlan.Task -ceq ':rdd-core:test' -and $dailyCorePlan.Tests.Count -eq 1) 'daily dispatch test must map only to the core task'
+Assert ($dailyShellPlan.Task -ceq ':plugins:rdd:test' -and $dailyShellPlan.Tests.Count -eq 1) 'daily injection test must map only to the plugin task'
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.TaskChainDaily*') }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddGoalDriverInjection*') }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($dailyCoreTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyShellTest) }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')

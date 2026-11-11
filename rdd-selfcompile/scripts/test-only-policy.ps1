@@ -20,7 +20,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddSurvivalDoctrineTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
-            'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest'
+            'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest',
+            'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
@@ -51,6 +52,7 @@ function Get-RddTestOnlyPlan {
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
+            'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest',
             'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
             'com.dwinovo.numen.rdd.side.FoodSupplySideTaskTypeTest',
             'com.dwinovo.numen.rdd.side.SideTaskEngineTest'
