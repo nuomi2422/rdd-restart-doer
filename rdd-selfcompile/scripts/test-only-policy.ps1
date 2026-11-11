@@ -8,6 +8,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest',
             'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
             'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
+            'com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',

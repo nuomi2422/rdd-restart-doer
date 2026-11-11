@@ -24,7 +24,7 @@ if ($Mode -ceq 'isolated-test' -and $PSBoundParameters.ContainsKey('Instance') -
     } catch { Write-Error ('DEPLOY_TEST_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 # 2026-11-11 owner selected original live; exact pending-expansion RDD artifact only.
-if ($Mode -ceq 'original-rdd' -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590','mutation-build-a4d56867456a4f18820d070a167ffa0a')) {
+if ($Mode -ceq 'original-rdd' -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590','mutation-build-a4d56867456a4f18820d070a167ffa0a','mutation-build-60befb539f4e4c24b129e05c2f434d6b')) {
  . "$PSScriptRoot\deploy-test-policy.ps1"
  . "$PSScriptRoot\mc-identity.ps1"
  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
