@@ -44,6 +44,18 @@ MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddGoalDriverInjection*') }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($dailyCoreTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyShellTest) }
+$navTests = @(
+    'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
+    'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
+    'com.dwinovo.numen.core.pathing.calc.NavGoalDiagnosticsTest'
+)
+$navPlan = Get-RddTestOnlyPlan -Module 'core:common' -Tests $navTests
+Assert ($navPlan.Task -ceq ':core:common:test' -and $navPlan.Tests.Count -eq 3) 'navigation diagnostics tests must map only to the core common task'
+foreach ($navTest in $navTests) {
+    MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($navTest) }
+}
+MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.pathing.calc.NavGoal*') }
+MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.task.move.MoveToTask*') }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')

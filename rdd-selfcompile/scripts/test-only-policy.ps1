@@ -48,7 +48,10 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.core.AnnounceTextTest'
         )
         'core:common' = @(
-            'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest'
+            'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest',
+            'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
+            'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
+            'com.dwinovo.numen.core.pathing.calc.NavGoalDiagnosticsTest'
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
