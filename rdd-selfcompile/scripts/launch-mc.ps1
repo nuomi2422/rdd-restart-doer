@@ -1,4 +1,4 @@
-﻿# 启动 Minecraft 并进入 gpt 存档
+# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
@@ -13,7 +13,7 @@ param(
 #    两处不一致时本行会先把 env 写成 test，config 再读到非空 env 就跟着用 test，
 #    改一处不改另一处 = 没改。
 # 2026-11-11: bounded title-only test process, not a world or legacy launch.
-if ((($Mode -cin @('isolated-title','isolated-bed') -and $Instance -ceq 'test') -or ($Mode -ceq 'original-title' -and $Instance -ceq 'gpt')) -and $PSBoundParameters.ContainsKey('Instance') -and -not $MutationId -and -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -and $args.Count -eq 0) {
+if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'original-title' -and $Instance -ceq 'gpt')) -and $PSBoundParameters.ContainsKey('Instance') -and -not $MutationId -and -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -and $args.Count -eq 0) {
     $ErrorActionPreference='Stop'
     try {
         . "$PSScriptRoot\mc-identity.ps1"
@@ -29,21 +29,9 @@ if ((($Mode -cin @('isolated-title','isolated-bed') -and $Instance -ceq 'test') 
         if(($server.enabled -ne $false -and -not ($server.host -ceq '127.0.0.1' -and $server.port -in @(8765,8766) -and (($Mode -ceq 'original-title' -and -not [string]::IsNullOrWhiteSpace($server.token)) -or $server.token.Length -ge 32))) -or $clients.enabled -ne $false){throw 'external tool clients must be disabled'}
         $before=@(Get-CimInstance Win32_Process -Filter "Name='java.exe' OR Name='javaw.exe'" -ErrorAction Stop)
         foreach($p in $before){if((Get-RddMcCommandLineMatch $p.CommandLine $root) -ne 'NO_MATCH'){throw 'existing or unknown test process'}}
-        # 2026-11-11 reversible bed mechanism fixture only; never original live.
-        if($Mode -ceq 'isolated-bed'){
-            if($root -cne 'D:/rdd/workspace/rdd-selfcompile/instances/test'){throw 'isolated bed root mismatch'}
-            $proof=Get-Content -LiteralPath 'D:/rdd/tmp/bed-isolated-safety-prepared-20261111.json' -Raw -Encoding UTF8|ConvertFrom-Json
-            if($proof.root -cne $root -or $proof.intervened -ne $true){throw 'missing isolated preparation proof'}
-            foreach($f in $proof.proof){if((Get-FileHash -LiteralPath (Join-Path $root $f.rel)).Hash -ine $f.after){throw 'isolated preparation changed'}}
-            if($server.enabled -ne $true -or $server.assist -ne $false -or $server.quiet_fallback -ne $false -or $server.port -ne 8766){throw 'isolated driving mode not ready'}
-            if((Get-FileHash -LiteralPath ($root+'/mods/numen-plugin-rdd-1.21.1-0.1.3-dev.jar')).Hash -cne 'F90EB4AC7A80EA6D0188432A75A5B9362BFE17E61E45158369588EAC66C54753'){throw 'isolated bed artifact mismatch'}
-        }
         $out=Join-Path $root ('logs/title-launch-'+[guid]::NewGuid().ToString('N')+'.stdout.txt')
         $err=$out+'.stderr.txt'
-        $launchArgs=@('D:/rdd/tools/mc-launch.mjs','--instance',('"'+$root+'"'))
-        if($Mode -ceq 'isolated-bed'){$launchArgs+=@('--level','live')}else{$launchArgs+='--title-only'}
-        $launchArgs+=@('--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G')
-        $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList $launchArgs -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
+        $launcher=Start-Process -FilePath 'D:/rdd/tools/node/node.exe' -ArgumentList @('D:/rdd/tools/mc-launch.mjs','--instance',('"'+$root+'"'),'--title-only','--java','D:/rdd/tools/jdk21/jdk-21.0.11+10/bin/javaw.exe','--version','neoforge-21.1.233','--mem','4G') -WorkingDirectory $root -RedirectStandardOutput $out -RedirectStandardError $err -WindowStyle Hidden -PassThru
         $null=$launcher.Handle # retain process handle before short-lived node exits
         if(-not $launcher.WaitForExit(30000)){throw 'launcher timeout'}
         $launcher.Refresh()
@@ -54,7 +42,7 @@ if ((($Mode -cin @('isolated-title','isolated-bed') -and $Instance -ceq 'test') 
         $receipt=$rows[0]|ConvertFrom-Json
         if(-not $receipt.ok -or -not $receipt.pid){throw 'invalid launcher PID'}
         $java=Get-CimInstance Win32_Process -Filter ('ProcessId='+[int]$receipt.pid) -ErrorAction Stop
-        if(-not $java -or $java.Name -notin @('java.exe','javaw.exe') -or (Get-RddMcCommandLineMatch $java.CommandLine $root) -ne 'MATCH' -or ($Mode -cne 'isolated-bed' -and $java.CommandLine -match 'quickPlay|--server|--world') -or ($Mode -ceq 'isolated-bed' -and $java.CommandLine -notmatch 'quickPlaySingleplayer')){throw 'new Java identity unknown'}
+        if(-not $java -or $java.Name -notin @('java.exe','javaw.exe') -or (Get-RddMcCommandLineMatch $java.CommandLine $root) -ne 'MATCH' -or $java.CommandLine -match 'quickPlay|--server|--world'){throw 'new Java identity unknown'}
         if(@($before|Where-Object {$_.ProcessId -eq $java.ProcessId}).Count){throw 'PID was already present'}
         $result=@{status='STARTED_TEST_TITLE';titleVerified=$false;instance='test';root=$root;pid=$java.ProcessId;creationTime=$java.CreationDate;gameDir=$root;launcherLog=$out;stderr=$err;gameLog=$receipt.log}
         $state=Join-Path $root 'logs/title-process.json'
