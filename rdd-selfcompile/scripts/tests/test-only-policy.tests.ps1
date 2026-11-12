@@ -1,4 +1,4 @@
-# Offline policy fixtures and static TestOnly native wiring guard.
+﻿# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -32,6 +32,11 @@ $skillPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $skillTests
 Assert ($skillPlan.Task -ceq ':plugins:learner:test' -and $skillPlan.Tests.Count -eq 2) 'skill delivery tests must map to the learner test task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillBody*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $skillTests }
+$basePlaybookTest = 'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest'
+$basePlaybookPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($basePlaybookTest)
+Assert ($basePlaybookPlan.Task -ceq ':plugins:rdd:test' -and $basePlaybookPlan.Tests.Count -eq 1) 'base playbook consumer must map only to rdd plugin'
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($basePlaybookTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddBasePlaybook*') }
 $candidateTest = 'com.dwinovo.numen.plugins.learner.core.CandidateGateTest'
 $candidatePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($candidateTest)
 Assert ($candidatePlan.Task -ceq ':plugins:learner:test' -and $candidatePlan.Tests.Count -eq 1) 'candidate gate test must map only to the learner task'
