@@ -41,6 +41,16 @@ $skillPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $skillTests
 Assert ($skillPlan.Task -ceq ':plugins:learner:test' -and $skillPlan.Tests.Count -eq 2) 'skill delivery tests must map to the learner test task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillBody*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $skillTests }
+$alarmTest = 'com.dwinovo.numen.plugins.rdd.RddAlarmResponseTextTest'
+$alarmPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($alarmTest)
+Assert ($alarmPlan.Task -ceq ':plugins:rdd:test' -and $alarmPlan.Tests.Count -eq 1) 'alarm response must map only to rdd plugin'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($alarmTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddAlarmResponse*')}
+$deathPrepareTest = 'com.dwinovo.numen.rdd.side.death.DeathPreparationRegressionTest'
+$deathPreparePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathPrepareTest)
+Assert ($deathPreparePlan.Task -ceq ':rdd-core:test' -and $deathPreparePlan.Tests.Count -eq 1) 'death preparation must map only to rdd core'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathPrepareTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.side.death.*')}
 $basePlaybookTest = 'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest'
 $basePlaybookPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($basePlaybookTest)
 Assert ($basePlaybookPlan.Task -ceq ':plugins:rdd:test' -and $basePlaybookPlan.Tests.Count -eq 1) 'base playbook consumer must map only to rdd plugin'

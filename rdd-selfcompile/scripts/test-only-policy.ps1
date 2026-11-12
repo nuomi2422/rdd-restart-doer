@@ -19,6 +19,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddPlanningKnowledgeTest',
             'com.dwinovo.numen.plugins.rdd.RddSurvivalDoctrineTest',
             'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest',
+            'com.dwinovo.numen.plugins.rdd.RddAlarmResponseTextTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
             'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest',
@@ -72,7 +73,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
             'com.dwinovo.numen.rdd.side.FoodSupplySideTaskTypeTest',
             'com.dwinovo.numen.rdd.side.SideTaskEngineTest',
-            'com.dwinovo.numen.rdd.side.SideTaskRecurringTest'
+            'com.dwinovo.numen.rdd.side.SideTaskRecurringTest',
+            'com.dwinovo.numen.rdd.side.death.DeathPreparationRegressionTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
