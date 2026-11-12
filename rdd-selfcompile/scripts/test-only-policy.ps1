@@ -77,6 +77,9 @@ function Get-RddTestOnlyPlan {
         'maid-link-core' = @(
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
         )
+        'plugins:maidlink' = @(
+            'com.dwinovo.numen.plugins.maidlink.MaidSelfHostContractTest'
+        )
     }
     $module = if ($null -eq $Module) { '' } else { $Module.Trim() }
     if ($module -eq '') {

@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$maidSelfTest = 'com.dwinovo.numen.plugins.maidlink.MaidSelfHostContractTest'
+$maidSelfPlan = Get-RddTestOnlyPlan -Module 'plugins:maidlink' -Tests @($maidSelfTest)
+Assert ($maidSelfPlan.Task -ceq ':plugins:maidlink:test' -and $maidSelfPlan.Tests.Count -eq 1) 'maid SELF host test must map only to its optional plugin'
+MustReject { Get-RddTestOnlyPlan -Module 'maid-link-core' -Tests @($maidSelfTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:maidlink' -Tests @('com.dwinovo.numen.plugins.maidlink.MaidSelfHost*') }
 $skillTests = @('com.dwinovo.numen.plugins.learner.skills.SkillBodyDeliveryIntegrityTest', 'com.dwinovo.numen.plugins.learner.skills.SkillBodyStoreTest')
 $skillPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $skillTests
 Assert ($skillPlan.Task -ceq ':plugins:learner:test' -and $skillPlan.Tests.Count -eq 2) 'skill delivery tests must map to the learner test task'
