@@ -21,6 +21,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest',
             'com.dwinovo.numen.plugins.rdd.RddAlarmResponseTextTest',
             'com.dwinovo.numen.plugins.rdd.RddMonitorJournalTest',
+            'com.dwinovo.numen.plugins.rdd.SleepRiskHostTest',
             'com.dwinovo.numen.plugins.rdd.RddDeathEquipmentTest',
             'com.dwinovo.numen.plugins.rdd.RddDeathPreparationWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddFactContextStickyNeedsTest',
@@ -87,7 +88,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.rdd.policy.LossImpactAnalyzerTest',
             'com.dwinovo.numen.rdd.core.TaskChainStickyNeedsTest',
             'com.dwinovo.numen.rdd.core.TaskChainRestartRoundTripTest',
-            'com.dwinovo.numen.rdd.side.SleepRiskPreemptionTest'
+            'com.dwinovo.numen.rdd.side.SleepRiskPreemptionTest',
+            'com.dwinovo.numen.rdd.side.SleepSideTaskSpawnBindTest',
+            'com.dwinovo.numen.rdd.side.SideTaskDeclineTest'
         )
         'world-state-core' = @(
             'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'

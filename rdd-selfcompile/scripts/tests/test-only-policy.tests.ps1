@@ -55,6 +55,14 @@ $alarmPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($alarmTest)
 Assert ($alarmPlan.Task -ceq ':plugins:rdd:test' -and $alarmPlan.Tests.Count -eq 1) 'alarm response must map only to rdd plugin'
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($alarmTest)}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddAlarmResponse*')}
+$sleepCoreTests = @('com.dwinovo.numen.rdd.side.SleepRiskPreemptionTest','com.dwinovo.numen.rdd.side.SleepSideTaskSpawnBindTest','com.dwinovo.numen.rdd.side.SideTaskDeclineTest')
+$sleepHostTest = 'com.dwinovo.numen.plugins.rdd.SleepRiskHostTest'
+$sleepCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $sleepCoreTests
+$sleepHostPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sleepHostTest)
+Assert ($sleepCorePlan.Task -ceq ':rdd-core:test' -and $sleepCorePlan.Tests.Count -eq 3) 'sleep core and lifecycle use exact core task'
+Assert ($sleepHostPlan.Task -ceq ':plugins:rdd:test' -and $sleepHostPlan.Tests.Count -eq 1) 'sleep handoff uses exact host task'
+foreach($n in $sleepCoreTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($n)}}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($sleepHostTest)}
 $deathPrepareTest = 'com.dwinovo.numen.rdd.side.death.DeathPreparationRegressionTest'
 $deathPreparePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathPrepareTest)
 Assert ($deathPreparePlan.Task -ceq ':rdd-core:test' -and $deathPreparePlan.Tests.Count -eq 1) 'death preparation must map only to rdd core'
