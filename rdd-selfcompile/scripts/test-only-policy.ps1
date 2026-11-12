@@ -11,6 +11,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanGuardTest',
             'com.dwinovo.numen.plugins.rdd.RddPersonalRespawnPolicyTest',
+            'com.dwinovo.numen.plugins.rdd.RddHomeReserveFreshnessTest',
             'com.dwinovo.numen.plugins.rdd.RddExternalResetWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
@@ -81,6 +82,7 @@ function Get-RddTestOnlyPlan {
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
+            'com.dwinovo.numen.rdd.core.BaseSelectorTest',
             'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest',
             'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
             'com.dwinovo.numen.rdd.side.FoodSupplySideTaskTypeTest',
