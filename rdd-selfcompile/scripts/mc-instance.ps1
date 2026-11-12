@@ -72,7 +72,84 @@ function Invoke-RddExitAudit {
 }
 
 function Stop-RddMcInstance {
-    param([string]$Instance, [int]$TimeoutSec = 10)
+    param([string]$Instance, [int]$TimeoutSec = 10, [switch]$GracefulOnly)
+    # 2026-11-13: explicit opt-in only. A close request/observed exit is NOT a save receipt.
+    # Legacy callers below retain their force fallback and original return contract.
+    if ($GracefulOnly) {
+        $proc = $null
+        try {
+            $state = Get-RddMcState -Instance $Instance
+            if ($state -eq 'STOPPED') { return 'already down' } # no new exit to audit
+            if ($state -ne 'RUNNING') { return 'STOP_UNKNOWN: cannot verify target instance' }
+            $dir = ConvertTo-RddMcPathKey (Get-RddMcGameDir $Instance)
+            $targets = @(Get-RddMcProcess -Instance $Instance)
+            if (-not $dir -or $targets.Count -ne 1) { return 'STOP_UNKNOWN: need one verified target' }
+            $target = $targets[0]
+            if (-not (Test-RddMcProcessName $target.Name) -or -not $target.CreationDate -or
+                (Get-RddMcCommandLineMatch $target.CommandLine $dir) -ne 'MATCH' -or
+                $target.ProcessId -le 0) { return 'STOP_UNKNOWN: incomplete target identity' }
+            $targetId = $target.ProcessId
+            $birth = ([datetime]$target.CreationDate).ToUniversalTime()
+            $command = [string]$target.CommandLine
+            # Reuse the common matcher, not a second instance/path matching algorithm.
+            $sameIdentity = {
+                param($current)
+                return ($current.Count -eq 1 -and $current[0].ProcessId -eq $targetId -and
+                    (Test-RddMcProcessName $current[0].Name) -and $current[0].CreationDate -and
+                    ([datetime]$current[0].CreationDate).ToUniversalTime() -eq $birth -and
+                    [string]::Equals($current[0].CommandLine, $command, [StringComparison]::Ordinal) -and
+                    (ConvertTo-RddMcPathKey (Get-RddMcGameDir $Instance)) -eq $dir -and
+                    (Get-RddMcCommandLineMatch $current[0].CommandLine $dir) -eq 'MATCH')
+            }
+            $proc = Get-Process -Id $targetId -ErrorAction Stop
+            $proc.Refresh()
+            # Retain this process handle until finally: a PID alone can refer to a new process.
+            $handle = $proc.Handle
+            $window = $proc.MainWindowHandle
+            if ($handle -eq [intptr]::Zero -or -not $proc.StartTime) { return 'STOP_UNKNOWN: no process handle/start time' }
+            # CIM CreationDate has microsecond precision; GetProcessTimes may have 100ns ticks.
+            $startTicks = $proc.StartTime.ToUniversalTime().Ticks
+            if ($proc.Id -ne $targetId -or $proc.HasExited -ne $false -or
+                -not (Test-RddMcProcessName $proc.ProcessName) -or
+                ($startTicks - ($startTicks % 10)) -ne ($birth.Ticks - ($birth.Ticks % 10))) {
+                return 'STOP_UNKNOWN: process identity changed'
+            }
+            if ($window -eq [intptr]::Zero) { return 'STOP_REFUSED: no window' }
+            if ((Get-RddMcState -Instance $Instance) -ne 'RUNNING' -or
+                -not (& $sameIdentity @(Get-RddMcProcess -Instance $Instance))) {
+                return 'STOP_UNKNOWN: target changed before close request'
+            }
+            $proc.Refresh()
+            if ($proc.Id -ne $targetId -or $proc.HasExited -ne $false -or $proc.Handle -ne $handle -or
+                $proc.MainWindowHandle -ne $window -or -not $proc.StartTime -or
+                $proc.StartTime.ToUniversalTime().Ticks -ne $startTicks -or
+                -not (Test-RddMcProcessName $proc.ProcessName)) {
+                return 'STOP_UNKNOWN: process/window changed before close request'
+            }
+            if (-not $proc.CloseMainWindow()) { return 'STOP_REFUSED: close request rejected' }
+            $deadline = (Get-Date).AddSeconds($TimeoutSec)
+            while ((Get-Date) -lt $deadline) {
+                $state = Get-RddMcState -Instance $Instance
+                if ($state -notin @('RUNNING', 'STOPPED')) { return 'STOP_UNKNOWN: close requested; state unknown; save=UNKNOWN' }
+                $proc.Refresh()
+                if ($state -eq 'STOPPED') {
+                    if ($proc.HasExited -ne $true) { return 'STOP_UNKNOWN: close requested; original process exit unverified; save=UNKNOWN' }
+                    Invoke-RddExitAudit
+                    return "STOP_CLAIMED: requested target stopped (pid $targetId); save=UNKNOWN"
+                }
+                if ($proc.HasExited -ne $false -or
+                    -not (& $sameIdentity @(Get-RddMcProcess -Instance $Instance))) {
+                    return 'STOP_UNKNOWN: close requested; target identity changed; save=UNKNOWN'
+                }
+                Start-Sleep -Milliseconds 500
+            }
+            return "STOP_TIMEOUT: close requested; target exit unconfirmed after $($TimeoutSec)s; save=UNKNOWN"
+        } catch {
+            return 'STOP_UNKNOWN: graceful-only query/request failed; save=UNKNOWN'
+        } finally {
+            if ($null -ne $proc) { try { $proc.Dispose() } catch { } }
+        }
+    }
     $state = Get-RddMcState -Instance $Instance
     if ($state -eq 'UNKNOWN') { return 'STOP_UNKNOWN: cannot verify target instance' }
     $procs = @(Get-RddMcProcess -Instance $Instance)
