@@ -1,4 +1,4 @@
-# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
+﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
 param([Parameter(Mandatory=$true)][string]$EvidenceDir)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
@@ -63,7 +63,7 @@ foreach($case in $cases){
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('script parse failure in '+$case)}
  if(($exit -eq 0) -ne $ok){throw ('unexpected case '+$case+' exit '+$exit)}
  if(Test-Path $poison){throw 'poison invoked'}
- if($case -eq 'link' -and ($output -join ' ') -notmatch 'linked path refu\s*sed'){throw 'root-link did not reach link guard'}
+ if($case -eq 'link' -and ($output -join ' ') -notmatch 'linked\s+path\s+refused'){throw 'root-link did not reach link guard'}
  if($case -eq 'missing-exit' -and ($output -join ' ') -notmatch 'invalid\s+build receipt'){throw 'missing-exit wrong refusal'}
  if((Get-FileHash $other).Hash -ne $otherHash){throw 'other mod modified'}
  $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
@@ -83,14 +83,16 @@ foreach($case in $cases){
 }
 
 # 2026-11-12: exercise the accepted-integration entry with relocated files/CIM only.
-$acceptedCases=@('accepted-core','accepted-rdd','accepted-learner','accepted-env-only','accepted-wrong-instance','accepted-wrong-mutation','accepted-bad-commit','accepted-bad-sha','accepted-nonzero-exit','accepted-missing-exit','accepted-dirty-source','accepted-running','accepted-unknown','accepted-jarpath','accepted-full')
+$acceptedCases=@('accepted-core','accepted-rdd','accepted-learner','accepted-env-only','accepted-wrong-instance','accepted-wrong-mutation','accepted-bad-commit','accepted-bad-sha','accepted-nonzero-exit','accepted-missing-exit','accepted-dirty-source','accepted-running','accepted-unknown','accepted-jarpath','accepted-full','next-core','next-learner','next-rdd','next-wrong-instance','next-wrong-mutation','next-bad-commit','next-bad-sha','next-running','next-unknown','next-full')
 $acceptedIds=@{'core:neoforge'='14e46e1075514aed872cd27fe75b4a4a';'plugins:rdd'='34ab8109f7e042559e1de20539924c4d';'plugins:learner'='7130759b9c3044de8a1a8da8c5d1d881'}
-$acceptedHashes=@('5BB40E1D16A1EEB3BAA67CA44997E51474641DE294BF4B2FC0A7E65E1F3BDF36','8CFDF0C65330BED70D9B32FC044CEB6A70DB893C759CCA96F9EF8CE4B01CE55C','47EE06D8B870E3C1484E68AD366ECCBABCC5C2E71CA9422B7513FFC9BE53B2C7')
+$acceptedHashes=@('5BB40E1D16A1EEB3BAA67CA44997E51474641DE294BF4B2FC0A7E65E1F3BDF36','8CFDF0C65330BED70D9B32FC044CEB6A70DB893C759CCA96F9EF8CE4B01CE55C','47EE06D8B870E3C1484E68AD366ECCBABCC5C2E71CA9422B7513FFC9BE53B2C7','D7170FF629AF27CE7506929CC4CCCC364E38563691D8454C51C767551E34F8E0','DE809C7F8EADB2ECF92346471EA71749D42981633B9B6C00FF023A74E9F627CD')
 foreach($case in $acceptedCases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $module=if($case -eq 'accepted-rdd'){'plugins:rdd'}elseif($case -eq 'accepted-core'){'core:neoforge'}else{'plugins:learner'}
- $id='mutation-build-'+$acceptedIds[$module];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $isNext=$case.StartsWith('next-')
+ $module=if($case -in @('accepted-rdd','next-rdd')){'plugins:rdd'}elseif($case -in @('accepted-core','next-core')){'core:neoforge'}else{'plugins:learner'}
+ $nextIds=@{'core:neoforge'='c9ac2a7723fa4674911de387184698c9';'plugins:learner'='bd0bcda5f6d245ecad714b5f4f022afd'}
+ $id='mutation-build-'+$(if($isNext -and $module -ne 'plugins:rdd'){$nextIds[$module]}else{$acceptedIds[$module]});$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
  $artifact=Join-Path $jd $names[$module];Put $artifact 'accepted-integration-fixture';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
@@ -101,7 +103,7 @@ foreach($case in $acceptedCases){
  Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
- $commit='bb0f1fd8507d82c4a3d3f9ecc9c6aa5fe5fb94ec'
+ $commit=if($isNext){'330b6f5b2b1fdc814d0e8d5ff2337fe11825ef73'}else{'bb0f1fd8507d82c4a3d3f9ecc9c6aa5fe5fb94ec'}
  $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
  if($case -eq 'accepted-nonzero-exit'){$r.gradleExit=1}
  if($case -eq 'accepted-missing-exit'){$r.Remove('gradleExit')}
@@ -110,20 +112,20 @@ foreach($case in $acceptedCases){
  $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'accepted-old-module';$oldHash=(Get-FileHash $old).Hash
  $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'accepted-old-api';$apiHash=(Get-FileHash $api).Hash
  $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'accepted-unchanged';$otherHash=(Get-FileHash $other).Hash
- $cim=if($case -eq 'accepted-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'accepted-unknown'){'throw "CIM unavailable"'}else{'return @()'}
- $argsText='-Mode original-accepted -Instance gpt'
+ $cim=if($case -in @('accepted-running','next-running')){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -in @('accepted-unknown','next-unknown')){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText=if($isNext){'-Mode original-next-verified -Instance gpt'}else{'-Mode original-accepted -Instance gpt'}
  if($case -eq 'accepted-env-only'){$argsText='-Mode original-accepted'}
- if($case -eq 'accepted-wrong-instance'){$argsText='-Mode original-accepted -Instance test'}
- if($case -eq 'accepted-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -in @('accepted-wrong-instance','next-wrong-instance')){$argsText=if($isNext){'-Mode original-next-verified -Instance test'}else{'-Mode original-accepted -Instance test'}}
+ if($case -in @('accepted-full','next-full')){$argsText='-Mode full -Instance gpt'}
  if($case -eq 'accepted-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
- if($case -eq 'accepted-bad-commit'){$commit='0'*40}
- if($case -eq 'accepted-wrong-mutation'){$id='mutation-build-not-accepted'}
- $wanted=if($case -eq 'accepted-bad-sha'){'0'*64}else{$sha}
+ if($case -in @('accepted-bad-commit','next-bad-commit')){$commit='0'*40}
+ if($case -in @('accepted-wrong-mutation','next-wrong-mutation')){$id='mutation-build-not-accepted'}
+ $wanted=if($case -in @('accepted-bad-sha','next-bad-sha')){'0'*64}else{$sha}
  $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
  $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
- $ok=$case -in @('accepted-core','accepted-rdd','accepted-learner')
+ $ok=$case -in @('accepted-core','accepted-rdd','accepted-learner','next-core','next-learner')
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('script parse failure in '+$case)}
  if(($exit -eq 0) -ne $ok){throw ('unexpected case '+$case+' exit '+$exit)}
  if(Test-Path $poison){throw 'accepted entry invoked generic config/launch'}
