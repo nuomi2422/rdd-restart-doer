@@ -84,6 +84,16 @@ function Get-RddTestDeploySource {
   }
   $commit='e826813d962090dccaca62e03513079ca3a1fb7a'
  }
+ # 2026-11-12: exact owner-findings batch, source/bytes/hash/postcheck verified before release.
+ if($MutationId -cin @('mutation-build-1fb466ca58004f7d83afd093013d68c3','mutation-build-937966ec05724882916105cd45f470b4','mutation-build-f0a3c69242714cde8d1152170c1fe931','mutation-build-aea5643ec50a4601a4663e945af7162f')){
+  $fixed=@{
+   'mutation-build-1fb466ca58004f7d83afd093013d68c3'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','524966B50E335424F7B9D252C5DEF8F61702C11EABC1E5C80AB79C7C1AFBDC1A')
+   'mutation-build-937966ec05724882916105cd45f470b4'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','C4A9403A6A6F45E9D7846F0B88B89BE3D36D8EB706CD11BC35404E192697653F')
+   'mutation-build-f0a3c69242714cde8d1152170c1fe931'=@('plugins:learner','numen-plugin-learner-1.21.1-0.1.3-dev.jar','FDDAF2A2431CECB6A059107907F081140D3AF4EC07888BC0E3079261253F8C0F')
+   'mutation-build-aea5643ec50a4601a4663e945af7162f'=@('plugins:camera','numen-plugin-camera-1.21.1-0.1.3-dev.jar','1BBCF6E88F2866E1D117C04AC758DFF952A61E6F24E00ACC2F81BC93596F3FD8')
+  }
+  $commit='4b2f202b3b8df1fa3d54f9961a26c273ef36f9d0'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -124,7 +134,12 @@ function Invoke-RddTestAssembly {
    ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '6721990F3A46121021BA13AD6721F664662AF4B2432EE36368BA2A4A2FE1A637') -or
    ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'E7C047BBB321AC431346541291BE8CB493CB26B3329C58011E65BE2210297F9E') -or
    ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F5D92CB111AB07B8345E820E79801E9B3ED27E45A27A7F9FD0C9C50CF4DE0FD7'))
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  $fixedOwnerFindings=$Source.commit -ceq '4b2f202b3b8df1fa3d54f9961a26c273ef36f9d0' -and (
+   ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '524966B50E335424F7B9D252C5DEF8F61702C11EABC1E5C80AB79C7C1AFBDC1A') -or
+   ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'C4A9403A6A6F45E9D7846F0B88B89BE3D36D8EB706CD11BC35404E192697653F') -or
+   ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'FDDAF2A2431CECB6A059107907F081140D3AF4EC07888BC0E3079261253F8C0F') -or
+   ($Source.module -ceq 'plugins:camera' -and $Source.name -ceq 'numen-plugin-camera-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '1BBCF6E88F2866E1D117C04AC758DFF952A61E6F24E00ACC2F81BC93596F3FD8'))
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
