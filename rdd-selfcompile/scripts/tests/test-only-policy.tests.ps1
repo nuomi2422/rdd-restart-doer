@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$transportExternalTest = 'com.dwinovo.numen.client.agent.ServerToolTransportExternalNamespaceTest'
+$transportExternalPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportExternalTest)
+Assert ($transportExternalPlan.Task -ceq ':api:common:test' -and $transportExternalPlan.Tests.Count -eq 1) 'external namespace routing stays on api common'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($transportExternalTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.client.agent.ServerToolTransportExternal*')}
 $transportBindingTest = 'com.dwinovo.numen.client.agent.ServerToolTransportBindingTest'
 $transportBindingPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportBindingTest)
 Assert ($transportBindingPlan.Task -ceq ':api:common:test' -and $transportBindingPlan.Tests.Count -eq 1) 'transport binding uses only api common'
