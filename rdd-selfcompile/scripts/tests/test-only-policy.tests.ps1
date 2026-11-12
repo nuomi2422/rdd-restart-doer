@@ -1,4 +1,4 @@
-# Offline policy fixtures and static TestOnly native wiring guard.
+﻿# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -22,6 +22,12 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+# 2026-11-12: admit only the frozen host-successor consumer, never a wildcard or another module.
+$deathHostTest = 'com.dwinovo.numen.plugins.rdd.RddDeathPreparationHostSuccessorTest'
+$deathHostPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathHostTest)
+Assert ($deathHostPlan.Task -ceq ':plugins:rdd:test' -and $deathHostPlan.Tests.Count -eq 1) 'death host successor maps only to the exact RDD plugin test task'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathHostTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddDeathPreparationHost*')}
 $mineRecoveryTest = 'com.dwinovo.numen.core.task.mine.MineHarvestRecoveryConsumerTest'
 $mineRecoveryPlan = Get-RddTestOnlyPlan -Module 'core:common' -Tests @($mineRecoveryTest)
 Assert ($mineRecoveryPlan.Task -ceq ':core:common:test' -and $mineRecoveryPlan.Tests.Count -eq 1) 'mine recovery consumer runs only core common'

@@ -25,6 +25,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.SleepRiskHostTest',
             'com.dwinovo.numen.plugins.rdd.RddDeathEquipmentTest',
             'com.dwinovo.numen.plugins.rdd.RddDeathPreparationWiringTest',
+            'com.dwinovo.numen.plugins.rdd.RddDeathPreparationHostSuccessorTest',
             'com.dwinovo.numen.plugins.rdd.RddFactContextStickyNeedsTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
