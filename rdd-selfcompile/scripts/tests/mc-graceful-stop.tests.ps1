@@ -61,8 +61,8 @@ function Get-RddMcProcess {
 }
 function Get-Process {
     param($Id, $ErrorAction)
-    $script:processCalls++
     if ($script:scenario -eq 'process-throw') { throw 'fixture process query failed' }
+    $script:processCalls++ # allocated objects, each of which must be disposed
     $p = [pscustomobject]@{
         Id = 42; StartTime = $script:birth; ProcessName = 'javaw'
         Handle = [intptr]123; MainWindowHandle = [intptr]456; HasExited = $false
