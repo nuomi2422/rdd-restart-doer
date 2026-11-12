@@ -1,5 +1,5 @@
-# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir)
+﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -13,7 +13,18 @@ $tuples=@{
  'learner'=@('plugins:learner','mutation-build-f0a3c69242714cde8d1152170c1fe931','numen-plugin-learner-1.21.1-0.1.3-dev.jar','FDDAF2A2431CECB6A059107907F081140D3AF4EC07888BC0E3079261253F8C0F')
  'camera'=@('plugins:camera','mutation-build-aea5643ec50a4601a4663e945af7162f','numen-plugin-camera-1.21.1-0.1.3-dev.jar','1BBCF6E88F2866E1D117C04AC758DFF952A61E6F24E00ACC2F81BC93596F3FD8')
 }
-$cases=@('core','rdd','learner','camera','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full')
+$mode='original-owner-findings'
+if($Batch -ceq 'runtime-followups'){
+ $commit='842d7ee0123a8ead96a04ef673e0c29a2ff4534c';$mode='original-runtime-followups'
+ $tuples=@{
+  'core'=@('core:neoforge','mutation-build-c0961c5a6e3b46edb927a3236be61058','numen-neoforge-1.21.1-0.1.3-dev.jar','F11A3B6A2459F3D1ED1F792C682C315326E1A8C10AC95DCB5B9DDF331399E1EB')
+  'rdd'=@('plugins:rdd','mutation-build-6ed6b106a2c646018015ee3bc29967cd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','894F7C5E3C08784D75CED0405BC6780976C7A2A8F48C5579C870A51CCD7BB6E5')
+  'learner'=@('plugins:learner','mutation-build-dd6531bb6a114bdc85cb01235537e15e','numen-plugin-learner-1.21.1-0.1.3-dev.jar','20F1E8AC2F467880A0728F6161CFE5A250BF21CB4C4381428DE77934A3238D3B')
+  'acx'=@('plugins:acx','mutation-build-367b48b425d54ae5a48845153342fd4f','numen-plugin-acx-1.21.1-0.1.3-dev.jar','F91DB3B6342CF90F96C4D62471DB5BA2E4C8FDECB4D52DF9323C0D7976A7AF6C')
+ }
+}
+$last=if($Batch -ceq 'runtime-followups'){'acx'}else{'camera'}
+$cases=@('core','rdd','learner',$last,'missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full')
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
@@ -40,10 +51,10 @@ foreach($case in $cases){
  $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'old-api';$apiHash=(Get-FileHash $api).Hash
  $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'unrelated';$otherHash=(Get-FileHash $other).Hash
  $cim=if($case -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
- $argsText='-Mode original-owner-findings -Instance gpt'
+ $argsText='-Mode '+$mode+' -Instance gpt'
  if($case -eq 'missing-mode'){$argsText='-Instance gpt'}
- if($case -eq 'env-only'){$argsText='-Mode original-owner-findings'}
- if($case -eq 'wrong-instance'){$argsText='-Mode original-owner-findings -Instance test'}
+ if($case -eq 'env-only'){$argsText='-Mode '+$mode}
+ if($case -eq 'wrong-instance'){$argsText='-Mode '+$mode+' -Instance test'}
  if($case -eq 'full'){$argsText='-Mode full -Instance gpt'}
  if($case -eq 'jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
  $wantedCommit=if($case -eq 'bad-commit'){'0'*40}else{$commit}

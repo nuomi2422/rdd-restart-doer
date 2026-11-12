@@ -91,6 +91,18 @@ if ($Mode -ceq 'original-owner-findings' -and $PSBoundParameters.ContainsKey('In
  } catch { Write-Error ('DEPLOY_OWNER_FINDINGS_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-12: exact consumer-verified runtime-followups batch; no generic deploy permission.
+if ($Mode -ceq 'original-runtime-followups' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-c0961c5a6e3b46edb927a3236be61058','mutation-build-6ed6b106a2c646018015ee3bc29967cd','mutation-build-dd6531bb6a114bdc85cb01235537e15e','mutation-build-367b48b425d54ae5a48845153342fd4f') -and $ExpectedCommit -ceq '842d7ee0123a8ead96a04ef673e0c29a2ff4534c' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_RUNTIME_FOLLOWUPS_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
