@@ -41,6 +41,15 @@ $skillPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $skillTests
 Assert ($skillPlan.Task -ceq ':plugins:learner:test' -and $skillPlan.Tests.Count -eq 2) 'skill delivery tests must map to the learner test task'
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillBody*') }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $skillTests }
+$journalApiTest = 'com.dwinovo.numen.monitor.MonitoringJournalAcceptedTest'
+$journalPluginTest = 'com.dwinovo.numen.plugins.rdd.RddMonitorJournalTest'
+$journalApiPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($journalApiTest)
+$journalPluginPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($journalPluginTest)
+Assert ($journalApiPlan.Task -ceq ':api:common:test' -and $journalApiPlan.Tests.Count -eq 1) 'journal acceptance maps only to api common'
+Assert ($journalPluginPlan.Task -ceq ':plugins:rdd:test' -and $journalPluginPlan.Tests.Count -eq 1) 'rdd journal adapter maps only to rdd plugin'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($journalApiTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($journalPluginTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.MonitoringJournal*')}
 $alarmTest = 'com.dwinovo.numen.plugins.rdd.RddAlarmResponseTextTest'
 $alarmPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($alarmTest)
 Assert ($alarmPlan.Task -ceq ':plugins:rdd:test' -and $alarmPlan.Tests.Count -eq 1) 'alarm response must map only to rdd plugin'
