@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$transportBindingTest = 'com.dwinovo.numen.client.agent.ServerToolTransportBindingTest'
+$transportBindingPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportBindingTest)
+Assert ($transportBindingPlan.Task -ceq ':api:common:test' -and $transportBindingPlan.Tests.Count -eq 1) 'transport binding uses only api common'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($transportBindingTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.client.agent.ServerToolTransportBinding*')}
 $transportReplyTest = 'com.dwinovo.numen.client.agent.ServerToolTransportReplyIsolationTest'
 $transportReplyPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportReplyTest)
 Assert ($transportReplyPlan.Task -ceq ':api:common:test' -and $transportReplyPlan.Tests.Count -eq 1) 'transport reply isolation maps only to api common'
