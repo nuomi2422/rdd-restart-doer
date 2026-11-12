@@ -60,6 +60,15 @@ $deathPreparePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathPrepar
 Assert ($deathPreparePlan.Task -ceq ':rdd-core:test' -and $deathPreparePlan.Tests.Count -eq 1) 'death preparation must map only to rdd core'
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathPrepareTest)}
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.side.death.*')}
+$recoveryCoreTests = @('com.dwinovo.numen.rdd.side.death.DeathPreparationFlowTest','com.dwinovo.numen.rdd.side.death.DeathPreparationScopeRegressionTest','com.dwinovo.numen.rdd.side.death.DeathRecoverySideTaskTypeTest','com.dwinovo.numen.rdd.side.death.DeathRecoveryDecisionTest','com.dwinovo.numen.rdd.policy.LossImpactAnalyzerTest','com.dwinovo.numen.rdd.core.TaskChainStickyNeedsTest','com.dwinovo.numen.rdd.core.TaskChainRestartRoundTripTest','com.dwinovo.numen.rdd.side.SleepRiskPreemptionTest')
+$recoveryHostTests = @('com.dwinovo.numen.plugins.rdd.RddDeathEquipmentTest','com.dwinovo.numen.plugins.rdd.RddDeathPreparationWiringTest','com.dwinovo.numen.plugins.rdd.RddFactContextStickyNeedsTest')
+$recoveryCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests $recoveryCoreTests
+$recoveryHostPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests $recoveryHostTests
+Assert ($recoveryCorePlan.Task -ceq ':rdd-core:test' -and $recoveryCorePlan.Tests.Count -eq 8) 'recovery and sleep core tests use exact core task'
+Assert ($recoveryHostPlan.Task -ceq ':plugins:rdd:test' -and $recoveryHostPlan.Tests.Count -eq 3) 'recovery host tests use exact plugin task'
+foreach($n in $recoveryCoreTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($n)}}
+foreach($n in $recoveryHostTests){MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($n)}}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.side.SleepRisk*')}
 $basePlaybookTest = 'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest'
 $basePlaybookPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($basePlaybookTest)
 Assert ($basePlaybookPlan.Task -ceq ':plugins:rdd:test' -and $basePlaybookPlan.Tests.Count -eq 1) 'base playbook consumer must map only to rdd plugin'
