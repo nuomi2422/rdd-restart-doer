@@ -1,5 +1,5 @@
-# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external')][string]$Batch='owner-findings')
+﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -27,14 +27,20 @@ if($Batch -ceq 'transport-external'){
  $commit='f7b7c48a1ebbf93dd79e04bc6e596872c187273e';$mode='original-transport-external'
  $tuples=@{'core'=@('core:neoforge','mutation-build-4f56fc55b7be483cab7f8e24579d9749','numen-neoforge-1.21.1-0.1.3-dev.jar','AF772A3F55B206F13E464807F7897FB1F85759A22D92F2D21F0F328336E8CD19')}
 }
+# 2026-11-12: the inspected 702ea core only; copied scripts, fake CIM and relocated IO.
+if($Batch -ceq 'mine-recovery'){
+ $commit='78c3fd296145c79dd3bad5dda643641b2ccf2a70';$mode='original-mine-recovery'
+ $tuples=@{'core'=@('core:neoforge','mutation-build-702ea0b018534536977499b23ccee172','numen-neoforge-1.21.1-0.1.3-dev.jar','789EF0A21435E7939058E2EDEF74F078386EF2BB7B9E296D54EDF0091FA97E67')}
+}
 $last=if($Batch -ceq 'runtime-followups'){'acx'}else{'camera'}
 $cases=@('core','rdd','learner',$last,'missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full')
 if($Batch -ceq 'transport-external'){$cases=@('core','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full','rejected-fde74')}
+if($Batch -ceq 'mine-recovery'){$cases=@('wrong-mode','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','rejected-fde74','core')}
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -ceq 'transport-external'){'core'}else{'rdd'})]
+ $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery')){'core'}else{'rdd'})]
  $id=$f[1];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
  $artifact=Join-Path $jd $f[2];Put $artifact 'owner-findings-fixture-artifact';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
@@ -48,15 +54,18 @@ foreach($case in $cases){
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
  $receipt=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$f[0];instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
- if($case -eq 'wrong-module'){$receipt.module=if($Batch -ceq 'transport-external'){'plugins:rdd'}else{'core:neoforge'}}
+ if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery')){'plugins:rdd'}else{'core:neoforge'}}
  if($case -eq 'dirty-source'){$receipt.sourceDirtyCountAfter=1}
  if($case -eq 'missing-exit'){$receipt.Remove('gradleExit')}
+ if($case -eq 'missing-source-proof'){$receipt.Remove('sourceProof')}
  Put (Join-Path $md 'phase-build.json') ($receipt|ConvertTo-Json)
  $dest=Join-Path (Join-Path $root 'mods') $f[2];Put $dest 'old-artifact';$oldHash=(Get-FileHash $dest).Hash
  $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'old-api';$apiHash=(Get-FileHash $api).Hash
  $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'unrelated';$otherHash=(Get-FileHash $other).Hash
  $cim=if($case -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
  $argsText='-Mode '+$mode+' -Instance gpt'
+ if($case -eq 'wrong-mode'){$argsText='-Mode original-transport-external -Instance gpt'}
+ if($case -eq 'jarname'){$argsText+=' -JarName override.jar'}
  if($case -eq 'missing-mode'){$argsText='-Instance gpt'}
  if($case -eq 'env-only'){$argsText='-Mode '+$mode}
  if($case -eq 'wrong-instance'){$argsText='-Mode '+$mode+' -Instance test'}
@@ -72,7 +81,13 @@ foreach($case in $cases){
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure '+$case)}
  $ok=$tuples.ContainsKey($case)
- if(($code -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$code)}
+ if(($code -eq 0) -ne $ok){
+  if($Batch -ceq 'mine-recovery'){
+   $results+=@{case=$case;exit=$code;passed=$false;expectedSuccess=$ok;scope='copied entry, relocated files and fake CIM only; not live deploy'}
+   Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 5)
+  }
+  throw ('unexpected '+$case+' exit '+$code)
+ }
  if((Test-Path $poison) -or (Get-FileHash $other).Hash -ne $otherHash){throw ('scope violation '+$case)}
  $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
  if($ok){
@@ -80,6 +95,11 @@ foreach($case in $cases){
   if($f[0] -eq 'core:neoforge' -and (Test-Path $api)){throw 'core left duplicate API'}
   $r=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
   if(!$r.success -or $r.sourceCommit -cne $commit){throw 'bad receipt'}
+  if($Batch -ceq 'mine-recovery'){
+   if($r.root -cne $root.Replace([char]92,[char]47) -or $r.backups.Count -ne 2){throw 'bad fixed root or backup count'}
+   $coreBackup=@($r.backups|Where-Object {$_.original -eq $dest});$apiBackup=@($r.backups|Where-Object {$_.original -eq $api})
+   if($coreBackup.Count -ne 1 -or $apiBackup.Count -ne 1 -or $coreBackup[0].sha256 -cne $oldHash -or $apiBackup[0].sha256 -cne $apiHash){throw 'old core/API backup identity mismatch'}
+  }
   foreach($b in $r.backups){if((Get-FileHash $b.saved).Hash -ne $b.sha256){throw 'bad backup'}}
  }else{
   if((Get-FileHash $dest).Hash -ne $oldHash -or (Get-FileHash $api).Hash -ne $apiHash){throw ('refusal wrote mods '+$case)}
