@@ -37,7 +37,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.client.chat.QuickVoiceCaptureTest',
             'com.dwinovo.numen.api.ExecutorRetrievalInputTest',
             'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
-            'com.dwinovo.numen.api.ExecutorCompanionIsolationTest'
+            'com.dwinovo.numen.api.ExecutorCompanionIsolationTest',
+            'com.dwinovo.numen.task.TaskRecordTest'
         )
         'plugins:learner' = @(
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',

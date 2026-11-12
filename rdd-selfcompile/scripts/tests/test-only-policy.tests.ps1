@@ -47,6 +47,11 @@ $reviewerEvidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($
 Assert ($reviewerEvidencePlan.Task -ceq ':plugins:learner:test' -and $reviewerEvidencePlan.Tests.Count -eq 1) 'reviewer evidence test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reviewerEvidenceTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerReviewerEvidence*') }
+$taskRecordTest = 'com.dwinovo.numen.task.TaskRecordTest'
+$taskRecordPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($taskRecordTest)
+Assert ($taskRecordPlan.Task -ceq ':api:common:test' -and $taskRecordPlan.Tests.Count -eq 1) 'task record binding test must map only to api common'
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskRecordTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.task.TaskRecord*') }
 $skillFeedbackTest = 'com.dwinovo.numen.plugins.learner.LearnerSkillTaskFeedbackTest'
 $skillFeedbackPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($skillFeedbackTest)
 Assert ($skillFeedbackPlan.Task -ceq ':plugins:learner:test' -and $skillFeedbackPlan.Tests.Count -eq 1) 'skill task feedback test must map only to learner'
