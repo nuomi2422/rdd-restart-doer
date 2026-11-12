@@ -1,4 +1,4 @@
-﻿# execution-guard.ps1 -- pure refusal policy for the incident freeze.
+# execution-guard.ps1 -- pure refusal policy for the incident freeze.
 # No side effects: no file/process/config access. Safe to dot-source for offline checks.
 function Resolve-RddRunMode {
     param(
@@ -31,8 +31,8 @@ function Get-RddBuildOnlyPlan {
     param([string]$Instance,[bool]$InstanceExplicit,[string]$Module,[string]$SourceRoot,[string]$ExpectedCommit)
     if (-not $InstanceExplicit -or $Instance -cne 'test') { throw 'build-only requires explicit -Instance test' }
     if ([string]::IsNullOrWhiteSpace($SourceRoot) -or $ExpectedCommit -cnotmatch '^[0-9a-fA-F]{40}$') { throw 'build-only requires SourceRoot and full ExpectedCommit' }
-    $names = @{'api:neoforge'='numen_api-neoforge';'core:neoforge'='numen-neoforge';'plugins:rdd'='numen-plugin-rdd';'plugins:learner'='numen-plugin-learner'}
-    if (-not $names.ContainsKey($Module) -or $Module -cnotin @('api:neoforge','core:neoforge','plugins:rdd','plugins:learner')) { throw 'build-only module refused' }
+    $names = @{'api:neoforge'='numen_api-neoforge';'core:neoforge'='numen-neoforge';'plugins:rdd'='numen-plugin-rdd';'plugins:learner'='numen-plugin-learner';'plugins:maidlink'='numen-plugin-maidlink'}
+    if (-not $names.ContainsKey($Module) -or $Module -cnotin @('api:neoforge','core:neoforge','plugins:rdd','plugins:learner','plugins:maidlink')) { throw 'build-only module refused' }
     return @{module=$Module;task=(':'+$Module+':jar');relativeDir=($Module.Replace(':','/')+'/build/libs');artifactPrefix=$names[$Module]}
 }
 function Select-RddBuildArtifact {
