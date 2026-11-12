@@ -1,4 +1,4 @@
-# 2026-11-11: isolated policy/source-pin tests only; never invoke production entries/config/Gradle.
+﻿# 2026-11-11: isolated policy/source-pin tests only; never invoke production entries/config/Gradle.
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $tokens=$null;$errors=$null
@@ -28,6 +28,12 @@ $maid=Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugi
 Assert ($maid.artifactPrefix -ceq 'numen-plugin-maidlink' -and $maid.relativeDir -ceq 'plugins/maidlink/build/libs') 'maidlink-exact-artifact'
 Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:maidlink:runClient' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'maidlink-task-injection-refused'
 Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module 'plugins:maidlink' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'maidlink-original-instance-refused'
+# 2026-11-12: exact verified camera artifact; no deployment or launch permission.
+$camera=Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:camera' -SourceRoot fixture -ExpectedCommit ('a'*40)
+Assert ($camera.task -ceq ':plugins:camera:jar' -and $camera.artifactPrefix -ceq 'numen-plugin-camera' -and $camera.relativeDir -ceq 'plugins/camera/build/libs') 'camera-exact-artifact'
+Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module 'plugins:camera' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'camera-original-instance-refused'
+Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:camera:runClient' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'camera-task-injection-refused'
+Reject {Select-RddBuildArtifact -Names @('numen-plugin-camera-1.21.1-0.1.3-dev-api.jar') -Prefix 'numen-plugin-camera'} 'camera-classifier-refused'
 $n='numen-plugin-rdd-1.21.1-0.1.3-dev.jar'
 Assert ((Select-RddBuildArtifact -Names @($n,'numen-plugin-rdd-1.21.1-0.1.3-dev-api.jar','numen-plugin-rdd-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-rdd') -ceq $n) 'release-not-classifier'
 Reject {Select-RddBuildArtifact -Names @($n,$n) -Prefix 'numen-plugin-rdd'} 'ambiguous-release-refused'
