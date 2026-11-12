@@ -39,16 +39,16 @@ function Split-RddMcCommandLine {
 }
 
 # Canonical form for comparison: absolute, forward/back slashes unified, no trailing sep.
-# Returns $null when the value cannot be canonicalised (caller must treat that as "no match").
+# Returns $null when the value cannot be canonicalised; callers decide the identity state.
 function ConvertTo-RddMcPathKey {
     param([string]$Path)
 
     if ([string]::IsNullOrWhiteSpace($Path)) { return $null }
     $p = $Path.Trim().Trim([char]'"')
     if ([string]::IsNullOrWhiteSpace($p)) { return $null }
-    if (-not [System.IO.Path]::IsPathRooted($p)) { return $null }
-
     try {
+        # IsPathRooted can also throw for malformed values (Windows PowerShell 5.1).
+        if (-not [System.IO.Path]::IsPathRooted($p)) { return $null }
         $full = [System.IO.Path]::GetFullPath($p)
     } catch {
         return $null
