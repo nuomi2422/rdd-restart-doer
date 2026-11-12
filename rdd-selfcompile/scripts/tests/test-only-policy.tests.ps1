@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$transportReplyTest = 'com.dwinovo.numen.client.agent.ServerToolTransportReplyIsolationTest'
+$transportReplyPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportReplyTest)
+Assert ($transportReplyPlan.Task -ceq ':api:common:test' -and $transportReplyPlan.Tests.Count -eq 1) 'transport reply isolation maps only to api common'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($transportReplyTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.client.agent.ServerToolTransport*')}
 $sleepHandoffTest = 'com.dwinovo.numen.api.SleepHandoffConsumerTest'
 $sleepHandoffPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($sleepHandoffTest)
 Assert ($sleepHandoffPlan.Task -ceq ':api:common:test') 'sleep handoff maps only to api common'
