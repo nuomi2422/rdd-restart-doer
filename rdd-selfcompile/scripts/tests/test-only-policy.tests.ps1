@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$mineRecoveryTest = 'com.dwinovo.numen.core.task.mine.MineHarvestRecoveryConsumerTest'
+$mineRecoveryPlan = Get-RddTestOnlyPlan -Module 'core:common' -Tests @($mineRecoveryTest)
+Assert ($mineRecoveryPlan.Task -ceq ':core:common:test' -and $mineRecoveryPlan.Tests.Count -eq 1) 'mine recovery consumer runs only core common'
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($mineRecoveryTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.task.mine.MineHarvest*')}
 $transportExternalTest = 'com.dwinovo.numen.client.agent.ServerToolTransportExternalNamespaceTest'
 $transportExternalPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transportExternalTest)
 Assert ($transportExternalPlan.Task -ceq ':api:common:test' -and $transportExternalPlan.Tests.Count -eq 1) 'external namespace routing stays on api common'
