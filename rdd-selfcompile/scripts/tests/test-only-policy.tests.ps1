@@ -1,4 +1,7 @@
-﻿$ErrorActionPreference = 'Stop'
+﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
+# Normal script invocation only; native execution requires the managed parent run.
+$ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\test-only-policy.ps1')
 function Assert([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
@@ -98,3 +101,22 @@ try {
     Assert (-not (Test-RddTestOnlyReceipt -ExitCode 0 -ReportDir $d -ExpectedTests @($test)).ok) 'all-skipped suite must fail'
     Write-Output 'test-only policy fixtures PASS'
 } finally { Remove-Item -LiteralPath $d -Recurse -Force }
+
+# Static production wiring guard only: this does not execute native code or prove Java tests.
+$tokens=$null; $parseErrors=$null
+$ast=[Management.Automation.Language.Parser]::ParseFile((Join-Path $PSScriptRoot '../build-jar.ps1'),[ref]$tokens,[ref]$parseErrors)
+Assert ($parseErrors.Count -eq 0) 'build-jar must parse under default PowerShell'
+$branch=@($ast.EndBlock.Statements | Where-Object { $_ -is [Management.Automation.Language.IfStatementAst] -and $_.Clauses[0].Item1.Extent.Text -ceq '$TestOnly' })
+Assert ($branch.Count -eq 1) 'one production TestOnly branch required'
+$body=$branch[0].Extent.Text
+Assert ($body -match '(?s)\$nativePreference = \$ErrorActionPreference\s+\$gradleExit = \$null\s+try\s*\{\s*\$ErrorActionPreference = ''Continue''\s+\$global:LASTEXITCODE = \$null\s+& \$global:RDD_SC.GRADLE @gradleArgs \*> \$attempt.record.logFile\s+\$gradleExit = \$global:LASTEXITCODE\s*\}\s*finally\s*\{\s*\$ErrorActionPreference = \$nativePreference\s*\}') 'native exit capture must be locally protected with preference restoration'
+Assert ($body -match 'if \(\$null -eq \$gradleExit\) \{ throw ''native-process-exit-unavailable'' \}') 'missing native exit must fail closed'
+Assert ($body.IndexOf('native-process-exit-unavailable') -lt $body.IndexOf('$details.gradleExit = $gradleExit')) 'null exit must be refused before receipt handling'
+Assert ($body.IndexOf('$ErrorActionPreference = $nativePreference') -lt $body.IndexOf('$after = Get-RddSourceSnapshot')) 'preference must be restored before post-source checks'
+MustReject { Test-RddSourcePair -SourceRoot 'fixture' -ExpectedCommit '' }
+MustReject { Test-RddSourcePair -SourceRoot '' -ExpectedCommit ('a'*40) }
+Assert (Test-RddSourcePair -SourceRoot 'fixture' -ExpectedCommit ('a'*40)) 'complete source pair must remain accepted'
+$before=@{head=('a'*40);branch='fixture';dirtyCount=0}
+Assert (-not (Compare-RddSourceSnapshot -Before $before -After @{head=('b'*40);branch='fixture';dirtyCount=0}).ok) 'source HEAD drift must remain refused'
+Assert (-not (Compare-RddSourceSnapshot -Before $before -After @{head=$before.head;branch='fixture';dirtyCount=1}).ok) 'source dirty post-check must remain refused'
+Write-Output 'test-only static native wiring/source guards PASS (not native execution)'

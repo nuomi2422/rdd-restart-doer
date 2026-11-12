@@ -109,8 +109,16 @@ if ($TestOnly) {
         $env:RDD_TEST_REPORT_DIR = $attempt.record.reportDir
         $env:JAVA_HOME = $global:RDD_SC.JAVA_HOME
         $env:GRADLE_OPTS = $global:RDD_SC.GRADLE_OPTS
-        & $global:RDD_SC.GRADLE @gradleArgs *> $attempt.record.logFile
-        $gradleExit = $LASTEXITCODE
+        # 2026-11-12: PS5.1 stderr warnings must not preempt native exit/post-check capture.
+        $nativePreference = $ErrorActionPreference
+        $gradleExit = $null
+        try {
+            $ErrorActionPreference = 'Continue'
+            $global:LASTEXITCODE = $null
+            & $global:RDD_SC.GRADLE @gradleArgs *> $attempt.record.logFile
+            $gradleExit = $global:LASTEXITCODE
+        } finally { $ErrorActionPreference = $nativePreference }
+        if ($null -eq $gradleExit) { throw 'native-process-exit-unavailable' }
         $details.gradleExit = $gradleExit
         if ($source) {
             $after = Get-RddSourceSnapshot -Root $source.root
