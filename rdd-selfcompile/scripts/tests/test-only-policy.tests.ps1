@@ -69,6 +69,11 @@ $publicationPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $publica
 Assert ($publicationPlan.Task -ceq ':plugins:learner:test' -and $publicationPlan.Tests.Count -eq 6) 'public skill publication regressions must map only to learner'
 foreach ($publicationTest in $publicationTests) { MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($publicationTest) } }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.*') }
+$recurringTest = 'com.dwinovo.numen.rdd.side.SideTaskRecurringTest'
+$recurringPlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($recurringTest)
+Assert ($recurringPlan.Task -ceq ':rdd-core:test' -and $recurringPlan.Tests.Count -eq 1) 'recurring goal qualification test must map only to rdd core'
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($recurringTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.side.SideTaskRecurring*') }
 $dailyCoreTest = 'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest'
 $dailyShellTest = 'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
 $dailyCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyCoreTest)
