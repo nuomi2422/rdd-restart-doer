@@ -37,6 +37,11 @@ $cameraPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $cameraTests
 Assert ($cameraPlan.Task -ceq ':plugins:camera:test' -and $cameraPlan.Tests.Count -eq 2) 'camera refresh tests must map only to camera'
 foreach($cameraTest in $cameraTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($cameraTest)}}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests @('com.dwinovo.numen.plugins.camera.possess.*')}
+$acxLocationTest = 'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest'
+$acxLocationPlan = Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($acxLocationTest)
+Assert ($acxLocationPlan.Task -ceq ':plugins:acx:test' -and $acxLocationPlan.Tests.Count -eq 1) 'ACX artifact location uses only the exact ACX task'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($acxLocationTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @('com.dwinovo.numen.acx.test.*')}
 $locationTest = 'com.dwinovo.numen.plugins.learner.skills.SkillLocationScopeDeliveryTest'
 $locationPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($locationTest)
 Assert ($locationPlan.Task -ceq ':plugins:learner:test' -and $locationPlan.Tests.Count -eq 1) 'location scope delivery uses only the exact learner test task'

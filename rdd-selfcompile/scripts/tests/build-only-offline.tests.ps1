@@ -1,4 +1,4 @@
-﻿# 2026-11-11: isolated policy/source-pin tests only; never invoke production entries/config/Gradle.
+# 2026-11-11: isolated policy/source-pin tests only; never invoke production entries/config/Gradle.
 $ErrorActionPreference='Stop'
 $root=Split-Path $PSScriptRoot -Parent
 $tokens=$null;$errors=$null
@@ -34,6 +34,11 @@ Assert ($camera.task -ceq ':plugins:camera:jar' -and $camera.artifactPrefix -ceq
 Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module 'plugins:camera' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'camera-original-instance-refused'
 Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:camera:runClient' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'camera-task-injection-refused'
 Reject {Select-RddBuildArtifact -Names @('numen-plugin-camera-1.21.1-0.1.3-dev-api.jar') -Prefix 'numen-plugin-camera'} 'camera-classifier-refused'
+$acx=Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:acx' -SourceRoot fixture -ExpectedCommit ('a'*40)
+Assert ($acx.task -ceq ':plugins:acx:jar' -and $acx.artifactPrefix -ceq 'numen-plugin-acx' -and $acx.relativeDir -ceq 'plugins/acx/build/libs') 'acx-exact-artifact'
+Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module 'plugins:acx' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'acx-original-instance-refused'
+Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:acx:runClient' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'acx-task-injection-refused'
+Reject {Select-RddBuildArtifact -Names @('numen-plugin-acx-1.21.1-0.1.3-dev-api.jar') -Prefix 'numen-plugin-acx'} 'acx-classifier-refused'
 $n='numen-plugin-rdd-1.21.1-0.1.3-dev.jar'
 Assert ((Select-RddBuildArtifact -Names @($n,'numen-plugin-rdd-1.21.1-0.1.3-dev-api.jar','numen-plugin-rdd-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-rdd') -ceq $n) 'release-not-classifier'
 Reject {Select-RddBuildArtifact -Names @($n,$n) -Prefix 'numen-plugin-rdd'} 'ambiguous-release-refused'

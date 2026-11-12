@@ -104,6 +104,9 @@ function Get-RddTestOnlyPlan {
         'maid-link-core' = @(
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
         )
+        'plugins:acx' = @(
+            'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest'
+        )
         'plugins:camera' = @(
             'com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest',
             'com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest'
