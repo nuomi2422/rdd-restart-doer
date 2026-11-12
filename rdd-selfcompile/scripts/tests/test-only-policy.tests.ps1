@@ -1,4 +1,4 @@
-﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -27,6 +27,11 @@ $cameraPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $cameraTests
 Assert ($cameraPlan.Task -ceq ':plugins:camera:test' -and $cameraPlan.Tests.Count -eq 2) 'camera refresh tests must map only to camera'
 foreach($cameraTest in $cameraTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($cameraTest)}}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests @('com.dwinovo.numen.plugins.camera.possess.*')}
+$locationTest = 'com.dwinovo.numen.plugins.learner.skills.SkillLocationScopeDeliveryTest'
+$locationPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($locationTest)
+Assert ($locationPlan.Task -ceq ':plugins:learner:test' -and $locationPlan.Tests.Count -eq 1) 'location scope delivery uses only the exact learner test task'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($locationTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillLocation*')}
 $accountingTest = 'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest'
 $accountingPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($accountingTest)
 Assert ($accountingPlan.Task -ceq ':plugins:learner:test' -and $accountingPlan.Tests.Count -eq 1) 'skill accounting must map only to learner'

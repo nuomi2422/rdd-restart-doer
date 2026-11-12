@@ -65,7 +65,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.skills.SkillsGapTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillsKnowledgeContributorTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillsAggregateConsumerTest',
-            'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest'
+            'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest',
+            'com.dwinovo.numen.plugins.learner.skills.SkillLocationScopeDeliveryTest'
         )
         'core:common' = @(
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest',
