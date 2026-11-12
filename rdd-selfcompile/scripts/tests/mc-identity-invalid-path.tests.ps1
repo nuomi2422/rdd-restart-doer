@@ -66,7 +66,8 @@ foreach ($case in $badPaths) {
     $name = $case.Name; $bad = $case.Value
     Check "$name/path-key" $true { $null -eq (ConvertTo-RddMcPathKey $bad) }
     # Both explicit forms, including quoted invalid values, stay UNDECIDABLE.
-    $commands = @('javaw --gameDir=' + $bad, 'javaw --gameDir "' + $bad + '"')
+    $commands = @(('javaw --gameDir=' + $bad), ('javaw --gameDir "' + $bad + '"'))
+    Check "$name/explicit-form-count" 2 { $commands.Count }
     foreach ($command in $commands) {
         Check "$name/declared" 'UNDECIDABLE' { Get-RddMcCommandLineMatch $command $mine }
         Check "$name/legacy-wrapper" $false { Test-RddMcCommandLineMatches $command $mine }
