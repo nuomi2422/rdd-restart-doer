@@ -47,6 +47,11 @@ $reviewerEvidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($
 Assert ($reviewerEvidencePlan.Task -ceq ':plugins:learner:test' -and $reviewerEvidencePlan.Tests.Count -eq 1) 'reviewer evidence test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reviewerEvidenceTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerReviewerEvidence*') }
+$skillFeedbackTest = 'com.dwinovo.numen.plugins.learner.LearnerSkillTaskFeedbackTest'
+$skillFeedbackPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($skillFeedbackTest)
+Assert ($skillFeedbackPlan.Task -ceq ':plugins:learner:test' -and $skillFeedbackPlan.Tests.Count -eq 1) 'skill task feedback test must map only to learner'
+MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($skillFeedbackTest) }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerSkillTaskFeedback*') }
 $publicationTests = @(
     'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
     'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',

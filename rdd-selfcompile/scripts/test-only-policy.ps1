@@ -48,6 +48,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.core.AnnounceTextTest',
             'com.dwinovo.numen.plugins.learner.core.ExperienceSevenFieldsTest',
             'com.dwinovo.numen.plugins.learner.LearnerReviewerEvidenceTest',
+            'com.dwinovo.numen.plugins.learner.LearnerSkillTaskFeedbackTest',
             'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillCatalogViewTest',
