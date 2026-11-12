@@ -104,6 +104,11 @@ function Get-RddTestDeploySource {
   }
   $commit='842d7ee0123a8ead96a04ef673e0c29a2ff4534c'
  }
+ # 2026-11-12: 32 exact consumers and MCP namespace re-review passed; this core only.
+ if($MutationId -ceq 'mutation-build-4f56fc55b7be483cab7f8e24579d9749'){
+  $fixed=@{'mutation-build-4f56fc55b7be483cab7f8e24579d9749'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','AF772A3F55B206F13E464807F7897FB1F85759A22D92F2D21F0F328336E8CD19')}
+  $commit='f7b7c48a1ebbf93dd79e04bc6e596872c187273e'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -154,7 +159,8 @@ function Invoke-RddTestAssembly {
    ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '894F7C5E3C08784D75CED0405BC6780976C7A2A8F48C5579C870A51CCD7BB6E5') -or
    ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '20F1E8AC2F467880A0728F6161CFE5A250BF21CB4C4381428DE77934A3238D3B') -or
    ($Source.module -ceq 'plugins:acx' -and $Source.name -ceq 'numen-plugin-acx-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F91DB3B6342CF90F96C4D62471DB5BA2E4C8FDECB4D52DF9323C0D7976A7AF6C'))
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  $fixedTransportExternal=$Source.commit -ceq 'f7b7c48a1ebbf93dd79e04bc6e596872c187273e' -and $Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'AF772A3F55B206F13E464807F7897FB1F85759A22D92F2D21F0F328336E8CD19'
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}

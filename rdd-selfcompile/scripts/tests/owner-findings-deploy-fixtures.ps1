@@ -1,5 +1,5 @@
-﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups')][string]$Batch='owner-findings')
+# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -23,13 +23,18 @@ if($Batch -ceq 'runtime-followups'){
   'acx'=@('plugins:acx','mutation-build-367b48b425d54ae5a48845153342fd4f','numen-plugin-acx-1.21.1-0.1.3-dev.jar','F91DB3B6342CF90F96C4D62471DB5BA2E4C8FDECB4D52DF9323C0D7976A7AF6C')
  }
 }
+if($Batch -ceq 'transport-external'){
+ $commit='f7b7c48a1ebbf93dd79e04bc6e596872c187273e';$mode='original-transport-external'
+ $tuples=@{'core'=@('core:neoforge','mutation-build-4f56fc55b7be483cab7f8e24579d9749','numen-neoforge-1.21.1-0.1.3-dev.jar','AF772A3F55B206F13E464807F7897FB1F85759A22D92F2D21F0F328336E8CD19')}
+}
 $last=if($Batch -ceq 'runtime-followups'){'acx'}else{'camera'}
 $cases=@('core','rdd','learner',$last,'missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full')
+if($Batch -ceq 'transport-external'){$cases=@('core','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full','rejected-fde74')}
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $f=$tuples[$(if($tuples.ContainsKey($case)){$case}else{'rdd'})]
+ $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -ceq 'transport-external'){'core'}else{'rdd'})]
  $id=$f[1];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
  $artifact=Join-Path $jd $f[2];Put $artifact 'owner-findings-fixture-artifact';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
@@ -43,7 +48,7 @@ foreach($case in $cases){
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
  $receipt=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$f[0];instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
- if($case -eq 'wrong-module'){$receipt.module='core:neoforge'}
+ if($case -eq 'wrong-module'){$receipt.module=if($Batch -ceq 'transport-external'){'plugins:rdd'}else{'core:neoforge'}}
  if($case -eq 'dirty-source'){$receipt.sourceDirtyCountAfter=1}
  if($case -eq 'missing-exit'){$receipt.Remove('gradleExit')}
  Put (Join-Path $md 'phase-build.json') ($receipt|ConvertTo-Json)
@@ -60,6 +65,7 @@ foreach($case in $cases){
  $wantedCommit=if($case -eq 'bad-commit'){'0'*40}else{$commit}
  $wantedSha=if($case -eq 'bad-sha'){'0'*64}else{$sha}
  $wantedId=if($case -eq 'wrong-mutation'){'mutation-build-not-approved'}else{$id}
+ if($case -eq 'rejected-fde74'){$wantedId='mutation-build-ee21dad901a8440ba35ca559f8a70128';$wantedCommit='fde74e3b44e1b7cc9629b5554655f6fbecd46262';$wantedSha='DAF28A57B950EA13EC351559AEE96962C6798AF52EC407B6F06F46C0A2C7DDAA'}
  $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$wantedId+' -ExpectedCommit '+$wantedCommit+' -ExpectedSha256 '+$wantedSha+'; exit $LASTEXITCODE'
  $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner 2>&1;$code=$LASTEXITCODE;$ErrorActionPreference='Stop'
