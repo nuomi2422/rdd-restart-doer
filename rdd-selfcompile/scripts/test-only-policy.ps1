@@ -57,7 +57,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.skills.SkillRegistrarSharedRegistryTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillsGapTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillsKnowledgeContributorTest',
-            'com.dwinovo.numen.plugins.learner.skills.SkillsAggregateConsumerTest'
+            'com.dwinovo.numen.plugins.learner.skills.SkillsAggregateConsumerTest',
+            'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest'
         )
         'core:common' = @(
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest',
@@ -78,6 +79,10 @@ function Get-RddTestOnlyPlan {
         )
         'maid-link-core' = @(
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
+        )
+        'plugins:camera' = @(
+            'com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest',
+            'com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest'
         )
         'plugins:maidlink' = @(
             'com.dwinovo.numen.plugins.maidlink.MaidSelfHostContractTest'

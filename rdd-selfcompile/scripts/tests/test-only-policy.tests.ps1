@@ -22,6 +22,15 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$cameraTests = @('com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest','com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest')
+$cameraPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $cameraTests
+Assert ($cameraPlan.Task -ceq ':plugins:camera:test' -and $cameraPlan.Tests.Count -eq 2) 'camera refresh tests must map only to camera'
+foreach($cameraTest in $cameraTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($cameraTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests @('com.dwinovo.numen.plugins.camera.possess.*')}
+$accountingTest = 'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest'
+$accountingPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($accountingTest)
+Assert ($accountingPlan.Task -ceq ':plugins:learner:test' -and $accountingPlan.Tests.Count -eq 1) 'skill accounting must map only to learner'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($accountingTest)}
 $maidSelfTest = 'com.dwinovo.numen.plugins.maidlink.MaidSelfHostContractTest'
 $maidSelfPlan = Get-RddTestOnlyPlan -Module 'plugins:maidlink' -Tests @($maidSelfTest)
 Assert ($maidSelfPlan.Task -ceq ':plugins:maidlink:test' -and $maidSelfPlan.Tests.Count -eq 1) 'maid SELF host test must map only to its optional plugin'
