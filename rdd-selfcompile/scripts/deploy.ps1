@@ -66,6 +66,19 @@ if ($Mode -ceq 'original-next-verified' -and $PSBoundParameters.ContainsKey('Ins
  } catch { Write-Error ('DEPLOY_NEXT_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+
+# 2026-11-12: e826 exact managed three-artifact original-live deployment only.
+if ($Mode -ceq 'original-e826' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-1dd867b5ae6a49c7aecc728e958d5dd8','mutation-build-674cea78df824d24b8039ff3f940f0e4','mutation-build-cbb5ea3bc0804bc9ae6a6244c1b68c23') -and $ExpectedCommit -ceq 'e826813d962090dccaca62e03513079ca3a1fb7a' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_E826_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
