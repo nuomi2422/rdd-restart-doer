@@ -42,6 +42,11 @@ $locationPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($location
 Assert ($locationPlan.Task -ceq ':plugins:learner:test' -and $locationPlan.Tests.Count -eq 1) 'location scope delivery uses only the exact learner test task'
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($locationTest)}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.SkillLocation*')}
+$locationCompat = @('com.dwinovo.numen.plugins.learner.skills.SkillRegistrarTest','com.dwinovo.numen.plugins.learner.core.ArtifactOutboxTest','com.dwinovo.numen.plugins.learner.contract.ArtifactValidatorTest')
+$locationCompatPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $locationCompat
+Assert ($locationCompatPlan.Task -ceq ':plugins:learner:test' -and $locationCompatPlan.Tests.Count -eq 3) 'location adjacent compatibility stays on learner task'
+foreach($n in $locationCompat){MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($n)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.Artifact*')}
 $accountingTest = 'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest'
 $accountingPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($accountingTest)
 Assert ($accountingPlan.Task -ceq ':plugins:learner:test' -and $accountingPlan.Tests.Count -eq 1) 'skill accounting must map only to learner'
