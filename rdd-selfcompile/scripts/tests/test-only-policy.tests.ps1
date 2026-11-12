@@ -22,6 +22,11 @@ $id = Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monit
 Assert ($id.Task -ceq ':api:common:test') 'api task must be fixed'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($test) }
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.monitor.WorldContextStampTest*') }
+$sleepQueueTest = 'com.dwinovo.numen.client.agent.SleepQueueGenerationTest'
+$sleepQueuePlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($sleepQueueTest)
+Assert ($sleepQueuePlan.Task -ceq ':api:common:test' -and $sleepQueuePlan.Tests.Count -eq 1) 'sleep queue consumer maps only to api common'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sleepQueueTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.client.agent.SleepQueue*')}
 $cameraTests = @('com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest','com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest')
 $cameraPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $cameraTests
 Assert ($cameraPlan.Task -ceq ':plugins:camera:test' -and $cameraPlan.Tests.Count -eq 2) 'camera refresh tests must map only to camera'
