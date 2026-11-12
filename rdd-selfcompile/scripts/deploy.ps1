@@ -24,10 +24,11 @@ if ($Mode -ceq 'isolated-test' -and $PSBoundParameters.ContainsKey('Instance') -
     } catch { Write-Error ('DEPLOY_TEST_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 # 2026-11-11 owner selected original live; exact pending-expansion RDD artifact only.
-if ($Mode -ceq 'original-rdd' -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590','mutation-build-a4d56867456a4f18820d070a167ffa0a','mutation-build-60befb539f4e4c24b129e05c2f434d6b','mutation-build-3fde7607688541eb99b3de87fbbf6ad7','mutation-build-fc5f2711d6a545338719cc95750ce50d','mutation-build-7a2cded71c3e4230b7cca93ab67aa06f','mutation-build-8fe58bf41a5f456fbc5d407e2484fae3','mutation-build-84a320cad8ea474cab53da9d17480292','mutation-build-19ecce8338544ef789794af2c268c681')) {
+# 2026-11-13: recovery RDD adds one inspected tuple, explicit gpt only; legacy selection unchanged.
+if ($Mode -ceq 'original-rdd' -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and (($PSBoundParameters.ContainsKey('Instance') -and $MutationId -ceq 'mutation-build-1fa09220d99b4f78b504e3ea1287cfe5') -or $MutationId -cin @('mutation-build-1143a45ccf7c4b2789bb45ddc6dc5590','mutation-build-a4d56867456a4f18820d070a167ffa0a','mutation-build-60befb539f4e4c24b129e05c2f434d6b','mutation-build-3fde7607688541eb99b3de87fbbf6ad7','mutation-build-fc5f2711d6a545338719cc95750ce50d','mutation-build-7a2cded71c3e4230b7cca93ab67aa06f','mutation-build-8fe58bf41a5f456fbc5d407e2484fae3','mutation-build-84a320cad8ea474cab53da9d17480292','mutation-build-19ecce8338544ef789794af2c268c681'))) {
  . "$PSScriptRoot\deploy-test-policy.ps1"
  . "$PSScriptRoot\mc-identity.ps1"
- $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+ $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
  exit 0
 }
