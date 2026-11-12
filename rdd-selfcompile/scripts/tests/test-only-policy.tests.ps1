@@ -1,4 +1,4 @@
-﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -47,6 +47,18 @@ $reviewerEvidencePlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($
 Assert ($reviewerEvidencePlan.Task -ceq ':plugins:learner:test' -and $reviewerEvidencePlan.Tests.Count -eq 1) 'reviewer evidence test must map only to the learner task'
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reviewerEvidenceTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerReviewerEvidence*') }
+$publicationTests = @(
+    'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
+    'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',
+    'com.dwinovo.numen.plugins.learner.skills.SkillCatalogViewTest',
+    'com.dwinovo.numen.plugins.learner.skills.SkillRegistrarSharedRegistryTest',
+    'com.dwinovo.numen.plugins.learner.skills.SkillsGapTest',
+    'com.dwinovo.numen.plugins.learner.skills.SkillsKnowledgeContributorTest'
+)
+$publicationPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $publicationTests
+Assert ($publicationPlan.Task -ceq ':plugins:learner:test' -and $publicationPlan.Tests.Count -eq 6) 'public skill publication regressions must map only to learner'
+foreach ($publicationTest in $publicationTests) { MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($publicationTest) } }
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.skills.*') }
 $dailyCoreTest = 'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest'
 $dailyShellTest = 'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
 $dailyCorePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyCoreTest)
