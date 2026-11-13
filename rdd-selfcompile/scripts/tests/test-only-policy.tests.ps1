@@ -5,6 +5,26 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\test-only-policy.ps1')
 function Assert([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
+# 2026-11-13: exact C1 delivery consumers only; no wildcard/cross-module registration.
+$c1Tests=@(
+    @{Module='api:common';Class='com.dwinovo.numen.api.RequestDeliveredAggregationTest'},
+    @{Module='ai';Class='com.dwinovo.numen.agent.llm.LlmObservationTest'},
+    @{Module='plugins:learner';Class='com.dwinovo.numen.plugins.learner.core.SkillDeliveryEvidenceTest'}
+)
+foreach($case in $c1Tests){
+    $c1Plan=Get-RddTestOnlyPlan -Module $case.Module -Tests @($case.Class)
+    Assert ($c1Plan.Task -ceq (':'+$case.Module+':test') -and $c1Plan.Tests.Count -eq 1) 'C1 exact class maps only its existing module test task'
+    $c1Inferred=Get-RddTestOnlyPlan -Module '' -Tests @($case.Class)
+    Assert ($c1Inferred.Module -ceq $case.Module) 'C1 class inference remains single-module'
+    foreach($wrong in @('api:common','ai','plugins:learner','plugins:rdd') | Where-Object {$_ -cne $case.Module}){
+        MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($case.Class)}
+    }
+    MustReject {Get-RddTestOnlyPlan -Module $case.Module -Tests @($case.Class+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module $case.Module -Tests @($case.Class.ToLowerInvariant())}
+}
+MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($c1Tests[0].Class,$c1Tests[1].Class)}
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.OtherTest')}
+Write-Output 'C1 exact registration 23 assertions PASS (policy only; not Java execution)'
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
 $inferred=Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest')

@@ -34,7 +34,11 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest',
             'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
         )
+        'ai' = @(
+            'com.dwinovo.numen.agent.llm.LlmObservationTest'
+        )
         'api:common' = @(
+            'com.dwinovo.numen.api.RequestDeliveredAggregationTest',
             'com.dwinovo.numen.api.ServerIdentitySnapshotTest',
             'com.dwinovo.numen.api.ExternalCommandPolicyTest',
             'com.dwinovo.numen.monitor.WorldContextStampTest',
@@ -58,6 +62,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.task.TaskRecordTest'
         )
         'plugins:learner' = @(
+            'com.dwinovo.numen.plugins.learner.core.SkillDeliveryEvidenceTest',
             'com.dwinovo.numen.plugins.learner.LearnerPluginAbortTest',
             'com.dwinovo.numen.plugins.learner.LearnerPluginRestoreTest',
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
