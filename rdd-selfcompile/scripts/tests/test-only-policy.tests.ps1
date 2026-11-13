@@ -45,6 +45,18 @@ Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($survivalIntentTest)).Module -c
 foreach($wrongModule in @('api:common','ai','plugins:learner','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($survivalIntentTest)}}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddSurvivalIntent*')}
 Write-Output 'survival intent exact registration 7 assertions PASS (policy only; not Java execution)'
+# 2026-11-13: exact skill intake and adjacent storm guard consumers only.
+$intakeTests=@('com.dwinovo.numen.plugins.learner.core.SkillDeliveryIntakeTest','com.dwinovo.numen.plugins.learner.core.StormGuardTest')
+foreach($intakeTest in $intakeTests){
+    $intakePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($intakeTest)
+    Assert ($intakePlan.Task -ceq ':plugins:learner:test' -and $intakePlan.Tests.Count -eq 1) 'intake/storm guard maps only the exact learner task'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($intakeTest)).Module -ceq 'plugins:learner') 'intake/storm guard has one inferred owner'
+    foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($intakeTest)}}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($intakeTest+'*')}
+}
+$intakePair=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $intakeTests
+Assert ($intakePair.Task -ceq ':plugins:learner:test' -and $intakePair.Tests.Count -eq 2) 'both exact learner intake controls may run together'
+Write-Output 'skill intake/storm guard 15 assertions PASS (policy only; not Java execution)'
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
 $inferred=Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest')
