@@ -207,6 +207,13 @@ foreach ($navTest in $navTests) {
 }
 MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.pathing.calc.NavGoal*') }
 MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.task.move.MoveToTask*') }
+$attackTests = @('com.dwinovo.numen.core.tools.work.AttackToolContractTest','com.dwinovo.numen.core.combat.AttackPlanTest')
+$attackPlan = Get-RddTestOnlyPlan -Module 'core:common' -Tests $attackTests
+Assert ($attackPlan.Task -ceq ':core:common:test' -and $attackPlan.Tests.Count -eq 2) 'attack contract tests map only to core common'
+foreach ($attackTest in $attackTests) {
+    MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($attackTest) }
+}
+MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.tools.work.Attack*') }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')

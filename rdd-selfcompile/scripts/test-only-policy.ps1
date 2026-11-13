@@ -79,6 +79,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.contract.ArtifactValidatorTest'
         )
         'core:common' = @(
+            'com.dwinovo.numen.core.tools.work.AttackToolContractTest',
+            'com.dwinovo.numen.core.combat.AttackPlanTest',
             'com.dwinovo.numen.core.task.mine.MineHarvestRecoveryConsumerTest',
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest',
             'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
