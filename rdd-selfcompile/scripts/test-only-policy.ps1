@@ -96,6 +96,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.skills.SkillRegistrarTest',
             'com.dwinovo.numen.plugins.learner.core.ArtifactOutboxTest',
             'com.dwinovo.numen.plugins.learner.contract.ArtifactValidatorTest',
+            'com.dwinovo.numen.plugins.learner.LearnerAutoTaskResultIntakeTest',
             'com.dwinovo.numen.plugins.learner.LearnerTaskResultIntakeTest'
         )
         'core:common' = @(

@@ -250,6 +250,16 @@ foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustRejec
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest.ToLowerInvariant())}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest+'*')}
 Write-Output 'review state persistence exact registration 8 assertions PASS (policy only; not Java execution)'
+# 2026-11-13: real scanOnce task-result host consumer must stay exact and learner-owned; no prefix widening.
+$autoTaskResultIntakeTest='com.dwinovo.numen.plugins.learner.LearnerAutoTaskResultIntakeTest'
+$autoTaskResultIntakePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($autoTaskResultIntakeTest)
+Assert ($autoTaskResultIntakePlan.Module -ceq 'plugins:learner' -and $autoTaskResultIntakePlan.Task -ceq ':plugins:learner:test' -and $autoTaskResultIntakePlan.Tests.Count -eq 1 -and $autoTaskResultIntakePlan.Tests[0] -ceq $autoTaskResultIntakeTest) 'auto task result intake maps only its exact learner class and task'
+$autoTaskResultIntakeInferred=Get-RddTestOnlyPlan -Module '' -Tests @($autoTaskResultIntakeTest)
+Assert ($autoTaskResultIntakeInferred.Module -ceq 'plugins:learner' -and $autoTaskResultIntakeInferred.Task -ceq ':plugins:learner:test' -and $autoTaskResultIntakeInferred.Tests.Count -eq 1 -and $autoTaskResultIntakeInferred.Tests[0] -ceq $autoTaskResultIntakeTest) 'auto task result intake has one inferred learner owner and exact class'
+foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($autoTaskResultIntakeTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($autoTaskResultIntakeTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($autoTaskResultIntakeTest+'*')}
+Write-Output 'auto task result intake exact registration 8 assertions PASS (policy only; not Java execution)'
 $publicationTests = @(
     'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
     'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',
