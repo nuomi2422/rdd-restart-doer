@@ -37,6 +37,14 @@ foreach($dispatchTest in $dispatchTests){
 $dispatchPair=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $dispatchTests
 Assert ($dispatchPair.Tests.Count -eq 2 -and $dispatchPair.Task -ceq ':plugins:learner:test') 'both exact learner consumers may run together'
 Write-Output 'C1 learner mapping/dispatch 13 assertions PASS (policy only; not Java execution)'
+# 2026-11-13: narrow survival intent consumer, not a generic RDD test prefix.
+$survivalIntentTest='com.dwinovo.numen.plugins.rdd.RddSurvivalIntentTest'
+$survivalIntentPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($survivalIntentTest)
+Assert ($survivalIntentPlan.Task -ceq ':plugins:rdd:test' -and $survivalIntentPlan.Tests.Count -eq 1) 'survival intent maps only the RDD plugin test task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($survivalIntentTest)).Module -ceq 'plugins:rdd') 'survival intent has one inferred owner'
+foreach($wrongModule in @('api:common','ai','plugins:learner','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($survivalIntentTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddSurvivalIntent*')}
+Write-Output 'survival intent exact registration 7 assertions PASS (policy only; not Java execution)'
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
 $inferred=Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest')
