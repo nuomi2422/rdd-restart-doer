@@ -166,6 +166,16 @@ Assert ($sleepCorePlan.Task -ceq ':rdd-core:test' -and $sleepCorePlan.Tests.Coun
 Assert ($sleepHostPlan.Task -ceq ':plugins:rdd:test' -and $sleepHostPlan.Tests.Count -eq 1) 'sleep handoff uses exact host task'
 foreach($n in $sleepCoreTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($n)}}
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($sleepHostTest)}
+
+# 2026-11-13: exact food-supply admission priority consumer; rdd-core only, no wildcard or plugins:rdd widening.
+$foodSupplyPriorityTest='com.dwinovo.numen.rdd.side.FoodSupplyAdmissionPriorityTest'
+$foodSupplyPriorityPlan=Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($foodSupplyPriorityTest)
+Assert ($foodSupplyPriorityPlan.Task -ceq ':rdd-core:test' -and $foodSupplyPriorityPlan.Tests.Count -eq 1) 'food supply priority must map only the exact rdd-core task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($foodSupplyPriorityTest)).Module -ceq 'rdd-core') 'food supply priority has one inferred owner rdd-core'
+foreach($wrongModule in @('plugins:rdd','plugins:learner','api:common','ai')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($foodSupplyPriorityTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($foodSupplyPriorityTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($foodSupplyPriorityTest.ToLowerInvariant())}
+Write-Output 'food supply priority exact registration 8 assertions PASS (policy only; not Java execution)'
 $deathPrepareTest = 'com.dwinovo.numen.rdd.side.death.DeathPreparationRegressionTest'
 $deathPreparePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathPrepareTest)
 Assert ($deathPreparePlan.Task -ceq ':rdd-core:test' -and $deathPreparePlan.Tests.Count -eq 1) 'death preparation must map only to rdd core'
