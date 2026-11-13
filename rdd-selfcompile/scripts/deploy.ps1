@@ -188,6 +188,19 @@ if ($Mode -ceq 'original-c1-b2-verified' -and $PSBoundParameters.ContainsKey('In
  } catch { Write-Error ('DEPLOY_C1_B2_VERIFIED_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-13: reviewed generation guard and food admission; two exact managed artifacts only.
+# V08 exposed source/package drift. Keep the old freeze and stopped-live checks, not a generic release lane.
+if ($Mode -ceq 'original-review-food-25b6' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-1f1a8a7c967947669769dd2c7b6e8eb5','mutation-build-2729529bc6e749dab1bb34cf2ebe96b3') -and $ExpectedCommit -ceq '25b6f23026e7bd6e6da13465b111d626c3995122' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_REVIEW_FOOD_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

@@ -147,6 +147,68 @@ foreach($case in $acceptedCases){
  }
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='temporary accepted tuple/CIM fixture; no production deploy'}
 }
+# 2026-11-13: exercise the exact reviewed 25b6 two-artifact branch against relocated files/CIM.
+# Old cases above remain untouched. Digests/sizes below are substituted only in these copied fixtures.
+$reviewCases=@('review-learner','review-rdd','review-env-only','review-wrong-instance','review-bad-id','review-bad-commit','review-bad-sha','review-wrong-module','review-wrong-size','review-dirty-source','review-missing-exit','review-running','review-unknown','review-wrong-root','review-jarpath','review-full','review-isolated')
+foreach($case in $reviewCases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module=if($case -eq 'review-rdd'){'plugins:rdd'}else{'plugins:learner'}
+ $id=if($module -eq 'plugins:rdd'){'mutation-build-2729529bc6e749dab1bb34cf2ebe96b3'}else{'mutation-build-1f1a8a7c967947669769dd2c7b6e8eb5'}
+ $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $artifact=Join-Path $jd $names[$module];Put $artifact 'review-food-fixture-only';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace('\','/')).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace('\','/'))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace('\','/'))
+ foreach($hash in @('F8222C4D4DA19EEE07E364241CCF1DECDA982740A1D0E83D00120DC4C4F8D9A2','F4A530DB5C33B5C5162AD50159A8F985101BA464D2A7BB2D43B27F16D5F3B605')){$deploy=$deploy.Replace($hash,$sha);$policy=$policy.Replace($hash,$sha)}
+ $policy=$policy.Replace(',611020)',(','+$length+')')).Replace(',1171566)',(','+$length+')'))
+ if($case -eq 'review-wrong-root'){$policy=$policy.Replace($root.Replace('\','/'),(Join-Path $d 'other-live').Replace('\','/'))}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $commit='25b6f23026e7bd6e6da13465b111d626c3995122'
+ $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
+ if($case -eq 'review-wrong-module'){$r.module='core:neoforge'}
+ if($case -eq 'review-wrong-size'){$r.bytes=$length+1}
+ if($case -eq 'review-dirty-source'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'review-missing-exit'){$r.Remove('gradleExit')}
+ Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+ $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'review-old-module';$oldHash=(Get-FileHash $old).Hash
+ $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'review-old-api';$apiHash=(Get-FileHash $api).Hash
+ $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'review-unchanged';$otherHash=(Get-FileHash $other).Hash
+ $cim=if($case -eq 'review-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'review-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-review-food-25b6 -Instance gpt'
+ if($case -eq 'review-env-only'){$argsText='-Mode original-review-food-25b6'}
+ if($case -eq 'review-wrong-instance'){$argsText='-Mode original-review-food-25b6 -Instance test'}
+ if($case -eq 'review-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'review-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'review-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'review-bad-id'){$id='mutation-build-not-reviewed'}
+ if($case -eq 'review-bad-commit'){$commit='0'*40}
+ $wanted=if($case -eq 'review-bad-sha'){'0'*64}else{$sha}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -in @('review-learner','review-rdd')
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'review branch invoked generic config/launch'}
+ if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $api).Hash -ne $apiHash){throw 'review branch touched unrelated/API jar'}
+ $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+ if($ok){
+  if((Get-FileHash $old).Hash -ne $sha -or $receipts.Count -ne 1){throw 'review output mismatch'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.success -ne $true -or $receipt.sourceCommit -cne $commit){throw 'review receipt invalid'}
+  foreach($backup in $receipt.backups){if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $backup.sha256){throw 'review backup mismatch'}}
+ }else{
+  if((Get-FileHash $old).Hash -ne $oldHash){throw 'refused review case wrote live mod'}
+  foreach($receipt in $receipts){if((Get-Content $receipt.FullName -Raw | ConvertFrom-Json).success){throw 'refused review case signed success'}}
+ }
+ $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 25b6 two-artifact branch with fake CIM, no real deployment'}
+}
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.
