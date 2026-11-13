@@ -56,6 +56,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.task.TaskRecordTest'
         )
         'plugins:learner' = @(
+            'com.dwinovo.numen.plugins.learner.LearnerPluginAbortTest',
+            'com.dwinovo.numen.plugins.learner.LearnerPluginRestoreTest',
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
             'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillBodyDeliveryIntegrityTest',

@@ -214,6 +214,13 @@ foreach ($attackTest in $attackTests) {
     MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($attackTest) }
 }
 MustReject { Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.tools.work.Attack*') }
+$reviewTests = @('com.dwinovo.numen.plugins.learner.LearnerPluginAbortTest','com.dwinovo.numen.plugins.learner.LearnerPluginRestoreTest')
+$reviewPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $reviewTests
+Assert ($reviewPlan.Task -ceq ':plugins:learner:test' -and $reviewPlan.Tests.Count -eq 2) 'review continuity tests map only to learner'
+foreach ($reviewTest in $reviewTests) {
+    MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reviewTest) }
+}
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerPlugin*') }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')
