@@ -362,6 +362,81 @@ foreach($case in $a199Cases){
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact a199 core/RDD entry, fixture files/CIM only; no production deployment'}
 }
 
+# 2026-11-14: one compat learner successor (28ba) fixed tuple; old controls unchanged.
+$successorCases=@('successor-learner','successor-env-only','successor-wrong-instance','successor-bad-id','successor-bad-commit','successor-bad-sha','successor-wrong-module','successor-wrong-size','successor-fixed-size','successor-dirty-source','successor-missing-exit','successor-nonzero-exit','successor-running','successor-unknown','successor-wrong-root','successor-jarpath','successor-jarname','successor-full','successor-isolated','successor-escape','successor-corrupt-artifact','successor-copy-failure')
+foreach($case in $successorCases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module='plugins:learner';$id='mutation-build-412cb9c4933347d99785c5364e5008d9'
+ $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $artifact=Join-Path $jd $names[$module];Put $artifact 'successor-28ba-fixture-only';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $fixedHash='F3FE5621F331B33D982B1CC9B6DF26304049CC04B2AC48AF3178C6BBFDA109CB'
+ $fixedSize=if($case -eq 'successor-fixed-size'){$length+1}else{$length}
+ $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha).Replace(',624872)',(','+$fixedSize+')'))
+ if($case -eq 'successor-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ if($case -eq 'successor-copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture successor copy failure'")}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $commit='28ba205413b031f91a799fbe35f704831bd8982d'
+ $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$sha;bytes=$length;sourceProof='pre-post-checks-consistent'}
+ if($case -eq 'successor-wrong-module'){$r.module='core:neoforge'}
+ if($case -eq 'successor-wrong-size'){$r.bytes=$length+1}
+ if($case -eq 'successor-dirty-source'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'successor-missing-exit'){$r.Remove('gradleExit')}
+ if($case -eq 'successor-nonzero-exit'){$r.gradleExit=1}
+ if($case -eq 'successor-escape'){$r.artifact=Join-Path $root $names[$module]}
+ Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+ if($case -eq 'successor-corrupt-artifact'){Put $artifact 'corrupted-after-receipt'}
+ $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'successor-old-learner';$oldHash=(Get-FileHash $old).Hash
+ $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'successor-old-api';$apiHash=(Get-FileHash $api).Hash
+ $core=Join-Path (Join-Path $root 'mods') 'numen-neoforge-1.21.1-0.1.3-dev.jar';Put $core 'successor-old-core';$coreHash=(Get-FileHash $core).Hash
+ $rdd=Join-Path (Join-Path $root 'mods') 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar';Put $rdd 'successor-old-rdd';$rddHash=(Get-FileHash $rdd).Hash
+ $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'successor-unrelated';$otherHash=(Get-FileHash $other).Hash
+ $cim=if($case -eq 'successor-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'successor-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-learner-successor-28ba -Instance gpt'
+ if($case -eq 'successor-env-only'){$argsText='-Mode original-learner-successor-28ba'}
+ if($case -eq 'successor-wrong-instance'){$argsText='-Mode original-learner-successor-28ba -Instance test'}
+ if($case -eq 'successor-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'successor-jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
+ if($case -eq 'successor-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'successor-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'successor-bad-id'){$id='mutation-build-not-successor'}
+ if($case -eq 'successor-bad-commit'){$commit='0'*40}
+ $wanted=if($case -eq 'successor-bad-sha'){'0'*64}else{$sha}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -eq 'successor-learner'
+ $copyFail=$case -eq 'successor-copy-failure'
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'successor entry invoked generic config/launch'}
+ if((Get-FileHash $api).Hash -ne $apiHash -or (Get-FileHash $core).Hash -ne $coreHash -or (Get-FileHash $rdd).Hash -ne $rddHash -or (Get-FileHash $other).Hash -ne $otherHash){throw 'successor entry touched API/core/RDD/unrelated'}
+ $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+ if($ok -or $copyFail){
+  if($receipts.Count -ne 1){throw 'successor missing or duplicate copy receipt'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw 'successor copy receipt mismatch'}
+  $backup=@($receipt.backups)[0]
+  if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw 'successor backup not recoverable'}
+  if($ok){
+   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'successor successful copy mismatch'}
+  }else{
+   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+successor\s+copy\s+failure'){throw 'successor copy failure misreported'}
+  }
+ }else{
+  if((Get-FileHash $old).Hash -ne $oldHash -or $receipts.Count -ne 0){throw 'successor refusal changed target or entered copy stage'}
+ }
+ $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 28ba learner successor entry, fixture files/CIM only; no production deployment'}
+}
+
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.
