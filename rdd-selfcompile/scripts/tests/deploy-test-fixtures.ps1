@@ -274,6 +274,94 @@ foreach($case in $resultCases){
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 1a347 learner entry with fixture hashes/CIM, no real deployment'}
 }
 
+# 2026-11-14: a199 A1/core food fix, exactly two audited builds; old 96 cases stay intact.
+# Copy the real entry/policy into temporary roots. Fixture hashes/CIM are never production proof.
+$a199Cases=@('a199-core','a199-rdd','a199-env-only','a199-wrong-instance','a199-bad-id','a199-bad-commit','a199-bad-sha','a199-swapped-sha','a199-wrong-module','a199-wrong-size','a199-fixed-size','a199-dirty-source','a199-missing-exit','a199-nonzero-exit','a199-running','a199-unknown','a199-wrong-root','a199-jarpath','a199-jarname','a199-full','a199-isolated','a199-escape','a199-corrupt-artifact','a199-core-copy-failure','a199-rdd-copy-failure')
+foreach($case in $a199Cases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module=if($case -in @('a199-rdd','a199-rdd-copy-failure')){'plugins:rdd'}else{'core:neoforge'}
+ $id=if($module -ceq 'core:neoforge'){'mutation-build-ffae833c8c124edd9d9494426c9c577c'}else{'mutation-build-a33e86a4a25c4a8782a6ed01c2a44fb3'}
+ $fixedHash=if($module -ceq 'core:neoforge'){'C88FCC3E215CA7CDEC751D14F0B629CE2C059DF962913B9440E46C063B5160FC'}else{'1F16C8F52FF6C68F90A22D1630F2AF5411A819DA7E85970C0225892B2D9015FC'}
+ $otherTupleHash=if($module -ceq 'core:neoforge'){'1F16C8F52FF6C68F90A22D1630F2AF5411A819DA7E85970C0225892B2D9015FC'}else{'C88FCC3E215CA7CDEC751D14F0B629CE2C059DF962913B9440E46C063B5160FC'}
+ $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $artifact=Join-Path $jd $names[$module];Put $artifact ('a199-fixture-only-'+$module)
+ $sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha)
+ $fixedSize=if($case -eq 'a199-fixed-size'){$length+1}else{$length}
+ $policy=$policy.Replace(',3080159)',(','+$fixedSize+')')).Replace(',1172244)',(','+$fixedSize+')'))
+ if($case -eq 'a199-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ $copyFail=$case -in @('a199-core-copy-failure','a199-rdd-copy-failure')
+ if($copyFail){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture a199 copy failure'")}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $commit='a199d778c3d8be921c5f21f5aae085b80d975106'
+ $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
+ if($case -eq 'a199-wrong-module'){$r.module='plugins:learner'}
+ if($case -eq 'a199-wrong-size'){$r.bytes=$length+1}
+ if($case -eq 'a199-dirty-source'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'a199-missing-exit'){$r.Remove('gradleExit')}
+ if($case -eq 'a199-nonzero-exit'){$r.gradleExit=1}
+ if($case -eq 'a199-escape'){$r.artifact=Join-Path $root $names[$module]}
+ Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+ if($case -eq 'a199-corrupt-artifact'){Put $artifact 'corrupted-after-receipt'}
+ $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'a199-old-target';$oldHash=(Get-FileHash $old).Hash
+ $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'a199-old-api';$apiHash=(Get-FileHash $api).Hash
+ $otherModule=if($module -ceq 'core:neoforge'){'plugins:rdd'}else{'core:neoforge'}
+ $otherMod=Join-Path (Join-Path $root 'mods') $names[$otherModule];Put $otherMod 'a199-other-module';$otherModHash=(Get-FileHash $otherMod).Hash
+ $learner=Join-Path (Join-Path $root 'mods') $names['plugins:learner'];Put $learner 'a199-old-learner';$learnerHash=(Get-FileHash $learner).Hash
+ $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'a199-unrelated';$otherHash=(Get-FileHash $other).Hash
+ $cim=if($case -eq 'a199-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'a199-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-a1-food-a199 -Instance gpt'
+ if($case -eq 'a199-env-only'){$argsText='-Mode original-a1-food-a199'}
+ if($case -eq 'a199-wrong-instance'){$argsText='-Mode original-a1-food-a199 -Instance test'}
+ if($case -eq 'a199-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'a199-jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
+ if($case -eq 'a199-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'a199-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'a199-bad-id'){$id='mutation-build-not-a199'}
+ if($case -eq 'a199-bad-commit'){$commit='0'*40}
+ $wanted=if($case -eq 'a199-bad-sha'){'0'*64}elseif($case -eq 'a199-swapped-sha'){$otherTupleHash}else{$sha}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -in @('a199-core','a199-rdd')
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'a199 entry invoked generic config/launch'}
+ if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $otherMod).Hash -ne $otherModHash -or (Get-FileHash $learner).Hash -ne $learnerHash){throw 'a199 entry touched another package'}
+ $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+ $expectedBackups=if($module -ceq 'core:neoforge'){2}else{1}
+ if($ok -or $copyFail){
+  if($receipts.Count -ne 1){throw 'a199 missing or duplicate copy receipt'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne $expectedBackups){throw 'a199 copy receipt mismatch'}
+  foreach($backup in $receipt.backups){
+   $expectedOld=if($backup.original -eq $api){$apiHash}elseif($backup.original -eq $old){$oldHash}else{throw 'unexpected backup path'}
+   if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw 'a199 original backup not recoverable'}
+  }
+  if($module -ceq 'core:neoforge'){
+   # Existing core order removes the standalone API before copy; failure does not restore it automatically.
+   if(Test-Path $api){throw 'a199 core left standalone API after copy stage'}
+  }elseif((Get-FileHash $api).Hash -ne $apiHash){throw 'a199 RDD changed standalone API'}
+  if($ok){
+   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'a199 successful copy mismatch'}
+  }else{
+   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+a199\s+copy\s+failure'){throw 'a199 copy failure misreported'}
+  }
+ }else{
+  if((Get-FileHash $old).Hash -ne $oldHash -or (Get-FileHash $api).Hash -ne $apiHash -or $receipts.Count -ne 0){throw 'a199 refusal changed target/API or entered copy stage'}
+ }
+ $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact a199 core/RDD entry, fixture files/CIM only; no production deployment'}
+}
+
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.

@@ -214,6 +214,19 @@ if ($Mode -ceq 'original-result-review-1a347' -and $PSBoundParameters.ContainsKe
  } catch { Write-Error ('DEPLOY_RESULT_REVIEW_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-14: A1 journal wiring and low-hp food completion; only these two audited a199 builds.
+# Keep the stopped-live copy/backup path and every older rollback tuple.
+if ($Mode -ceq 'original-a1-food-a199' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'a199d778c3d8be921c5f21f5aae085b80d975106' -and (($MutationId -ceq 'mutation-build-ffae833c8c124edd9d9494426c9c577c' -and $ExpectedSha256 -ieq 'C88FCC3E215CA7CDEC751D14F0B629CE2C059DF962913B9440E46C063B5160FC') -or ($MutationId -ceq 'mutation-build-a33e86a4a25c4a8782a6ed01c2a44fb3' -and $ExpectedSha256 -ieq '1F16C8F52FF6C68F90A22D1630F2AF5411A819DA7E85970C0225892B2D9015FC'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_A1_FOOD_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
