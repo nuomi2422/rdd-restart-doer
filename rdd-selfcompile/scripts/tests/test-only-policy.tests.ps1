@@ -220,6 +220,16 @@ $skillFeedbackPlan = Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($ski
 Assert ($skillFeedbackPlan.Task -ceq ':plugins:learner:test' -and $skillFeedbackPlan.Tests.Count -eq 1) 'skill task feedback test must map only to learner'
 MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($skillFeedbackTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerSkillTaskFeedback*') }
+
+# 2026-11-13: exact task-result intake consumer only; no wildcard or cross-module registration.
+$taskResultIntakeTest='com.dwinovo.numen.plugins.learner.LearnerTaskResultIntakeTest'
+$taskResultIntakePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskResultIntakeTest)
+Assert ($taskResultIntakePlan.Task -ceq ':plugins:learner:test' -and $taskResultIntakePlan.Tests.Count -eq 1) 'task result intake must map only the exact learner task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($taskResultIntakeTest)).Module -ceq 'plugins:learner') 'task result intake has one inferred owner'
+foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($taskResultIntakeTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskResultIntakeTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskResultIntakeTest.ToLowerInvariant())}
+Write-Output 'task result intake exact registration 8 assertions PASS (policy only; not Java execution)'
 $publicationTests = @(
     'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
     'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',
