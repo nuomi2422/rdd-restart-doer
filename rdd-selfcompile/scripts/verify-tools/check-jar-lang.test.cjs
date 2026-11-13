@@ -29,8 +29,8 @@ function zip(entries, deflate=false) {
   return Buffer.concat([...local,cd,end]);
 }
 function api(names=wanted) {return zip(names.map(n=>[n,'{}']),true);}
-function outer(inner=api(), registered=innerPath) {
-  const metadata={jars:[{identifier:{group:'com.dwinovo.numen.api',artifact:'numen_api-neoforge'},path:registered}]};
+function outer(inner=api(), registered=innerPath, identifier={group:'com.dwinovo.numen.api',artifact:'neoforge'}) {
+  const metadata={jars:[{identifier,path:registered}]};
   return zip([['META-INF/jarjar/metadata.json',JSON.stringify(metadata)],[innerPath,inner]],true);
 }
 function fixture(t) {
@@ -57,3 +57,7 @@ test('malformed jar returns JSON ENV',t=>{const f=fixture(t);f.put('numen_api-ne
 test('multiple standalone APIs are ambiguous',t=>{const f=fixture(t);f.put('numen_api-neoforge-a.jar',api());f.put('numen_api-neoforge-b.jar',api());check(f.run(),3,'ENV');});
 test('standalone and embedded together are ambiguous',t=>{const f=fixture(t);f.put('numen_api-neoforge-test.jar',api());f.put('numen-neoforge-test.jar',outer());check(f.run(),3,'ENV');});
 test('no provider returns ENV',t=>{check(fixture(t).run(),3,'ENV');});
+test('API-like path with wrong metadata group is not a provider',t=>{const f=fixture(t);f.put('numen-neoforge-test.jar',outer(api(),innerPath,{group:'unrelated',artifact:'neoforge'}));check(f.run(),3,'ENV');});
+test('API-like path with unrelated artifact is not a provider',t=>{const f=fixture(t);f.put('numen-neoforge-test.jar',outer(api(),innerPath,{group:'com.dwinovo.numen.api',artifact:'unrelated'}));check(f.run(),3,'ENV');});
+test('metadata identity cannot promote an unrelated jar path',t=>{const f=fixture(t);const p='META-INF/jarjar/unrelated.jar';const m={jars:[{identifier:{group:'com.dwinovo.numen.api',artifact:'numen_api-neoforge'},path:p}]};f.put('numen-neoforge-test.jar',zip([['META-INF/jarjar/metadata.json',JSON.stringify(m)],[p,api()]]));check(f.run(),3,'ENV');});
+test('duplicate language entries are ambiguous',t=>{const f=fixture(t);f.put('numen_api-neoforge-test.jar',zip([[wanted[0],'{}'],[wanted[0],'{}'],[wanted[1],'{}']]));check(f.run(),3,'ENV');});
