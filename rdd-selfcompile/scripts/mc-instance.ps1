@@ -1,4 +1,4 @@
-# mc-instance.ps1 — 同伴实例的"进程身份"单一真源
+﻿# mc-instance.ps1 — 同伴实例的"进程身份"单一真源
 #
 # 为什么存在（2026-09-30 实坑）：
 #   调用方为了停掉旧实例，自己手写 `Where-Object { $_.CommandLine -like "*instances\test*" }`，
