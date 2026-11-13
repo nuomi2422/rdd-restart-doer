@@ -77,6 +77,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.ReviewStatePersistenceRedTest',
             'com.dwinovo.numen.plugins.learner.ReviewCompletionTest',
             'com.dwinovo.numen.plugins.learner.ReviewTargetGateTest',
+            'com.dwinovo.numen.plugins.learner.LearnerReviewObservationTest',
+            'com.dwinovo.numen.plugins.learner.LearnerMonitorJournalTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillBodyDeliveryIntegrityTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillBodyStoreTest',
             'com.dwinovo.numen.plugins.learner.core.CandidateGateTest',

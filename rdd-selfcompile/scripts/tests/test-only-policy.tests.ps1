@@ -37,6 +37,24 @@ foreach($dispatchTest in $dispatchTests){
 $dispatchPair=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $dispatchTests
 Assert ($dispatchPair.Tests.Count -eq 2 -and $dispatchPair.Task -ceq ':plugins:learner:test') 'both exact learner consumers may run together'
 Write-Output 'C1 learner mapping/dispatch 13 assertions PASS (policy only; not Java execution)'
+# 2026-11-14: exact ReviewObservation + MonitorJournal learner tests; adjacent names stay rejected.
+$reviewObservationTests=@(
+    'com.dwinovo.numen.plugins.learner.LearnerReviewObservationTest',
+    'com.dwinovo.numen.plugins.learner.LearnerMonitorJournalTest'
+)
+foreach($reviewObservationTest in $reviewObservationTests){
+    $reviewObservationPlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewObservationTest)
+    Assert ($reviewObservationPlan.Task -ceq ':plugins:learner:test' -and $reviewObservationPlan.Tests.Count -eq 1) 'new learner review/monitor test maps only learner task'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($reviewObservationTest)).Module -ceq 'plugins:learner') 'new learner review/monitor test has one inferred owner'
+    foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($reviewObservationTest)}}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewObservationTest+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewObservationTest.ToLowerInvariant())}
+}
+$reviewObservationPair=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $reviewObservationTests
+Assert ($reviewObservationPair.Tests.Count -eq 2 -and $reviewObservationPair.Task -ceq ':plugins:learner:test') 'both exact new learner review/monitor tests may run together'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerReviewObservationAdjacentTest')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerMonitorJournalTestHelper')}
+Write-Output 'new learner review/monitor exact registration 19 assertions PASS (policy only; not Java execution)'
 # 2026-11-13: narrow survival intent consumer, not a generic RDD test prefix.
 $survivalIntentTest='com.dwinovo.numen.plugins.rdd.RddSurvivalIntentTest'
 $survivalIntentPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($survivalIntentTest)
