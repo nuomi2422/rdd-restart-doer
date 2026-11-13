@@ -240,6 +240,16 @@ foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustRejec
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskResultIntakeTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($taskResultIntakeTest.ToLowerInvariant())}
 Write-Output 'task result intake exact registration 8 assertions PASS (policy only; not Java execution)'
+# 2026-11-13: persisted review-state red consumer must stay exact and learner-owned; no prefix widening.
+$reviewStatePersistenceTest='com.dwinovo.numen.plugins.learner.ReviewStatePersistenceRedTest'
+$reviewStatePersistencePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest)
+Assert ($reviewStatePersistencePlan.Module -ceq 'plugins:learner' -and $reviewStatePersistencePlan.Task -ceq ':plugins:learner:test' -and $reviewStatePersistencePlan.Tests.Count -eq 1 -and $reviewStatePersistencePlan.Tests[0] -ceq $reviewStatePersistenceTest) 'review state persistence maps only its exact learner class and task'
+$reviewStatePersistenceInferred=Get-RddTestOnlyPlan -Module '' -Tests @($reviewStatePersistenceTest)
+Assert ($reviewStatePersistenceInferred.Module -ceq 'plugins:learner' -and $reviewStatePersistenceInferred.Task -ceq ':plugins:learner:test' -and $reviewStatePersistenceInferred.Tests.Count -eq 1 -and $reviewStatePersistenceInferred.Tests[0] -ceq $reviewStatePersistenceTest) 'review state persistence has one inferred learner owner and exact class'
+foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($reviewStatePersistenceTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest+'*')}
+Write-Output 'review state persistence exact registration 8 assertions PASS (policy only; not Java execution)'
 $publicationTests = @(
     'com.dwinovo.numen.plugins.learner.skills.PublishBoundaryBodyTest',
     'com.dwinovo.numen.plugins.learner.skills.SkillRegistryPromoteTest',
