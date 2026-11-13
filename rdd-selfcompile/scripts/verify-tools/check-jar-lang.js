@@ -62,8 +62,9 @@ function findApi(args) {
       if (typeof name !== 'string' || !name.startsWith('META-INF/jarjar/') ||
           !name.endsWith('.jar') || name.includes('..') || name.includes('\\'))
         throw new Error('invalid registered JarJar path: ' + jar);
-      const isApi = /(?:^|[/.])numen_api-neoforge-[^/]+\.jar$/.test(name) ||
-        item.identifier?.artifact === 'numen_api-neoforge';
+      const isApi = /(?:^|[/.])numen_api-neoforge-[^/]+\.jar$/.test(name) &&
+        item.identifier?.group === 'com.dwinovo.numen.api' &&
+        ['neoforge', 'numen_api-neoforge'].includes(item.identifier?.artifact);
       if (!isApi) continue;
       const matches = entries.filter(e => e.name === name);
       if (matches.length !== 1) throw new Error('missing or ambiguous registered API: ' + name);
