@@ -25,6 +25,18 @@ foreach($case in $c1Tests){
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($c1Tests[0].Class,$c1Tests[1].Class)}
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.OtherTest')}
 Write-Output 'C1 exact registration 23 assertions PASS (policy only; not Java execution)'
+# 2026-11-13: exact learner mapping and registered dispatch consumers; no wildcard widening.
+$dispatchTests=@('com.dwinovo.numen.plugins.learner.LearnerPluginDeliveryMappingTest','com.dwinovo.numen.plugins.learner.DeliveryDispatchIntegrationTest')
+foreach($dispatchTest in $dispatchTests){
+    $dispatchPlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($dispatchTest)
+    Assert ($dispatchPlan.Task -ceq ':plugins:learner:test' -and $dispatchPlan.Tests.Count -eq 1) 'mapping/dispatch must map only the exact learner task'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($dispatchTest)).Module -ceq 'plugins:learner') 'learner dispatch has one inferred module'
+    foreach($wrongModule in @('api:common','ai','plugins:rdd')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($dispatchTest)}}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($dispatchTest+'*')}
+}
+$dispatchPair=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests $dispatchTests
+Assert ($dispatchPair.Tests.Count -eq 2 -and $dispatchPair.Task -ceq ':plugins:learner:test') 'both exact learner consumers may run together'
+Write-Output 'C1 learner mapping/dispatch 13 assertions PASS (policy only; not Java execution)'
 $test='com.dwinovo.numen.plugins.rdd.RddSettleStageUnmetTest'
 $p=Get-RddTestOnlyPlan -Module ' plugins:rdd ' -Tests @($test)
 $inferred=Get-RddTestOnlyPlan -Module '' -Tests @('com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest')
