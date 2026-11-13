@@ -221,6 +221,13 @@ foreach ($reviewTest in $reviewTests) {
     MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reviewTest) }
 }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.LearnerPlugin*') }
+$survivalTests = @('com.dwinovo.numen.plugins.rdd.RddSurvivalPreemptReplanHostTest','com.dwinovo.numen.plugins.rdd.RddSurvivalGateTest')
+$survivalPlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests $survivalTests
+Assert ($survivalPlan.Task -ceq ':plugins:rdd:test' -and $survivalPlan.Tests.Count -eq 2) 'survival preemption host and gate controls map only to RDD'
+foreach ($survivalTest in $survivalTests) {
+    MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($survivalTest) }
+}
+MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddSurvival*') }
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')
