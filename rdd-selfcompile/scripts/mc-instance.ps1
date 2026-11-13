@@ -1,4 +1,4 @@
-﻿# mc-instance.ps1 — 同伴实例的"进程身份"单一真源
+# mc-instance.ps1 — 同伴实例的"进程身份"单一真源
 #
 # 为什么存在（2026-09-30 实坑）：
 #   调用方为了停掉旧实例，自己手写 `Where-Object { $_.CommandLine -like "*instances\test*" }`，
@@ -139,6 +139,16 @@ function Stop-RddMcInstance {
                 }
                 if ($proc.HasExited -ne $false -or
                     -not (& $sameIdentity @(Get-RddMcProcess -Instance $Instance))) {
+                    # A normal exit can land between independent state/handle/CIM reads.
+                    # One fresh state plus the retained original handle may confirm exit;
+                    # a replacement, UNKNOWN or changed directory still cannot claim it.
+                    $finalState = Get-RddMcState -Instance $Instance
+                    $proc.Refresh()
+                    if ($finalState -eq 'STOPPED' -and $proc.HasExited -eq $true -and
+                        (ConvertTo-RddMcPathKey (Get-RddMcGameDir $Instance)) -eq $dir) {
+                        Invoke-RddExitAudit
+                        return "STOP_CLAIMED: requested target stopped (pid $targetId); save=UNKNOWN"
+                    }
                     return 'STOP_UNKNOWN: close requested; target identity changed; save=UNKNOWN'
                 }
                 Start-Sleep -Milliseconds 500
