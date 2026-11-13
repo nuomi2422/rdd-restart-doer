@@ -14,6 +14,7 @@ function Check($Name, $Expected, $Actual) {
 function Get-RddMcGameDir {
     param($Instance)
     if ($script:scenario -eq 'directory-drift' -and $script:cimCalls -ge 1) { return 'D:/fixture/other' }
+    if ($script:scenario -eq 'exit-then-directory-drift' -and $script:closeCalls -gt 0) { return 'D:/fixture/other' }
     return 'D:/fixture/mine'
 }
 function Get-RddMcState {
@@ -25,6 +26,13 @@ function Get-RddMcState {
     if ($script:scenario -eq 'stopped-before-request' -and $script:stateCalls -ge 2) { return 'STOPPED' }
     if ($script:forceCalls -gt 0) { return 'STOPPED' }
     if ($script:closeCalls -gt 0) {
+        if ($script:scenario -in @('exit-after-state-read','exit-during-process-query','exited-but-replacement-running','exit-then-unknown','exit-then-query-throw','exit-then-directory-drift')) {
+            if ($script:stateCalls -le 3) { return 'RUNNING' }
+            if ($script:scenario -eq 'exit-then-unknown') { return 'UNKNOWN' }
+            if ($script:scenario -eq 'exit-then-query-throw') { throw 'fixture final state failed' }
+            if ($script:scenario -eq 'exited-but-replacement-running') { return 'RUNNING' }
+            return 'STOPPED'
+        }
         if ($script:scenario -in @('success','stop-not-exited','dispose-throw','close-false-stopped')) { return 'STOPPED' }
         if ($script:scenario -eq 'unknown-with-exit') { return 'UNKNOWN' }
         if ($script:scenario -eq 'unknown-after') { return 'UNKNOWN' }
@@ -42,6 +50,10 @@ function Get-RddMcProcess {
     $script:cimCalls++
     if ($script:scenario -eq 'query-throw') { throw 'fixture identity query failed' }
     if ($script:scenario -eq 'empty') { return @() }
+    if ($script:scenario -eq 'exit-during-process-query' -and $script:closeCalls -gt 0) {
+        $script:heldProcess.HasExited = $true
+        return @()
+    }
     $p = New-FakeIdentity
     if ($script:scenario -eq 'other-instance') { $p.CommandLine = 'javaw --gameDir=D:/fixture/other' }
     if ($script:scenario -eq 'bridge') { $p.CommandLine += ' -jar soul-core-bridge.jar' }
@@ -80,6 +92,7 @@ function Get-Process {
         if ($script:scenario -eq 'handle-drift' -and $script:refreshCalls -ge 2) { $this.Handle = [intptr]234 }
         if ($script:scenario -eq 'start-drift' -and $script:refreshCalls -ge 2) { $this.StartTime = $script:birth.AddSeconds(1) }
         if ($script:closeCalls -gt 0 -and $script:scenario -in @('success','dispose-throw','unknown-with-exit')) { $this.HasExited = $true }
+        if ($script:closeCalls -gt 0 -and $script:scenario -in @('exit-after-state-read','exited-but-replacement-running','exit-then-unknown','exit-then-query-throw','exit-then-directory-drift')) { $this.HasExited = $true }
         if ($script:scenario -eq 'window-drift' -and $script:refreshCalls -ge 2) { $this.MainWindowHandle = [intptr]789 }
     }
     $p | Add-Member ScriptMethod CloseMainWindow {
@@ -92,6 +105,7 @@ function Get-Process {
         $script:disposeCalls++
         if ($script:scenario -eq 'dispose-throw') { throw 'fixture disposal failed' }
     }
+    $script:heldProcess = $p
     return $p
 }
 function Get-CimInstance { $script:unmockedCalls++; throw 'UNMOCKED CIM boundary' }
@@ -171,6 +185,14 @@ Run-Case 'stop-not-exited' '^STOP_UNKNOWN' 1
 Run-Case 'unknown-with-exit' '^STOP_UNKNOWN' 1
 Run-Case 'close-false-stopped' '^STOP_REFUSED: close request rejected' 1
 Run-Case 'dispose-throw' '^STOP_CLAIMED: requested target stopped' 1 1
+# One successful close, stale RUNNING observation, then the retained target exits.
+# A fresh final STOPPED can prove exit, never world saving; replacements and UNKNOWN stay unknown.
+Run-Case 'exit-after-state-read' '^STOP_CLAIMED: requested target stopped' 1 1
+Run-Case 'exit-during-process-query' '^STOP_CLAIMED: requested target stopped' 1 1
+Run-Case 'exited-but-replacement-running' '^STOP_UNKNOWN' 1
+Run-Case 'exit-then-unknown' '^STOP_UNKNOWN' 1
+Run-Case 'exit-then-query-throw' '^STOP_UNKNOWN' 1
+Run-Case 'exit-then-directory-drift' '^STOP_UNKNOWN' 1
 Write-Output "GRACEFUL forceCallsTotal=$script:gracefulForceTotal"
 # Existing callers retain their old return values and force fallback.
 Run-Case 'success' '^stopped-gracefully' 1 1 0 -Legacy
