@@ -176,6 +176,18 @@ if ($Mode -ceq 'original-survival-intent' -and $PSBoundParameters.ContainsKey('I
  } catch { Write-Error ('DEPLOY_SURVIVAL_INTENT_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-13: coherent C1/B2 release; exact ec1b source and three managed artifacts only.
+if ($Mode -ceq 'original-c1-b2-verified' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-f081e4e6f60e4bf090a7d425a81e1158','mutation-build-330e7ece7f8b472bac3b487b8c099e10','mutation-build-1f0beb3c375e44999b96395022952d94') -and $ExpectedCommit -ceq 'ec1b770985b476ae986998957a455a5eeca76fd0' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_C1_B2_VERIFIED_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

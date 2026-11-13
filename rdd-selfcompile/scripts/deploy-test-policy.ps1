@@ -144,6 +144,16 @@ function Get-RddTestDeploySource {
   $fixed=@{'mutation-build-40e931ffc2264468ae8972af764742df'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','B9D26D7B057C52394531E66B7B3A937C09ECE70D633555DCE95F24845EFDA053',1167110)}
   $commit='d9a76ab43a049809b512d3fff8a52d0180552ee1'
  }
+ # 2026-11-13: coherent C1 host and B2 recovery; three audited ec1b physical artifacts only.
+ if($MutationId -cin @('mutation-build-f081e4e6f60e4bf090a7d425a81e1158','mutation-build-330e7ece7f8b472bac3b487b8c099e10','mutation-build-1f0beb3c375e44999b96395022952d94')){
+  if(-not $Original){throw 'C1 B2 verified artifacts require original deployment'}
+  $fixed=@{
+   'mutation-build-f081e4e6f60e4bf090a7d425a81e1158'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','153592F697611659926556DD6F831E06B834C65E0E644FF76D232D58B970A7A9',3079741)
+   'mutation-build-330e7ece7f8b472bac3b487b8c099e10'=@('plugins:learner','numen-plugin-learner-1.21.1-0.1.3-dev.jar','C54761114B53AC1B7485D9BB84CE1C20A76D51B1D29EFB93E30A3C09BE5F2D48',610162)
+   'mutation-build-1f0beb3c375e44999b96395022952d94'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','391DEADF7430A7BE8781B8919075A118F88B52A7D886A5846F078AA1249C1D26',1171045)
+  }
+  $commit='ec1b770985b476ae986998957a455a5eeca76fd0'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -202,7 +212,12 @@ function Invoke-RddTestAssembly {
   $fixedLearnerRestore=$Source.commit -ceq 'e3067b3f28536fce3b523c06da2158458d5dd604' -and $Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '86D8329A9AB16CF67B04424C79E23B5D4A2529A358B66037FDF9F8AEBF66B1B6'
   $fixedSurvivalReplan=$Source.commit -ceq '9314ece120631ad6bfe78185b1b73f7c72e4bd43' -and $Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'BF1156C6A7BC09E582B52398CCC414DB30EEC0F3D2A1CDCC123DA95EB8CAF8C9'
   $fixedSurvivalIntent=$Source.commit -ceq 'd9a76ab43a049809b512d3fff8a52d0180552ee1' -and $Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'B9D26D7B057C52394531E66B7B3A937C09ECE70D633555DCE95F24845EFDA053'
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  # 2026-11-13: preserve old plugin interfaces; accept only these exact reviewed ec1b tuples.
+  $fixedEc1b=$Source.commit -ceq 'ec1b770985b476ae986998957a455a5eeca76fd0' -and (
+   ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '153592F697611659926556DD6F831E06B834C65E0E644FF76D232D58B970A7A9') -or
+   ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'C54761114B53AC1B7485D9BB84CE1C20A76D51B1D29EFB93E30A3C09BE5F2D48') -or
+   ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '391DEADF7430A7BE8781B8919075A118F88B52A7D886A5846F078AA1249C1D26'))
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}
