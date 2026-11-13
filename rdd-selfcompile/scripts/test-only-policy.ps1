@@ -33,7 +33,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
             'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest',
-            'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest'
+            'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest',
+            'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest'

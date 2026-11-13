@@ -267,6 +267,18 @@ MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddGoalDriverInjection*') }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($dailyCoreTest) }
 MustReject { Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($dailyShellTest) }
+
+# 2026-11-13: exact planning-observation wiring consumer; plugins:rdd only, journal control stays.
+$planningObservationTest='com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest'
+$planningObservationPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planningObservationTest)
+Assert ($planningObservationPlan.Task -ceq ':plugins:rdd:test' -and $planningObservationPlan.Tests.Count -eq 1) 'planning observation wiring must map only the exact rdd plugin task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($planningObservationTest)).Module -ceq 'plugins:rdd') 'planning observation wiring has one inferred owner plugins:rdd'
+foreach($wrongModule in @('api:common','ai','plugins:learner','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($planningObservationTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planningObservationTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planningObservationTest.ToLowerInvariant())}
+$journalControlPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddMonitorJournalTest')
+Assert ($journalControlPlan.Task -ceq ':plugins:rdd:test' -and $journalControlPlan.Tests.Count -eq 1) 'existing journal control stays registered'
+Write-Output 'planning observation exact registration 9 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
