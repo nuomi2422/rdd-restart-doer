@@ -209,6 +209,71 @@ foreach($case in $reviewCases){
  }
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 25b6 two-artifact branch with fake CIM, no real deployment'}
 }
+# 2026-11-14: one consumer-verified 1a347 learner artifact; old 78 controls above are unchanged.
+# V09 lost review clocks. Exercise the real copied deploy entry, never a live path or real CIM.
+$resultCases=@('result-learner','result-env-only','result-wrong-instance','result-bad-id','result-bad-commit','result-bad-sha','result-wrong-module','result-wrong-size','result-dirty-source','result-missing-exit','result-running','result-unknown','result-wrong-root','result-jarpath','result-jarname','result-full','result-isolated','result-copy-failure')
+foreach($case in $resultCases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module='plugins:learner';$id='mutation-build-0cc0780d079e473d9e35b87ff3ac1a65'
+ $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $artifact=Join-Path $jd $names[$module];Put $artifact 'result-review-fixture-only';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $fixedHash='653913D3E0E009045940DC8FF691892F1DC474766A9651DA6FE09FEF4836528C'
+ $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha).Replace(',623053)',(','+$length+')'))
+ if($case -eq 'result-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ if($case -eq 'result-copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture result copy failure'")}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $commit='1a347ba6b0ab16d2100d926e4ae58316912131ab'
+ $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
+ if($case -eq 'result-wrong-module'){$r.module='core:neoforge'}
+ if($case -eq 'result-wrong-size'){$r.bytes=$length+1}
+ if($case -eq 'result-dirty-source'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'result-missing-exit'){$r.Remove('gradleExit')}
+ Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+ $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'result-old-learner';$oldHash=(Get-FileHash $old).Hash
+ $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'result-old-api';$apiHash=(Get-FileHash $api).Hash
+ $core=Join-Path (Join-Path $root 'mods') 'numen-neoforge-1.21.1-0.1.3-dev.jar';Put $core 'result-old-core';$coreHash=(Get-FileHash $core).Hash
+ $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'result-unchanged';$otherHash=(Get-FileHash $other).Hash
+ $cim=if($case -eq 'result-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'result-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-result-review-1a347 -Instance gpt'
+ if($case -eq 'result-env-only'){$argsText='-Mode original-result-review-1a347'}
+ if($case -eq 'result-wrong-instance'){$argsText='-Mode original-result-review-1a347 -Instance test'}
+ if($case -eq 'result-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'result-jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
+ if($case -eq 'result-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'result-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'result-bad-id'){$id='mutation-build-not-reviewed'}
+ if($case -eq 'result-bad-commit'){$commit='0'*40}
+ $wanted=if($case -eq 'result-bad-sha'){'0'*64}else{$sha}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -eq 'result-learner'
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'result branch invoked generic config/launch'}
+ if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $api).Hash -ne $apiHash -or (Get-FileHash $core).Hash -ne $coreHash){throw 'result branch touched unrelated/API/core jar'}
+ $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+ if($ok){
+  if((Get-FileHash $old).Hash -ne $sha -or $receipts.Count -ne 1){throw 'result output mismatch'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.success -ne $true -or $receipt.sourceCommit -cne $commit -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw 'result receipt invalid'}
+  foreach($backup in $receipt.backups){if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw 'result backup mismatch'}}
+ }else{
+  if((Get-FileHash $old).Hash -ne $oldHash){throw 'refused result case wrote live mod'}
+  foreach($receipt in $receipts){if((Get-Content $receipt.FullName -Raw | ConvertFrom-Json).success){throw 'refused result case signed success'}}
+ }
+ $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 1a347 learner entry with fixture hashes/CIM, no real deployment'}
+}
+
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.

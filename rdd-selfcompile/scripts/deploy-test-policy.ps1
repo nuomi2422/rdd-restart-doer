@@ -163,6 +163,12 @@ function Get-RddTestDeploySource {
   }
   $commit='25b6f23026e7bd6e6da13465b111d626c3995122'
  }
+ # 2026-11-14: source/receipt/hash verified after 131 host+state tests; one learner artifact only.
+ if($MutationId -ceq 'mutation-build-0cc0780d079e473d9e35b87ff3ac1a65'){
+  if(-not $Original){throw 'result review artifact requires original deployment'}
+  $fixed=@{'mutation-build-0cc0780d079e473d9e35b87ff3ac1a65'=@('plugins:learner','numen-plugin-learner-1.21.1-0.1.3-dev.jar','653913D3E0E009045940DC8FF691892F1DC474766A9651DA6FE09FEF4836528C',623053)}
+  $commit='1a347ba6b0ab16d2100d926e4ae58316912131ab'
+ }
  if($ExpectedCommit -cne $commit -or -not $fixed.ContainsKey($MutationId)){throw 'unapproved source selection'}
  $f=$fixed[$MutationId];if($ExpectedSha256 -ine $f[2]){throw 'expected sha differs from fixed artifact'}
  $dir=Join-Path $Mutations $MutationId
@@ -230,7 +236,9 @@ function Invoke-RddTestAssembly {
   $fixedReviewFood=$Source.commit -ceq '25b6f23026e7bd6e6da13465b111d626c3995122' -and (
    ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F8222C4D4DA19EEE07E364241CCF1DECDA982740A1D0E83D00120DC4C4F8D9A2') -or
    ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F4A530DB5C33B5C5162AD50159A8F985101BA464D2A7BB2D43B27F16D5F3B605'))
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  # 2026-11-14: exact learner only; API/core remain installed and the existing 25b6 rollback remains valid.
+  $fixedResultReview=$Source.commit -ceq '1a347ba6b0ab16d2100d926e4ae58316912131ab' -and $Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '653913D3E0E009045940DC8FF691892F1DC474766A9651DA6FE09FEF4836528C'
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedResultReview -and -not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}

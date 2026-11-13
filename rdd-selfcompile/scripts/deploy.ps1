@@ -201,6 +201,19 @@ if ($Mode -ceq 'original-review-food-25b6' -and $PSBoundParameters.ContainsKey('
  } catch { Write-Error ('DEPLOY_REVIEW_FOOD_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-14: 131 consumer checks passed on 1a347; publish only this inspected learner build.
+# V09 exposed nonpersistent review clocks. Keep stopped-live/backup checks and the old 25b6 rollback tuple.
+if ($Mode -ceq 'original-result-review-1a347' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -ceq 'mutation-build-0cc0780d079e473d9e35b87ff3ac1a65' -and $ExpectedCommit -ceq '1a347ba6b0ab16d2100d926e4ae58316912131ab' -and $ExpectedSha256 -ieq '653913D3E0E009045940DC8FF691892F1DC474766A9651DA6FE09FEF4836528C') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_RESULT_REVIEW_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
