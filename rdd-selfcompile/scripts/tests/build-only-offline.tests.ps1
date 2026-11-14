@@ -39,6 +39,15 @@ Assert ($acx.task -ceq ':plugins:acx:jar' -and $acx.artifactPrefix -ceq 'numen-p
 Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module 'plugins:acx' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'acx-original-instance-refused'
 Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:acx:runClient' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'acx-task-injection-refused'
 Reject {Select-RddBuildArtifact -Names @('numen-plugin-acx-1.21.1-0.1.3-dev-api.jar') -Prefix 'numen-plugin-acx'} 'acx-classifier-refused'
+# 2026-11-14: exact experience build-only package; no deployment or launch permission.
+$experience=Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:experience' -SourceRoot fixture -ExpectedCommit ('a'*40)
+Assert ($experience.module -ceq 'plugins:experience' -and $experience.task -ceq ':plugins:experience:jar' -and $experience.relativeDir -ceq 'plugins/experience/build/libs' -and $experience.artifactPrefix -ceq 'numen-plugin-experience') 'experience-exact-plan'
+Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:experiance' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'experience-misspelling-refused'
+Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module 'plugins:*' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'experience-generic-module-refused'
+Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $false -Module 'plugins:experience' -SourceRoot fixture -ExpectedCommit ('a'*40)} 'experience-instance-must-be-explicit'
+$experienceJar='numen-plugin-experience-1.21.1-0.1.3-dev.jar'
+Assert ((Select-RddBuildArtifact -Names @($experienceJar,'numen-plugin-experience-1.21.1-0.1.3-dev-api.jar','numen-plugin-experience-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-experience') -ceq $experienceJar) 'experience-release-not-classifier'
+Reject {Select-RddBuildArtifact -Names @($experienceJar,$experienceJar) -Prefix 'numen-plugin-experience'} 'experience-conflicting-jars-refused'
 $n='numen-plugin-rdd-1.21.1-0.1.3-dev.jar'
 Assert ((Select-RddBuildArtifact -Names @($n,'numen-plugin-rdd-1.21.1-0.1.3-dev-api.jar','numen-plugin-rdd-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-rdd') -ceq $n) 'release-not-classifier'
 Reject {Select-RddBuildArtifact -Names @($n,$n) -Prefix 'numen-plugin-rdd'} 'ambiguous-release-refused'
