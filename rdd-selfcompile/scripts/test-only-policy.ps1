@@ -41,7 +41,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest'
         )
         'ai' = @(
-            'com.dwinovo.numen.agent.llm.LlmObservationTest'
+            'com.dwinovo.numen.agent.llm.LlmObservationTest',
+            'com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.RequestDeliveredAggregationTest',

@@ -41,6 +41,16 @@ foreach($case in $c1Tests){
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($c1Tests[0].Class,$c1Tests[1].Class)}
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.OtherTest')}
 Write-Output 'C1 exact registration 23 assertions PASS (policy only; not Java execution)'
+# Exact existing assembler consumer only; no retrieval package or adjacent class admission.
+$assemblerTest='com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerTest'
+$assemblerPlan=Get-RddTestOnlyPlan -Module 'ai' -Tests @($assemblerTest)
+Assert ($assemblerPlan.Module -ceq 'ai' -and $assemblerPlan.Task -ceq ':ai:test' -and $assemblerPlan.Tests.Count -eq 1 -and $assemblerPlan.Tests[0] -ceq $assemblerTest) 'assembler maps only the exact ai task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($assemblerTest)).Module -ceq 'ai') 'assembler has one inferred owner ai'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @($assemblerTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($assemblerTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerAdjacentTest')}
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($assemblerTest+'Helper')}
+Write-Output 'assembler exact registration 6 assertions PASS (policy only; not Java execution)'
 # 2026-11-13: exact learner mapping and registered dispatch consumers; no wildcard widening.
 $dispatchTests=@('com.dwinovo.numen.plugins.learner.LearnerPluginDeliveryMappingTest','com.dwinovo.numen.plugins.learner.DeliveryDispatchIntegrationTest')
 foreach($dispatchTest in $dispatchTests){
