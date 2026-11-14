@@ -623,88 +623,105 @@ $why8853Tuples=@{
  'plugins:experience'=@('mutation-build-7cc1a6f15b61475587953bf380d8f7b1','numen-plugin-experience-1.21.1-0.1.3-dev.jar','6371B7BF3926EBE8AA27A8A2AD63196A8B8F41C72E36ADB9EBA620755E717C00',207504)
 }
 $why8853Cases=@('8853-rdd','8853-learner','8853-experience','8853-rdd-sha-learner','8853-learner-id-experience','8853-experience-sha-rdd','8853-bad-commit','8853-wrong-module','8853-wrong-size','8853-fixed-size','8853-bad-proof','8853-env-only','8853-wrong-instance','8853-running','8853-unknown','8853-copy-failure','8853-escape','8853-wrong-root','8853-jarpath','8853-jarname','8853-full','8853-isolated','8853-assembly-crossed')
-foreach($case in $why8853Cases){
+$v25Tuples=@{
+ 'plugins:rdd'=@('mutation-build-4ee45e827c1e439eb95638a175a68177','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','8B85F50E48BFCB922D15D0E46CD9F7E7EF75C125F826C396D3CE9E8DDBEE6B28',1191094)
+ 'plugins:experience'=@('mutation-build-f59304e827ee473bb10022854c2aaf2f','numen-plugin-experience-1.21.1-0.1.3-dev.jar','BD66DFDB53A0702B6884093A36AB0D0D10A005EFF6741C7A7915ED3EB949D7A5',207622)
+}
+$v25Cases=@('v25-rdd','v25-experience','v25-rdd-sha-experience','v25-experience-id-rdd','v25-bad-commit','v25-bad-source','v25-wrong-module','v25-wrong-size','v25-fixed-size','v25-bad-proof','v25-env-only','v25-wrong-instance','v25-running','v25-unknown','v25-copy-failure','v25-escape','v25-wrong-root','v25-jarpath','v25-jarname','v25-full','v25-isolated','v25-assembly-crossed','v25-assembly-name')
+# Reuse the original copied-entry/receipt/backup runner; preserve every 8853 case.
+foreach($release in @(
+ @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
+ @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases}
+)){
+ $tuples=$release.tuples
+ foreach($case in $release.cases){
+ $kind=$case.Substring($release.tag.Length+1)
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $module=if($case -in @('8853-learner','8853-learner-id-experience','8853-wrong-size','8853-fixed-size','8853-bad-proof','8853-unknown','8853-jarname')){'plugins:learner'}elseif($case -in @('8853-experience','8853-experience-sha-rdd','8853-wrong-module','8853-env-only','8853-copy-failure','8853-isolated','8853-assembly-crossed')){'plugins:experience'}else{'plugins:rdd'}
- $commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a'
+ $module=if($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
+ $commit=$release.commit
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47)).Replace('D:/rdd/workspace/rdd-selfcompile/instances/test',(Join-Path $d 'isolated-unused').Replace([char]92,[char]47))
  $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  $fixtureHashes=@{}
- foreach($m in @('plugins:rdd','plugins:learner','plugins:experience')){
-  $t=$why8853Tuples[$m];$jd=Join-Path (Join-Path $mut $t[0]) 'jar';New-Item -ItemType Directory $jd | Out-Null
-  $a=Join-Path $jd $t[1];Put $a ('8853-fixture-only-'+$m);$h=(Get-FileHash $a).Hash;$length=(Get-Item $a).Length;$fixtureHashes[$m]=$h
+ foreach($m in $tuples.Keys){
+  $t=$tuples[$m];$jd=Join-Path (Join-Path $mut $t[0]) 'jar';New-Item -ItemType Directory $jd | Out-Null
+  $a=Join-Path $jd $t[1];Put $a ($release.tag+'-fixture-only-'+$m);$h=(Get-FileHash $a).Hash;$length=(Get-Item $a).Length;$fixtureHashes[$m]=$h
   $deploy=$deploy.Replace($t[2],$h);$policy=$policy.Replace($t[2],$h)
-  $fixedSize=if($case -eq '8853-fixed-size' -and $m -ceq $module){$length+1}else{$length}
+  $fixedSize=if($kind -eq 'fixed-size' -and $m -ceq $module){$length+1}else{$length}
   $policy=$policy.Replace((','+$t[3]+')'),(','+$fixedSize+')'))
   $r=@{artifact=$a;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$m;instance='test';mutationId=$t[0];sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$h;bytes=$length;sourceProof='pre-post-checks-consistent'}
   if($m -ceq $module){
-   if($case -eq '8853-wrong-module'){$r.module='core:neoforge'}
-   if($case -eq '8853-wrong-size'){$r.bytes=$length+1}
-   if($case -eq '8853-bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
-   if($case -eq '8853-escape'){$r.artifact=Join-Path $root $t[1]}
+   if($kind -eq 'wrong-module'){$r.module='core:neoforge'}
+   if($kind -eq 'wrong-size'){$r.bytes=$length+1}
+   if($kind -eq 'bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
+   if($kind -eq 'escape'){$r.artifact=Join-Path $root $t[1]}
+   if($kind -eq 'bad-source'){$r.sourceHeadAfter='0'*40}
   }
   Put (Join-Path (Split-Path $jd -Parent) 'phase-build.json') ($r|ConvertTo-Json)
  }
- if(@($fixtureHashes.Values|Select-Object -Unique).Count -ne 3){throw '8853 cross-pair hashes are not distinct'}
- if($case -eq '8853-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
- if($case -eq '8853-copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture 8853 copy failure'")}
+ if(@($fixtureHashes.Values|Select-Object -Unique).Count -ne $tuples.Count){throw 'release cross-pair hashes are not distinct'}
+ if($kind -eq 'wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ if($kind -eq 'copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture $($release.tag) copy failure'")}
  Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
  Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
- $t=$why8853Tuples[$module];$id=$t[0];$artifact=Join-Path (Join-Path (Join-Path $mut $id) 'jar') $t[1];$sha=$fixtureHashes[$module]
- $modNames=@('numen_api-neoforge-1.21.1-0.1.3-dev.jar','numen-neoforge-1.21.1-0.1.3-dev.jar')+@('plugins:rdd','plugins:learner','plugins:experience'|ForEach-Object {$why8853Tuples[$_][1]})
+ $t=$tuples[$module];$id=$t[0];$artifact=Join-Path (Join-Path (Join-Path $mut $id) 'jar') $t[1];$sha=$fixtureHashes[$module]
+ $modNames=@((@('numen_api-neoforge-1.21.1-0.1.3-dev.jar','numen-neoforge-1.21.1-0.1.3-dev.jar','numen-plugin-learner-1.21.1-0.1.3-dev.jar')+@($tuples.Keys|ForEach-Object {$tuples[$_][1]}))|Select-Object -Unique)
  $before=@{}
  foreach($name in $modNames){$p=Join-Path (Join-Path $root 'mods') $name;Put $p ('8853-old-'+$name);$before[$name]=(Get-FileHash $p).Hash}
  $old=Join-Path (Join-Path $root 'mods') $t[1];$oldHash=$before[$t[1]]
  $priorDir=Join-Path $root 'disabled/prior-attempt';New-Item -ItemType Directory $priorDir | Out-Null
  $prior=Join-Path $priorDir $t[1];Put $prior '8853-prior-backup-sentinel';$priorHash=(Get-FileHash $prior).Hash
- $cim=if($case -eq '8853-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq '8853-unknown'){'throw "CIM unavailable"'}else{'return @()'}
- $argsText='-Mode original-why-8853 -Instance gpt'
- if($case -eq '8853-env-only'){$argsText='-Mode original-why-8853'}
- if($case -eq '8853-wrong-instance'){$argsText='-Mode original-why-8853 -Instance test'}
- if($case -eq '8853-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
- if($case -eq '8853-jarname'){$argsText+=' -JarName "'+$t[1]+'"'}
- if($case -eq '8853-full'){$argsText='-Mode full -Instance gpt'}
- if($case -eq '8853-isolated'){$argsText='-Mode isolated-test -Instance test'}
- if($case -eq '8853-bad-commit'){$commit='0'*40}
+ $cim=if($kind -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($kind -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText=('-Mode '+$release.mode+' -Instance gpt')
+ if($kind -eq 'env-only'){$argsText=('-Mode '+$release.mode)}
+ if($kind -eq 'wrong-instance'){$argsText=('-Mode '+$release.mode+' -Instance test')}
+ if($kind -eq 'jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($kind -eq 'jarname'){$argsText+=' -JarName "'+$t[1]+'"'}
+ if($kind -eq 'full'){$argsText='-Mode full -Instance gpt'}
+ if($kind -eq 'isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($kind -eq 'bad-commit'){$commit='0'*40}
  $wanted=$sha
- if($case -eq '8853-rdd-sha-learner'){$wanted=$fixtureHashes['plugins:learner']}
- if($case -eq '8853-learner-id-experience'){$id=$why8853Tuples['plugins:experience'][0]}
- if($case -eq '8853-experience-sha-rdd'){$wanted=$fixtureHashes['plugins:rdd']}
+ if($kind -eq 'rdd-sha-learner'){$wanted=$fixtureHashes['plugins:learner']}
+ if($kind -eq 'learner-id-experience'){$id=$tuples['plugins:experience'][0]}
+ if($kind -eq 'experience-sha-rdd'){$wanted=$fixtureHashes['plugins:rdd']}
+ if($kind -eq 'rdd-sha-experience'){$wanted=$fixtureHashes['plugins:experience']}
+ if($kind -eq 'experience-id-rdd'){$id=$tuples['plugins:rdd'][0]}
  $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
- if($case -eq '8853-assembly-crossed'){
+ if($kind -in @('assembly-crossed','assembly-name')){
   # Independently close the Original assembly gate against a valid source with crossed name/hash.
-  $wrapper='function Get-CimInstance { return @() }; . "'+(Join-Path $scripts 'deploy-test-policy.ps1')+'"; . "'+(Join-Path $scripts 'mc-identity.ps1')+'"; try { $s=Get-RddTestDeploySource -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$sha+' -Mutations "'+$mut+'" -Original; $s.name="'+$why8853Tuples['plugins:rdd'][1]+'"; $s.sha="'+$fixtureHashes['plugins:rdd']+'"; Invoke-RddTestAssembly -Source $s -Root "'+$root.Replace([char]92,[char]47)+'" -Live "'+$root.Replace([char]92,[char]47)+'" -Original; exit 0 } catch { Write-Output $_.Exception.Message; exit 2 }'
+  $wrapper='function Get-CimInstance { return @() }; . "'+(Join-Path $scripts 'deploy-test-policy.ps1')+'"; . "'+(Join-Path $scripts 'mc-identity.ps1')+'"; try { $s=Get-RddTestDeploySource -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$sha+' -Mutations "'+$mut+'" -Original; $s.name="'+$tuples['plugins:rdd'][1]+'"; '+$(if($kind -eq 'assembly-crossed'){'$s.sha="'+$fixtureHashes['plugins:rdd']+'"; '})+'Invoke-RddTestAssembly -Source $s -Root "'+$root.Replace([char]92,[char]47)+'" -Live "'+$root.Replace([char]92,[char]47)+'" -Original; exit 0 } catch { Write-Output $_.Exception.Message; exit 2 }'
  }
  $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
- $ok=$case -in @('8853-rdd','8853-learner','8853-experience');$copyFail=$case -eq '8853-copy-failure'
+ $ok=$kind -in @('rdd','learner','experience');$copyFail=$kind -eq 'copy-failure'
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
  if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
- if(Test-Path $poison){throw '8853 entry invoked generic config/launch'}
- if((Get-FileHash $prior).Hash -ne $priorHash){throw '8853 entry changed an older backup'}
- if(@(Get-ChildItem (Join-Path $root 'mods') -File).Count -ne 5){throw '8853 changed the mod file set'}
- foreach($name in $modNames){if($name -cne $t[1] -and (Get-FileHash (Join-Path (Join-Path $root 'mods') $name)).Hash -ne $before[$name]){throw ('8853 entry touched peer jar '+$name)}}
+ if(Test-Path $poison){throw 'release entry invoked generic config/launch'}
+ if((Get-FileHash $prior).Hash -ne $priorHash){throw 'release entry changed an older backup'}
+ if(@(Get-ChildItem (Join-Path $root 'mods') -File).Count -ne 5){throw 'release changed the mod file set'}
+ foreach($name in $modNames){if($name -cne $t[1] -and (Get-FileHash (Join-Path (Join-Path $root 'mods') $name)).Hash -ne $before[$name]){throw ('release entry touched peer jar '+$name)}}
  $receipts=@(Get-ChildItem $mut -Recurse -Filter 'deploy-test-*.json')
  if($ok -or $copyFail){
-  if($receipts.Count -ne 1){throw '8853 missing or duplicate copy receipt'}
+  if($receipts.Count -ne 1){throw 'release missing or duplicate copy receipt'}
   $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
-  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.artifact -cne $artifact -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw '8853 copy receipt mismatch'}
+  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.artifact -cne $artifact -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw 'release copy receipt mismatch'}
   $backup=@($receipt.backups)[0]
-  if($backup.original -cne $old -or -not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw '8853 backup not recoverable'}
+  if($backup.original -cne $old -or -not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw 'release backup not recoverable'}
   if($ok){
-   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw '8853 successful copy mismatch'}
+   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'release successful copy mismatch'}
   }else{
-   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+8853\s+copy\s+failure'){throw '8853 copy failure misreported'}
+   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch ('fixture\s+'+$release.tag+'\s+copy\s+failure')){throw 'release copy failure misreported'}
   }
- }elseif((Get-FileHash $old).Hash -ne $oldHash -or $receipts.Count -ne 0){throw '8853 refusal changed target or entered copy stage'}
- if($case -eq '8853-assembly-crossed' -and ($output -join ' ') -notmatch 'unapproved\s+original\s+deployment'){throw '8853 crossed assembly missed tuple guard'}
- $results+=@{case=$case;module=$module;exit=$exit;passed=$true;poison=0;oldBackupPreserved=$true;unchangedPeers=4;scope='copied exact 8853 plugin entry, fixture files/CIM only; no production deployment'}
+ }elseif((Get-FileHash $old).Hash -ne $oldHash -or $receipts.Count -ne 0){throw 'release refusal changed target or entered copy stage'}
+ if($kind -in @('assembly-crossed','assembly-name') -and ($output -join ' ') -notmatch 'unapproved\s+original\s+deployment'){throw 'release crossed assembly missed tuple guard'}
+ $results+=@{case=$case;module=$module;exit=$exit;passed=$true;poison=0;oldBackupPreserved=$true;unchangedPeers=4;scope=('copied exact '+$release.tag+' plugin entry, fixture files/CIM only; no production deployment')}
+}
+
 }
 
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
