@@ -295,6 +295,20 @@ if ($Mode -ceq 'original-v25-144ac' -and $PSBoundParameters.ContainsKey('Instanc
  } catch { Write-Error ('DEPLOY_V25_144AC_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-15: V26 exact RDD/core artifacts only; every older rollback tuple stays unchanged.
+if ($Mode -ceq 'original-v26-5c046' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '5c046644683b26b385ef06e57260f3aa16edfb1b' -and (
+ ($MutationId -ceq 'mutation-build-fcfb896670ac47fc8c07725fae837c77' -and $ExpectedSha256 -ieq 'BECF06531DB5E3911D91834B2785E3DB73AF4308331D6B3F0D9FB19BE306D01B') -or
+ ($MutationId -ceq 'mutation-build-f5e19b3475a44df281915f229f2c1366' -and $ExpectedSha256 -ieq '2FC60365B898D3ACC903F461A2791864F48188670F21B02E05DD5E2AEFCE2989'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_V26_5C046_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
