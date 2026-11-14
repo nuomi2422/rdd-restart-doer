@@ -5,6 +5,20 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\test-only-policy.ps1')
 function Assert([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
+# 2026-11-14: exact rationale/reflection consumers; no cross-module or adjacent-name admission.
+$rationaleTests=@(
+    @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest'},
+    @{Module='plugins:learner';WrongModule='plugins:rdd';Class='com.dwinovo.numen.plugins.learner.core.AcxExecutionReflectorTest'}
+)
+foreach($rationaleCase in $rationaleTests){
+    $rationalePlan=Get-RddTestOnlyPlan -Module $rationaleCase.Module -Tests @($rationaleCase.Class)
+    Assert ($rationalePlan.Task -ceq (':'+$rationaleCase.Module+':test') -and $rationalePlan.Module -ceq $rationaleCase.Module -and $rationalePlan.Tests.Count -eq 1 -and $rationalePlan.Tests[0] -ceq $rationaleCase.Class) 'rationale/reflection keeps the exact module, task and test filter'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($rationaleCase.Class)).Module -ceq $rationaleCase.Module) 'rationale/reflection has one inferred owner'
+    MustReject {Get-RddTestOnlyPlan -Module $rationaleCase.WrongModule -Tests @($rationaleCase.Class)}
+    MustReject {Get-RddTestOnlyPlan -Module $rationaleCase.Module -Tests @($rationaleCase.Class+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module $rationaleCase.Module -Tests @($rationaleCase.Class+'*')}
+}
+Write-Output 'rationale/reflection exact registration 10 assertions PASS (policy only; not Java execution)'
 # 2026-11-13: exact C1 delivery consumers only; no wildcard/cross-module registration.
 $c1Tests=@(
     @{Module='api:common';Class='com.dwinovo.numen.api.RequestDeliveredAggregationTest'},
