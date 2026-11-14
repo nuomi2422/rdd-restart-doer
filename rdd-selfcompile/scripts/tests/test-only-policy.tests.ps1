@@ -479,3 +479,25 @@ $before=@{head=('a'*40);branch='fixture';dirtyCount=0}
 Assert (-not (Compare-RddSourceSnapshot -Before $before -After @{head=('b'*40);branch='fixture';dirtyCount=0}).ok) 'source HEAD drift must remain refused'
 Assert (-not (Compare-RddSourceSnapshot -Before $before -After @{head=$before.head;branch='fixture';dirtyCount=1}).ok) 'source dirty post-check must remain refused'
 Write-Output 'test-only static native wiring/source guards PASS (not native execution)'
+# 2026-11-15: V27 single-pass conversation restore - exact three ai classes only.
+$convoChecks=0
+$convoTests=@(
+    'com.dwinovo.numen.agent.llm.ConvoLogClearTest',
+    'com.dwinovo.numen.agent.llm.ConvoLogPoisonTest',
+    'com.dwinovo.numen.agent.llm.ConvoLogRestoreTest'
+)
+foreach($convoTest in $convoTests){
+    $convoPlan=Get-RddTestOnlyPlan -Module 'ai' -Tests @($convoTest)
+    Assert ($convoPlan.Task -ceq ':ai:test' -and $convoPlan.Module -ceq 'ai' -and $convoPlan.Tests.Count -eq 1 -and $convoPlan.Tests[0] -ceq $convoTest) 'convo restore exact class maps only the ai test task'; $convoChecks++
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($convoTest)).Module -ceq 'ai') 'convo restore class has one inferred owner ai'; $convoChecks++
+    foreach($wrongModule in @('api:common','rdd-core','plugins:rdd','plugins:learner','plugins:experience')){
+        MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($convoTest)}; $convoChecks++
+    }
+    MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($convoTest+'*')}; $convoChecks++
+    MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($convoTest.ToLowerInvariant())}; $convoChecks++
+    MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($convoTest+'Helper')}; $convoChecks++
+}
+$convoTrio=Get-RddTestOnlyPlan -Module 'ai' -Tests $convoTests
+Assert ($convoTrio.Tests.Count -eq 3 -and $convoTrio.Task -ceq ':ai:test') 'the exact three convo restore classes may run together'; $convoChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.ConvoLogAdjacentTest')}; $convoChecks++
+Write-Output ('V27 convo restore exact registration ' + $convoChecks + ' assertions PASS (policy only; not Java execution)')
