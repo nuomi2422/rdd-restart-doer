@@ -523,6 +523,98 @@ foreach($case in $nudgeCases){
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;sourceProofRefused=$(if($case -eq 'nudge-dirty-source'){$proofRefused}else{$null});scope='copied exact 86785 nudge RDD entry, fixture files/CIM only; no production deployment'}
 }
 
+# 2026-11-14: aa735 same-source plugins, three copies plus 20 shared/cross-pair refusals.
+# Preserve the original 165 cases verbatim; only relocated scripts, fake jars and fake CIM run here.
+$parallelTuples=@{
+ 'plugins:rdd'=@('mutation-build-2f09f207d2d146619c65dc236c0b08c1','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','2FB0E0636B106DB48140DF5EFF859CDDAAC3350A15815933DD8DA9E54ACE588F',1173437)
+ 'plugins:learner'=@('mutation-build-9d7b663c3b04480ca78d80461399b4b2','numen-plugin-learner-1.21.1-0.1.3-dev.jar','3570AF13D57BA5F4ABF77D6064C4B9EEC82A81605EF29849B4F1FF00795094E6',625493)
+ 'plugins:experience'=@('mutation-build-d4121062b6e54cd78ffb32a6a86e23e5','numen-plugin-experience-1.21.1-0.1.3-dev.jar','99E188C606F72C40675926FDC432B1BEB5EA647E1E1F160C3A6DA23600BF3CBC',206899)
+}
+$parallelCases=@('aa735-rdd','aa735-learner','aa735-experience','aa735-rdd-sha-learner','aa735-learner-id-experience','aa735-experience-sha-rdd','aa735-bad-commit','aa735-wrong-module','aa735-wrong-size','aa735-fixed-size','aa735-bad-proof','aa735-env-only','aa735-wrong-instance','aa735-running','aa735-unknown','aa735-copy-failure','aa735-escape','aa735-wrong-root','aa735-jarpath','aa735-jarname','aa735-full','aa735-isolated','aa735-assembly-crossed')
+foreach($case in $parallelCases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module=if($case -in @('aa735-learner','aa735-learner-id-experience','aa735-wrong-size','aa735-fixed-size','aa735-bad-proof','aa735-unknown','aa735-jarname')){'plugins:learner'}elseif($case -in @('aa735-experience','aa735-experience-sha-rdd','aa735-wrong-module','aa735-env-only','aa735-copy-failure','aa735-isolated','aa735-assembly-crossed')){'plugins:experience'}else{'plugins:rdd'}
+ $commit='aa73586a069361aea5d263618d0dfa8b1bc40df3'
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47)).Replace('D:/rdd/workspace/rdd-selfcompile/instances/test',(Join-Path $d 'isolated-unused').Replace([char]92,[char]47))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $fixtureHashes=@{}
+ foreach($m in @('plugins:rdd','plugins:learner','plugins:experience')){
+  $t=$parallelTuples[$m];$jd=Join-Path (Join-Path $mut $t[0]) 'jar';New-Item -ItemType Directory $jd | Out-Null
+  $a=Join-Path $jd $t[1];Put $a ('aa735-fixture-only-'+$m);$h=(Get-FileHash $a).Hash;$length=(Get-Item $a).Length;$fixtureHashes[$m]=$h
+  $deploy=$deploy.Replace($t[2],$h);$policy=$policy.Replace($t[2],$h)
+  $fixedSize=if($case -eq 'aa735-fixed-size' -and $m -ceq $module){$length+1}else{$length}
+  $policy=$policy.Replace((','+$t[3]+')'),(','+$fixedSize+')'))
+  $r=@{artifact=$a;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$m;instance='test';mutationId=$t[0];sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$h;bytes=$length;sourceProof='pre-post-checks-consistent'}
+  if($m -ceq $module){
+   if($case -eq 'aa735-wrong-module'){$r.module='core:neoforge'}
+   if($case -eq 'aa735-wrong-size'){$r.bytes=$length+1}
+   if($case -eq 'aa735-bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
+   if($case -eq 'aa735-escape'){$r.artifact=Join-Path $root $t[1]}
+  }
+  Put (Join-Path (Split-Path $jd -Parent) 'phase-build.json') ($r|ConvertTo-Json)
+ }
+ if(@($fixtureHashes.Values|Select-Object -Unique).Count -ne 3){throw 'aa735 cross-pair hashes are not distinct'}
+ if($case -eq 'aa735-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ if($case -eq 'aa735-copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture aa735 copy failure'")}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $t=$parallelTuples[$module];$id=$t[0];$artifact=Join-Path (Join-Path (Join-Path $mut $id) 'jar') $t[1];$sha=$fixtureHashes[$module]
+ $modNames=@('numen_api-neoforge-1.21.1-0.1.3-dev.jar','numen-neoforge-1.21.1-0.1.3-dev.jar')+@('plugins:rdd','plugins:learner','plugins:experience'|ForEach-Object {$parallelTuples[$_][1]})
+ $before=@{}
+ foreach($name in $modNames){$p=Join-Path (Join-Path $root 'mods') $name;Put $p ('aa735-old-'+$name);$before[$name]=(Get-FileHash $p).Hash}
+ $old=Join-Path (Join-Path $root 'mods') $t[1];$oldHash=$before[$t[1]]
+ $priorDir=Join-Path $root 'disabled/prior-attempt';New-Item -ItemType Directory $priorDir | Out-Null
+ $prior=Join-Path $priorDir $t[1];Put $prior 'aa735-prior-backup-sentinel';$priorHash=(Get-FileHash $prior).Hash
+ $cim=if($case -eq 'aa735-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'aa735-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-parallel-aa735 -Instance gpt'
+ if($case -eq 'aa735-env-only'){$argsText='-Mode original-parallel-aa735'}
+ if($case -eq 'aa735-wrong-instance'){$argsText='-Mode original-parallel-aa735 -Instance test'}
+ if($case -eq 'aa735-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'aa735-jarname'){$argsText+=' -JarName "'+$t[1]+'"'}
+ if($case -eq 'aa735-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'aa735-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'aa735-bad-commit'){$commit='0'*40}
+ $wanted=$sha
+ if($case -eq 'aa735-rdd-sha-learner'){$wanted=$fixtureHashes['plugins:learner']}
+ if($case -eq 'aa735-learner-id-experience'){$id=$parallelTuples['plugins:experience'][0]}
+ if($case -eq 'aa735-experience-sha-rdd'){$wanted=$fixtureHashes['plugins:rdd']}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ if($case -eq 'aa735-assembly-crossed'){
+  # Independently close the Original assembly gate against a valid source with crossed name/hash.
+  $wrapper='function Get-CimInstance { return @() }; . "'+(Join-Path $scripts 'deploy-test-policy.ps1')+'"; . "'+(Join-Path $scripts 'mc-identity.ps1')+'"; try { $s=Get-RddTestDeploySource -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$sha+' -Mutations "'+$mut+'" -Original; $s.name="'+$parallelTuples['plugins:rdd'][1]+'"; $s.sha="'+$fixtureHashes['plugins:rdd']+'"; Invoke-RddTestAssembly -Source $s -Root "'+$root.Replace([char]92,[char]47)+'" -Live "'+$root.Replace([char]92,[char]47)+'" -Original; exit 0 } catch { Write-Output $_.Exception.Message; exit 2 }'
+ }
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -in @('aa735-rdd','aa735-learner','aa735-experience');$copyFail=$case -eq 'aa735-copy-failure'
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'aa735 entry invoked generic config/launch'}
+ if((Get-FileHash $prior).Hash -ne $priorHash){throw 'aa735 entry changed an older backup'}
+ if(@(Get-ChildItem (Join-Path $root 'mods') -File).Count -ne 5){throw 'aa735 changed the mod file set'}
+ foreach($name in $modNames){if($name -cne $t[1] -and (Get-FileHash (Join-Path (Join-Path $root 'mods') $name)).Hash -ne $before[$name]){throw ('aa735 entry touched peer jar '+$name)}}
+ $receipts=@(Get-ChildItem $mut -Recurse -Filter 'deploy-test-*.json')
+ if($ok -or $copyFail){
+  if($receipts.Count -ne 1){throw 'aa735 missing or duplicate copy receipt'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.artifact -cne $artifact -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw 'aa735 copy receipt mismatch'}
+  $backup=@($receipt.backups)[0]
+  if($backup.original -cne $old -or -not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw 'aa735 backup not recoverable'}
+  if($ok){
+   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'aa735 successful copy mismatch'}
+  }else{
+   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+aa735\s+copy\s+failure'){throw 'aa735 copy failure misreported'}
+  }
+ }elseif((Get-FileHash $old).Hash -ne $oldHash -or $receipts.Count -ne 0){throw 'aa735 refusal changed target or entered copy stage'}
+ if($case -eq 'aa735-assembly-crossed' -and ($output -join ' ') -notmatch 'unapproved\s+original\s+deployment'){throw 'aa735 crossed assembly missed tuple guard'}
+ $results+=@{case=$case;module=$module;exit=$exit;passed=$true;poison=0;oldBackupPreserved=$true;unchangedPeers=4;scope='copied exact aa735 plugin entry, fixture files/CIM only; no production deployment'}
+}
+
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.

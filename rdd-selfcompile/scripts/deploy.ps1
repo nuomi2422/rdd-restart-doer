@@ -251,6 +251,21 @@ if ($Mode -ceq 'original-rdd-nudge-86785' -and $PSBoundParameters.ContainsKey('I
  } catch { Write-Error ('DEPLOY_RDD_NUDGE_86785_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-14: aa735 audited RDD/learner/experience only; one mutation per call, no core/API changes.
+if ($Mode -ceq 'original-parallel-aa735' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'aa73586a069361aea5d263618d0dfa8b1bc40df3' -and (
+ ($MutationId -ceq 'mutation-build-2f09f207d2d146619c65dc236c0b08c1' -and $ExpectedSha256 -ieq '2FB0E0636B106DB48140DF5EFF859CDDAAC3350A15815933DD8DA9E54ACE588F') -or
+ ($MutationId -ceq 'mutation-build-9d7b663c3b04480ca78d80461399b4b2' -and $ExpectedSha256 -ieq '3570AF13D57BA5F4ABF77D6064C4B9EEC82A81605EF29849B4F1FF00795094E6') -or
+ ($MutationId -ceq 'mutation-build-d4121062b6e54cd78ffb32a6a86e23e5' -and $ExpectedSha256 -ieq '99E188C606F72C40675926FDC432B1BEB5EA647E1E1F160C3A6DA23600BF3CBC'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_PARALLEL_AA735_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
