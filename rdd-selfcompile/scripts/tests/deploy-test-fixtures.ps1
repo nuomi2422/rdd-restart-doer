@@ -437,6 +437,92 @@ foreach($case in $successorCases){
  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact 28ba learner successor entry, fixture files/CIM only; no production deployment'}
 }
 
+# 2026-11-14: one nudge RDD (86785) fixed tuple; the preceding 143 controls stay verbatim.
+$nudgeCases=@('nudge-rdd','nudge-env-only','nudge-wrong-instance','nudge-bad-id','nudge-bad-commit','nudge-bad-sha','nudge-wrong-module','nudge-wrong-size','nudge-fixed-size','nudge-dirty-source','nudge-missing-exit','nudge-nonzero-exit','nudge-running','nudge-unknown','nudge-wrong-root','nudge-jarpath','nudge-jarname','nudge-full','nudge-isolated','nudge-escape','nudge-corrupt-artifact','nudge-copy-failure')
+foreach($case in $nudgeCases){
+ $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+ New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+ $module='plugins:rdd';$id='mutation-build-9ac2a358204d457eb7a02ace7eabd9cb'
+ $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ $artifact=Join-Path $jd $names[$module];Put $artifact 'nudge-86785-fixture-only';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+ $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+ $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+ $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+ $fixedHash='A2F081963BDB715D73D26D433A1C0977941DE30515EFA017AB8EB228DD392106'
+ $fixedSize=if($case -eq 'nudge-fixed-size'){$length+1}else{$length}
+ $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha).Replace(',1173314)',(','+$fixedSize+')'))
+ if($case -eq 'nudge-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+ if($case -eq 'nudge-copy-failure'){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture nudge copy failure'")}
+ Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+ Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+ $poison=Join-Path $d 'poison.txt'
+ foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+ $commit='86785a7a61cc0cbeff5e0d32262d6e7dd829c194'
+ $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$sha;bytes=$length;sourceProof='pre-post-checks-consistent'}
+ if($case -eq 'nudge-wrong-module'){$r.module='core:neoforge'}
+ if($case -eq 'nudge-wrong-size'){$r.bytes=$length+1}
+ if($case -eq 'nudge-dirty-source'){$r.sourceDirtyCountAfter=1}
+ if($case -eq 'nudge-missing-exit'){$r.Remove('gradleExit')}
+ if($case -eq 'nudge-nonzero-exit'){$r.gradleExit=1}
+ if($case -eq 'nudge-escape'){$r.artifact=Join-Path $root $names[$module]}
+ if($case -eq 'nudge-dirty-source'){
+  # Independently reject a clean receipt with bad sourceProof before the dirty-count deployment control.
+  $r.sourceDirtyCountAfter=0;$r.sourceProof='fixture-invalid-source-proof'
+  Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+  $proofRefused=$false
+  try{
+   & { . (Join-Path $scripts 'deploy-test-policy.ps1');Get-RddTestDeploySource -MutationId $id -ExpectedCommit $commit -ExpectedSha256 $sha -Mutations $mut -Original } | Out-Null
+  }catch{if($_.Exception.Message -cne 'invalid source proof'){throw};$proofRefused=$true}
+  if(-not $proofRefused){throw 'nudge invalid sourceProof accepted'}
+  $r.sourceDirtyCountAfter=1;$r.sourceProof='pre-post-checks-consistent'
+ }
+ Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+ if($case -eq 'nudge-corrupt-artifact'){Put $artifact 'corrupted-after-receipt'}
+ $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'nudge-old-rdd';$oldHash=(Get-FileHash $old).Hash
+ $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'nudge-old-api';$apiHash=(Get-FileHash $api).Hash
+ $core=Join-Path (Join-Path $root 'mods') 'numen-neoforge-1.21.1-0.1.3-dev.jar';Put $core 'nudge-old-core';$coreHash=(Get-FileHash $core).Hash
+ $learner=Join-Path (Join-Path $root 'mods') 'numen-plugin-learner-1.21.1-0.1.3-dev.jar';Put $learner 'nudge-old-learner';$learnerHash=(Get-FileHash $learner).Hash
+ $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'nudge-unrelated';$otherHash=(Get-FileHash $other).Hash
+ $cim=if($case -eq 'nudge-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'nudge-unknown'){'throw "CIM unavailable"'}else{'return @()'}
+ $argsText='-Mode original-rdd-nudge-86785 -Instance gpt'
+ if($case -eq 'nudge-env-only'){$argsText='-Mode original-rdd-nudge-86785'}
+ if($case -eq 'nudge-wrong-instance'){$argsText='-Mode original-rdd-nudge-86785 -Instance test'}
+ if($case -eq 'nudge-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+ if($case -eq 'nudge-jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
+ if($case -eq 'nudge-full'){$argsText='-Mode full -Instance gpt'}
+ if($case -eq 'nudge-isolated'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -eq 'nudge-bad-id'){$id='mutation-build-not-nudge'}
+ if($case -eq 'nudge-bad-commit'){$commit='0'*40}
+ $wanted=if($case -eq 'nudge-bad-sha'){'0'*64}else{$sha}
+ $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+ $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+ $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+ Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+ $ok=$case -eq 'nudge-rdd'
+ $copyFail=$case -eq 'nudge-copy-failure'
+ if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+ if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+ if(Test-Path $poison){throw 'nudge entry invoked generic config/launch'}
+ if((Get-FileHash $api).Hash -ne $apiHash -or (Get-FileHash $core).Hash -ne $coreHash -or (Get-FileHash $learner).Hash -ne $learnerHash -or (Get-FileHash $other).Hash -ne $otherHash){throw 'nudge entry touched API/core/learner/unrelated'}
+ $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+ if($ok -or $copyFail){
+  if($receipts.Count -ne 1){throw 'nudge missing or duplicate copy receipt'}
+  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne 1){throw 'nudge copy receipt mismatch'}
+  $backup=@($receipt.backups)[0]
+  if($backup.original -cne $old -or -not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $oldHash -or $backup.sha256 -ne $oldHash){throw 'nudge backup not recoverable'}
+  if($ok){
+   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'nudge successful copy mismatch'}
+  }else{
+   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+nudge\s+copy\s+failure'){throw 'nudge copy failure misreported'}
+  }
+ }else{
+  if((Get-FileHash $old).Hash -ne $oldHash -or $receipts.Count -ne 0){throw 'nudge refusal changed target or entered copy stage'}
+ }
+ $results+=@{case=$case;exit=$exit;passed=$true;poison=0;sourceProofRefused=$(if($case -eq 'nudge-dirty-source'){$proofRefused}else{$null});scope='copied exact 86785 nudge RDD entry, fixture files/CIM only; no production deployment'}
+}
+
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.

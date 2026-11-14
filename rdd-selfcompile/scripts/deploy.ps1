@@ -239,6 +239,18 @@ if ($Mode -ceq 'original-learner-successor-28ba' -and $PSBoundParameters.Contain
  } catch { Write-Error ('DEPLOY_LEARNER_SUCCESSOR_28BA_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-14: exact inspected 86785 nudge RDD artifact; all older rollback tuples and guards stay unchanged.
+if ($Mode -ceq 'original-rdd-nudge-86785' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '86785a7a61cc0cbeff5e0d32262d6e7dd829c194' -and $MutationId -ceq 'mutation-build-9ac2a358204d457eb7a02ace7eabd9cb' -and $ExpectedSha256 -ieq 'A2F081963BDB715D73D26D433A1C0977941DE30515EFA017AB8EB228DD392106') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_RDD_NUDGE_86785_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
