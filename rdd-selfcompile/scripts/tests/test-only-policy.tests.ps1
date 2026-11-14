@@ -118,6 +118,17 @@ $transportReplyPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($transpo
 Assert ($transportReplyPlan.Task -ceq ':api:common:test' -and $transportReplyPlan.Tests.Count -eq 1) 'transport reply isolation maps only to api common'
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($transportReplyTest)}
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.client.agent.ServerToolTransport*')}
+# 2026-11-14: exact temporary entity protection offline consumer; adjacent names refused.
+$temporaryProtectionTest='com.dwinovo.numen.entity.TemporaryEntityProtectionTest'
+$temporaryProtectionPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($temporaryProtectionTest)
+Assert ($temporaryProtectionPlan.Task -ceq ':api:common:test' -and $temporaryProtectionPlan.Tests.Count -eq 1) 'temporary entity protection maps only api common test task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($temporaryProtectionTest)).Module -ceq 'api:common') 'temporary entity protection has one inferred owner'
+foreach($wrongModule in @('ai','plugins:learner','plugins:rdd','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($temporaryProtectionTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($temporaryProtectionTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($temporaryProtectionTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.entity.TemporaryEntityProtectionAdjacentTest')}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @('com.dwinovo.numen.entity.TemporaryEntityProtectionTestHelper')}
+Write-Output 'temporary entity protection exact registration 10 assertions PASS (policy only; not Java execution)'
 $sleepHandoffTest = 'com.dwinovo.numen.api.SleepHandoffConsumerTest'
 $sleepHandoffPlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests @($sleepHandoffTest)
 Assert ($sleepHandoffPlan.Task -ceq ':api:common:test') 'sleep handoff maps only to api common'
