@@ -628,17 +628,22 @@ $v25Tuples=@{
  'plugins:experience'=@('mutation-build-f59304e827ee473bb10022854c2aaf2f','numen-plugin-experience-1.21.1-0.1.3-dev.jar','BD66DFDB53A0702B6884093A36AB0D0D10A005EFF6741C7A7915ED3EB949D7A5',207622)
 }
 $v25Cases=@('v25-rdd','v25-experience','v25-rdd-sha-experience','v25-experience-id-rdd','v25-bad-commit','v25-bad-source','v25-wrong-module','v25-wrong-size','v25-fixed-size','v25-bad-proof','v25-env-only','v25-wrong-instance','v25-running','v25-unknown','v25-copy-failure','v25-escape','v25-wrong-root','v25-jarpath','v25-jarname','v25-full','v25-isolated','v25-assembly-crossed','v25-assembly-name')
-# Reuse the original copied-entry/receipt/backup runner; preserve every 8853 case.
+# Reuse the original copied-entry/receipt/backup runner; preserve every 8853/v25 case.
+$b2c1Tuples=@{
+ 'plugins:rdd'=@('mutation-build-c3a130228cf54d41a05fa168e0446338','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','18C226A3450D36DE2CD4B126F4D639FA4A66E154AC9979DC02E91EEFD28F00DA',1193497)
+}
+$b2c1Cases=@('b2c1-rdd','b2c1-bad-commit','b2c1-wrong-size','b2c1-fixed-size','b2c1-bad-proof','b2c1-escape','b2c1-bad-source','b2c1-copy-failure','b2c1-wrong-root','b2c1-running','b2c1-unknown','b2c1-env-only','b2c1-wrong-instance','b2c1-jarpath','b2c1-jarname','b2c1-full','b2c1-isolated')
 foreach($release in @(
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
- @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases}
+ @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
+ @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases}
 )){
  $tuples=$release.tuples
  foreach($case in $release.cases){
  $kind=$case.Substring($release.tag.Length+1)
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $module=if($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
+ $module=if($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($tuples.ContainsKey('plugins:experience') -and $kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
  $commit=$release.commit
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
@@ -703,7 +708,7 @@ foreach($release in @(
  if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
  if(Test-Path $poison){throw 'release entry invoked generic config/launch'}
  if((Get-FileHash $prior).Hash -ne $priorHash){throw 'release entry changed an older backup'}
- if(@(Get-ChildItem (Join-Path $root 'mods') -File).Count -ne 5){throw 'release changed the mod file set'}
+ if(@(Get-ChildItem (Join-Path $root 'mods') -File).Count -ne $modNames.Count){throw 'release changed the mod file set'}
  foreach($name in $modNames){if($name -cne $t[1] -and (Get-FileHash (Join-Path (Join-Path $root 'mods') $name)).Hash -ne $before[$name]){throw ('release entry touched peer jar '+$name)}}
  $receipts=@(Get-ChildItem $mut -Recurse -Filter 'deploy-test-*.json')
  if($ok -or $copyFail){
