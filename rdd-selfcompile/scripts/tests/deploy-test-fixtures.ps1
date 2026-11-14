@@ -729,90 +729,101 @@ foreach($release in @(
 
 }
 
-# 2026-11-15: V26 exact two-artifact source integration; the preceding controls stay verbatim.
+# 2026-11-15: V26 and V27 core releases share one copied-entry/receipt/backup runner; cases stay explicit.
 $v26Cases=@('v26-core','v26-rdd','v26-env-only','v26-wrong-instance','v26-bad-id','v26-bad-commit','v26-bad-sha','v26-swapped-sha','v26-wrong-module','v26-wrong-size','v26-fixed-size','v26-dirty-source','v26-missing-exit','v26-nonzero-exit','v26-running','v26-unknown','v26-wrong-root','v26-jarpath','v26-jarname','v26-full','v26-isolated','v26-escape','v26-corrupt-artifact','v26-core-copy-failure','v26-rdd-copy-failure')
-foreach($case in $v26Cases){
- $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
- New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $module=if($case -in @('v26-rdd','v26-rdd-copy-failure')){'plugins:rdd'}else{'core:neoforge'}
- $id=if($module -ceq 'core:neoforge'){'mutation-build-f5e19b3475a44df281915f229f2c1366'}else{'mutation-build-fcfb896670ac47fc8c07725fae837c77'}
- $fixedHash=if($module -ceq 'core:neoforge'){'2FC60365B898D3ACC903F461A2791864F48188670F21B02E05DD5E2AEFCE2989'}else{'BECF06531DB5E3911D91834B2785E3DB73AF4308331D6B3F0D9FB19BE306D01B'}
- $otherTupleHash=if($module -ceq 'core:neoforge'){'BECF06531DB5E3911D91834B2785E3DB73AF4308331D6B3F0D9FB19BE306D01B'}else{'2FC60365B898D3ACC903F461A2791864F48188670F21B02E05DD5E2AEFCE2989'}
- $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
- $artifact=Join-Path $jd $names[$module];Put $artifact ('v26-fixture-only-'+$module)
- $sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
- $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
- $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
- $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
- $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
- $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha)
- $fixedSize=if($case -eq 'v26-fixed-size'){$length+1}else{$length}
- $policy=$policy.Replace(',1192911)',(','+$fixedSize+')')).Replace(',3080162)',(','+$fixedSize+')'))
- if($case -eq 'v26-wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
- $copyFail=$case -in @('v26-core-copy-failure','v26-rdd-copy-failure')
- if($copyFail){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture v26 copy failure'")}
- Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
- Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
- $poison=Join-Path $d 'poison.txt'
- foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
- $commit='5c046644683b26b385ef06e57260f3aa16edfb1b'
- $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
- if($case -eq 'v26-wrong-module'){$r.module='plugins:learner'}
- if($case -eq 'v26-wrong-size'){$r.bytes=$length+1}
- if($case -eq 'v26-dirty-source'){$r.sourceDirtyCountAfter=1}
- if($case -eq 'v26-missing-exit'){$r.Remove('gradleExit')}
- if($case -eq 'v26-nonzero-exit'){$r.gradleExit=1}
- if($case -eq 'v26-escape'){$r.artifact=Join-Path $root $names[$module]}
- Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
- if($case -eq 'v26-corrupt-artifact'){Put $artifact 'corrupted-after-receipt'}
- $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old 'v26-old-target';$oldHash=(Get-FileHash $old).Hash
- $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'v26-old-api';$apiHash=(Get-FileHash $api).Hash
- $otherModule=if($module -ceq 'core:neoforge'){'plugins:rdd'}else{'core:neoforge'}
- $otherMod=Join-Path (Join-Path $root 'mods') $names[$otherModule];Put $otherMod 'v26-other-module';$otherModHash=(Get-FileHash $otherMod).Hash
- $learner=Join-Path (Join-Path $root 'mods') $names['plugins:learner'];Put $learner 'v26-old-learner';$learnerHash=(Get-FileHash $learner).Hash
- $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'v26-unrelated';$otherHash=(Get-FileHash $other).Hash
- $cim=if($case -eq 'v26-running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'v26-unknown'){'throw "CIM unavailable"'}else{'return @()'}
- $argsText='-Mode original-v26-5c046 -Instance gpt'
- if($case -eq 'v26-env-only'){$argsText='-Mode original-v26-5c046'}
- if($case -eq 'v26-wrong-instance'){$argsText='-Mode original-v26-5c046 -Instance test'}
- if($case -eq 'v26-jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
- if($case -eq 'v26-jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
- if($case -eq 'v26-full'){$argsText='-Mode full -Instance gpt'}
- if($case -eq 'v26-isolated'){$argsText='-Mode isolated-test -Instance test'}
- if($case -eq 'v26-bad-id'){$id='mutation-build-not-v26'}
- if($case -eq 'v26-bad-commit'){$commit='0'*40}
- $wanted=if($case -eq 'v26-bad-sha'){'0'*64}elseif($case -eq 'v26-swapped-sha'){$otherTupleHash}else{$sha}
- $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
- $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
- $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
- Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
- $ok=$case -in @('v26-core','v26-rdd')
- if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
- if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
- if(Test-Path $poison){throw 'v26 entry invoked generic config/launch'}
- if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $otherMod).Hash -ne $otherModHash -or (Get-FileHash $learner).Hash -ne $learnerHash){throw 'v26 entry touched another package'}
- $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
- $expectedBackups=if($module -ceq 'core:neoforge'){2}else{1}
- if($ok -or $copyFail){
-  if($receipts.Count -ne 1){throw 'v26 missing or duplicate copy receipt'}
-  $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
-  if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne $expectedBackups){throw 'v26 copy receipt mismatch'}
-  foreach($backup in $receipt.backups){
-   $expectedOld=if($backup.original -eq $api){$apiHash}elseif($backup.original -eq $old){$oldHash}else{throw 'unexpected backup path'}
-   if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw 'v26 original backup not recoverable'}
-  }
-  if($module -ceq 'core:neoforge'){
-   if(Test-Path $api){throw 'v26 core left standalone API after copy stage'}
-  }elseif((Get-FileHash $api).Hash -ne $apiHash){throw 'v26 RDD changed standalone API'}
-  if($ok){
-   if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw 'v26 successful copy mismatch'}
+$convoCases=@('convo-core','convo-bad-id','convo-bad-sha','convo-bad-source','convo-wrong-module','convo-wrong-size','convo-bad-proof','convo-escape','convo-copy-failure','convo-wrong-root','convo-running','convo-unknown','convo-env-only','convo-wrong-instance','convo-jarpath','convo-jarname','convo-full','convo-isolated')
+$coreReleases=@(
+ @{tag='v26';commit='5c046644683b26b385ef06e57260f3aa16edfb1b';mode='original-v26-5c046';coreId='mutation-build-f5e19b3475a44df281915f229f2c1366';coreHash='2FC60365B898D3ACC903F461A2791864F48188670F21B02E05DD5E2AEFCE2989';coreBytes=3080162;rddId='mutation-build-fcfb896670ac47fc8c07725fae837c77';rddHash='BECF06531DB5E3911D91834B2785E3DB73AF4308331D6B3F0D9FB19BE306D01B';rddBytes=1192911;policyBytes=@(1192911,3080162);cases=$v26Cases},
+ @{tag='convo';commit='1f2e86286113430b58425446a132b986d482cf10';mode='original-convo-1f2';coreId='mutation-build-c7b23cc99dfc4b8ea2f8a7da92606a2b';coreHash='9959267A3CC8D8B982ACEF99EAEB95030B75D5C6E83D4E3F85B5E74C236DCAC1';coreBytes=3081940;policyBytes=@(3081940);cases=$convoCases}
+)
+foreach($coreRelease in $coreReleases){
+ $tag=$coreRelease.tag
+ foreach($case in $coreRelease.cases){
+  $kind=$case.Substring($tag.Length+1)
+  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
+  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
+  $module=if($kind -eq 'rdd' -or $kind -eq 'rdd-copy-failure'){'plugins:rdd'}else{'core:neoforge'}
+  $id=if($module -ceq 'core:neoforge'){$coreRelease.coreId}else{$coreRelease.rddId}
+  $fixedHash=if($module -ceq 'core:neoforge'){$coreRelease.coreHash}else{$coreRelease.rddHash}
+  $otherTupleHash=if($module -ceq 'core:neoforge'){$coreRelease.rddHash}else{$coreRelease.coreHash}
+  $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+  $artifact=Join-Path $jd $names[$module];Put $artifact ($tag+'-fixture-only-'+$module)
+  $sha=(Get-FileHash $artifact -Algorithm SHA256).Hash;$length=(Get-Item $artifact).Length
+  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
+  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
+  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+  $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
+  $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha)
+  $fixedSize=if($kind -eq 'fixed-size'){$length+1}else{$length}
+  foreach($b in $coreRelease.policyBytes){$policy=$policy.Replace(','+$b+')',','+$fixedSize+')')}
+  if($kind -eq 'wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
+  $copyFail=$kind -in @('copy-failure','core-copy-failure','rdd-copy-failure')
+  if($copyFail){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture $tag copy failure'")}
+  Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
+  Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
+  $poison=Join-Path $d 'poison.txt'
+  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
+  $commit=$coreRelease.commit
+  $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
+  if($kind -eq 'bad-source'){$r.sourceHeadAfter='0'*40}
+  if($kind -eq 'bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
+  if($kind -eq 'wrong-module'){$r.module='plugins:learner'}
+  if($kind -eq 'wrong-size'){$r.bytes=$length+1}
+  if($kind -eq 'dirty-source'){$r.sourceDirtyCountAfter=1}
+  if($kind -eq 'missing-exit'){$r.Remove('gradleExit')}
+  if($kind -eq 'nonzero-exit'){$r.gradleExit=1}
+  if($kind -eq 'escape'){$r.artifact=Join-Path $root $names[$module]}
+  Put (Join-Path $md 'phase-build.json') ($r|ConvertTo-Json)
+  if($kind -eq 'corrupt-artifact'){Put $artifact 'corrupted-after-receipt'}
+  $old=Join-Path (Join-Path $root 'mods') $names[$module];Put $old ($tag+'-old-target');$oldHash=(Get-FileHash $old).Hash
+  $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api ($tag+'-old-api');$apiHash=(Get-FileHash $api).Hash
+  $otherModule=if($module -ceq 'core:neoforge'){'plugins:rdd'}else{'core:neoforge'}
+  $otherMod=Join-Path (Join-Path $root 'mods') $names[$otherModule];Put $otherMod ($tag+'-other-module');$otherModHash=(Get-FileHash $otherMod).Hash
+  $learner=Join-Path (Join-Path $root 'mods') $names['plugins:learner'];Put $learner ($tag+'-old-learner');$learnerHash=(Get-FileHash $learner).Hash
+  $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other ($tag+'-unrelated');$otherHash=(Get-FileHash $other).Hash
+  $cim=if($kind -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($kind -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
+  $argsText='-Mode '+$coreRelease.mode+' -Instance gpt'
+  if($kind -eq 'env-only'){$argsText='-Mode '+$coreRelease.mode}
+  if($kind -eq 'wrong-instance'){$argsText='-Mode '+$coreRelease.mode+' -Instance test'}
+  if($kind -eq 'jarpath'){$argsText+=' -JarPath "'+$artifact+'"'}
+  if($kind -eq 'jarname'){$argsText+=' -JarName "'+$names[$module]+'"'}
+  if($kind -eq 'full'){$argsText='-Mode full -Instance gpt'}
+  if($kind -eq 'isolated'){$argsText='-Mode isolated-test -Instance test'}
+  if($kind -eq 'bad-id'){$id='mutation-build-not-'+$tag}
+  if($kind -eq 'bad-commit'){$commit='0'*40}
+  $wanted=if($kind -eq 'bad-sha'){'0'*64}elseif($kind -eq 'swapped-sha' -and $null -ne $otherTupleHash){$otherTupleHash}else{$sha}
+  $wrapper='function Get-CimInstance { '+$cim+' }; $env:RDD_SELF_COMPILE_INSTANCE="gpt"; & "'+(Join-Path $scripts 'deploy.ps1')+'" '+$argsText+' -MutationId '+$id+' -ExpectedCommit '+$commit+' -ExpectedSha256 '+$wanted+'; exit $LASTEXITCODE'
+  $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
+  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
+  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
+  $ok=$kind -in @('core','rdd')
+  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
+  if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
+  if(Test-Path $poison){throw $tag+' entry invoked generic config/launch'}
+  if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $otherMod).Hash -ne $otherModHash -or (Get-FileHash $learner).Hash -ne $learnerHash){throw $tag+' entry touched another package'}
+  $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
+  $expectedBackups=if($module -ceq 'core:neoforge'){2}else{1}
+  if($ok -or $copyFail){
+   if($receipts.Count -ne 1){throw $tag+' missing or duplicate copy receipt'}
+   $receipt=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
+   if($receipt.sourceCommit -cne $commit -or $receipt.module -cne $module -or $receipt.sha256 -ine $sha -or $receipt.root -cne $root.Replace([char]92,[char]47) -or @($receipt.backups).Count -ne $expectedBackups){throw $tag+' copy receipt mismatch'}
+   foreach($backup in $receipt.backups){
+    $expectedOld=if($backup.original -eq $api){$apiHash}elseif($backup.original -eq $old){$oldHash}else{throw 'unexpected backup path'}
+    if(-not(Test-Path $backup.saved) -or (Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw $tag+' original backup not recoverable'}
+   }
+   if($module -ceq 'core:neoforge'){
+    if(Test-Path $api){throw $tag+' core left standalone API after copy stage'}
+   }elseif((Get-FileHash $api).Hash -ne $apiHash){throw $tag+' RDD changed standalone API'}
+   if($ok){
+    if((Get-FileHash $old).Hash -ne $sha -or $receipt.success -ne $true -or $receipt.status -cne 'DEPLOYED_TEST'){throw $tag+' successful copy mismatch'}
+   }else{
+    if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch ('fixture\s+'+$tag+'\s+copy\s+failure')){throw $tag+' copy failure misreported'}
+   }
   }else{
-   if((Get-FileHash $old).Hash -ne $oldHash -or $receipt.success -ne $false -or $receipt.status -cne 'failed' -or ($output -join ' ') -notmatch 'fixture\s+v26\s+copy\s+failure'){throw 'v26 copy failure misreported'}
+   if((Get-FileHash $old).Hash -ne $oldHash -or (Get-FileHash $api).Hash -ne $apiHash -or $receipts.Count -ne 0){throw $tag+' refusal changed target/API or entered copy stage'}
   }
- }else{
-  if((Get-FileHash $old).Hash -ne $oldHash -or (Get-FileHash $api).Hash -ne $apiHash -or $receipts.Count -ne 0){throw 'v26 refusal changed target/API or entered copy stage'}
+  $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope=('copied exact '+$tag+' core/RDD entry, fixture files/CIM only; no production deployment')}
  }
- $results+=@{case=$case;exit=$exit;passed=$true;poison=0;scope='copied exact v26 core/RDD entry, fixture files/CIM only; no production deployment'}
 }
 
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
