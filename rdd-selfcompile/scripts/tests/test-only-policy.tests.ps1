@@ -388,6 +388,25 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sideTaskNudgeTes
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryAdjacentTest')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTestHelper')}
 Write-Output 'side-task nudge delivery exact registration 10 assertions PASS (policy only; not Java execution)'
+# 2026-11-14: exact why-body and original bridge controls, not a generic experience test prefix.
+$experienceBridgeTests=@(
+    'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeWhyConsumerTest',
+    'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeTest',
+    'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeAudienceTest'
+)
+foreach($experienceBridgeTest in $experienceBridgeTests){
+    $experiencePlan=Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @($experienceBridgeTest)
+    Assert ($experiencePlan.Task -ceq ':plugins:experience:test' -and $experiencePlan.Tests.Count -eq 1 -and $experiencePlan.Tests[0] -ceq $experienceBridgeTest) 'experience bridge preserves exact module/task/filter'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($experienceBridgeTest)).Module -ceq 'plugins:experience') 'experience bridge has one inferred owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($experienceBridgeTest)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($experienceBridgeTest)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @($experienceBridgeTest+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @($experienceBridgeTest.ToLowerInvariant())}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @($experienceBridgeTest+'Helper')}
+}
+Assert ((Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests $experienceBridgeTests).Tests.Count -eq 3) 'exact experience bridge trio stays selectable'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:experience' -Tests @('com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeOtherTest')}
+Write-Output 'experience why bridge exact registration 23 assertions PASS (policy only; not Java execution)'
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')

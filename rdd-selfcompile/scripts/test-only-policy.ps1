@@ -146,6 +146,12 @@ function Get-RddTestOnlyPlan {
         'plugins:acx' = @(
             'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest'
         )
+        # 2026-11-14: exact existing experience bridge consumers; no prefix or whole-module execution.
+        'plugins:experience' = @(
+            'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeWhyConsumerTest',
+            'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeTest',
+            'com.dwinovo.numen.plugins.experience.ExperienceStoreRetrievalBridgeAudienceTest'
+        )
         'plugins:camera' = @(
             'com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest',
             'com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest'
