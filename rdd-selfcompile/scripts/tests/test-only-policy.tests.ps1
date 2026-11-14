@@ -231,6 +231,17 @@ foreach($wrongModule in @('plugins:rdd','plugins:learner','api:common','ai')){Mu
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($foodSupplyPriorityTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($foodSupplyPriorityTest.ToLowerInvariant())}
 Write-Output 'food supply priority exact registration 8 assertions PASS (policy only; not Java execution)'
+# 2026-11-15: exact CompletedFactStore consumer; rdd-core only, adjacent names refused.
+$completedFactStoreTest='com.dwinovo.numen.rdd.core.CompletedFactStoreTest'
+$completedFactStorePlan=Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($completedFactStoreTest)
+Assert ($completedFactStorePlan.Task -ceq ':rdd-core:test' -and $completedFactStorePlan.Tests.Count -eq 1) 'completed fact store must map only the exact rdd-core task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($completedFactStoreTest)).Module -ceq 'rdd-core') 'completed fact store has one inferred owner rdd-core'
+foreach($wrongModule in @('api:common','ai','plugins:learner','plugins:rdd')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($completedFactStoreTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($completedFactStoreTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($completedFactStoreTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.CompletedFactStoreAdjacentTest')}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.CompletedFactStoreTestHelper')}
+Write-Output 'completed fact store exact registration 10 assertions PASS (policy only; not Java execution)'
 $deathPrepareTest = 'com.dwinovo.numen.rdd.side.death.DeathPreparationRegressionTest'
 $deathPreparePlan = Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathPrepareTest)
 Assert ($deathPreparePlan.Task -ceq ':rdd-core:test' -and $deathPreparePlan.Tests.Count -eq 1) 'death preparation must map only to rdd core'
