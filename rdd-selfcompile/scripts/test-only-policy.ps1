@@ -38,7 +38,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.MachinePointRecheckTest',
             'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest',
             'com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTest',
-            'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest'
+            'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest',
+            # Exact existing food-hint consumer; supersedes the unmerged multi-state candidate route.
+            'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
