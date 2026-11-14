@@ -9,6 +9,7 @@ function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } ca
 $rationaleTests=@(
     @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest'},
     @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddSubmissionRationaleHandoffTest'},
+    @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddObsidianPlanConsumerTest'},
     @{Module='plugins:learner';WrongModule='plugins:rdd';Class='com.dwinovo.numen.plugins.learner.core.AcxExecutionReflectorTest'}
 )
 foreach($rationaleCase in $rationaleTests){

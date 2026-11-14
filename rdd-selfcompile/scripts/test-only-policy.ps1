@@ -13,6 +13,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest',
             'com.dwinovo.numen.plugins.rdd.RddSubmissionRationaleHandoffTest',
+            'com.dwinovo.numen.plugins.rdd.RddObsidianPlanConsumerTest',
             'com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanGuardTest',
             'com.dwinovo.numen.plugins.rdd.RddPersonalRespawnPolicyTest',
