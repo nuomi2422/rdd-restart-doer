@@ -333,6 +333,18 @@ if ($Mode -ceq 'original-convo-1f2' -and $PSBoundParameters.ContainsKey('Instanc
  } catch { Write-Error ('DEPLOY_CONVO_1F2_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-15: exact V28 KB-quota core artifact (83ddd) only; every older rollback tuple stays unchanged.
+if ($Mode -ceq 'original-kb-quota-83ddd' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '83ddd36f00aecd64b220155bf53658dbac776df0' -and $MutationId -ceq 'mutation-build-e5184f70bd7b41fdabdc3f85cbf17306' -and $ExpectedSha256 -ieq 'FB48F4779F68827A3CCD8EDBAE002A6D2F769EBED005C6298E16C1556CC00A4D') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+} catch { Write-Error ('DEPLOY_KB_QUOTA_83DDD_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

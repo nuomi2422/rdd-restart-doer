@@ -732,9 +732,11 @@ foreach($release in @(
 # 2026-11-15: V26 and V27 core releases share one copied-entry/receipt/backup runner; cases stay explicit.
 $v26Cases=@('v26-core','v26-rdd','v26-env-only','v26-wrong-instance','v26-bad-id','v26-bad-commit','v26-bad-sha','v26-swapped-sha','v26-wrong-module','v26-wrong-size','v26-fixed-size','v26-dirty-source','v26-missing-exit','v26-nonzero-exit','v26-running','v26-unknown','v26-wrong-root','v26-jarpath','v26-jarname','v26-full','v26-isolated','v26-escape','v26-corrupt-artifact','v26-core-copy-failure','v26-rdd-copy-failure')
 $convoCases=@('convo-core','convo-bad-id','convo-bad-sha','convo-bad-source','convo-wrong-module','convo-wrong-size','convo-bad-proof','convo-escape','convo-copy-failure','convo-wrong-root','convo-running','convo-unknown','convo-env-only','convo-wrong-instance','convo-jarpath','convo-jarname','convo-full','convo-isolated')
+$kbqCases=@('kbq-core','kbq-bad-id','kbq-bad-sha','kbq-bad-source','kbq-wrong-module','kbq-wrong-size','kbq-bad-proof','kbq-escape','kbq-copy-failure','kbq-wrong-root','kbq-running','kbq-unknown','kbq-env-only','kbq-wrong-instance','kbq-jarpath','kbq-jarname','kbq-full','kbq-isolated')
 $coreReleases=@(
  @{tag='v26';commit='5c046644683b26b385ef06e57260f3aa16edfb1b';mode='original-v26-5c046';coreId='mutation-build-f5e19b3475a44df281915f229f2c1366';coreHash='2FC60365B898D3ACC903F461A2791864F48188670F21B02E05DD5E2AEFCE2989';coreBytes=3080162;rddId='mutation-build-fcfb896670ac47fc8c07725fae837c77';rddHash='BECF06531DB5E3911D91834B2785E3DB73AF4308331D6B3F0D9FB19BE306D01B';rddBytes=1192911;policyBytes=@(1192911,3080162);cases=$v26Cases},
  @{tag='convo';commit='1f2e86286113430b58425446a132b986d482cf10';mode='original-convo-1f2';coreId='mutation-build-c7b23cc99dfc4b8ea2f8a7da92606a2b';coreHash='9959267A3CC8D8B982ACEF99EAEB95030B75D5C6E83D4E3F85B5E74C236DCAC1';coreBytes=3081940;policyBytes=@(3081940);cases=$convoCases}
+ @{tag='kbq';commit='83ddd36f00aecd64b220155bf53658dbac776df0';mode='original-kb-quota-83ddd';coreId='mutation-build-e5184f70bd7b41fdabdc3f85cbf17306';coreHash='FB48F4779F68827A3CCD8EDBAE002A6D2F769EBED005C6298E16C1556CC00A4D';coreBytes=3083591;policyBytes=@(3083591);cases=$kbqCases}
 )
 foreach($coreRelease in $coreReleases){
  $tag=$coreRelease.tag
