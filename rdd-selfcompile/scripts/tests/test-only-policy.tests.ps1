@@ -361,6 +361,17 @@ foreach ($survivalTest in $survivalTests) {
     MustReject { Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($survivalTest) }
 }
 MustReject { Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddSurvival*') }
+# 2026-11-14: exact side-task nudge delivery consumer; adjacent names refused.
+$sideTaskNudgeTest='com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTest'
+$sideTaskNudgePlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sideTaskNudgeTest)
+Assert ($sideTaskNudgePlan.Task -ceq ':plugins:rdd:test' -and $sideTaskNudgePlan.Tests.Count -eq 1) 'side-task nudge delivery maps only the RDD plugin test task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($sideTaskNudgeTest)).Module -ceq 'plugins:rdd') 'side-task nudge delivery has one inferred owner'
+foreach($wrongModule in @('api:common','ai','plugins:learner','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($sideTaskNudgeTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sideTaskNudgeTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($sideTaskNudgeTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryAdjacentTest')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTestHelper')}
+Write-Output 'side-task nudge delivery exact registration 10 assertions PASS (policy only; not Java execution)'
 $managed = @()
 $managed += (Join-Path $PSScriptRoot '../run-mutation.ps1')
 $managed += (Join-Path $PSScriptRoot '../build-jar.ps1')
