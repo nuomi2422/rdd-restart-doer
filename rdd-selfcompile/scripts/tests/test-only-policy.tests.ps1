@@ -501,3 +501,17 @@ $convoTrio=Get-RddTestOnlyPlan -Module 'ai' -Tests $convoTests
 Assert ($convoTrio.Tests.Count -eq 3 -and $convoTrio.Task -ceq ':ai:test') 'the exact three convo restore classes may run together'; $convoChecks++
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.ConvoLogAdjacentTest')}; $convoChecks++
 Write-Output ('V27 convo restore exact registration ' + $convoChecks + ' assertions PASS (policy only; not Java execution)')
+
+# 2026-11-15: exact HttpLlmTransportRetryTest only; wrong module/unknown http class stay rejected.
+$httpChecks=0
+$httpTest='com.dwinovo.numen.agent.http.HttpLlmTransportRetryTest'
+$httpPlan=Get-RddTestOnlyPlan -Module 'ai' -Tests @($httpTest)
+Assert ($httpPlan.Task -ceq ':ai:test' -and $httpPlan.Module -ceq 'ai' -and $httpPlan.Tests.Count -eq 1 -and $httpPlan.Tests[0] -ceq $httpTest) 'HttpLlmTransportRetryTest maps only the exact ai test task'; $httpChecks++
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($httpTest)).Module -ceq 'ai') 'HttpLlmTransportRetryTest has one inferred owner ai'; $httpChecks++
+foreach($wrongModule in @('api:common','rdd-core','plugins:rdd','plugins:learner','plugins:experience')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($httpTest)}; $httpChecks++
+}
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.http.HttpLlmTransportOtherTest')}; $httpChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($httpTest+'*')}; $httpChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.http.HttpLlmTransportTest')}; $httpChecks++
+Write-Output ('V27 http retry exact registration ' + $httpChecks + ' assertions PASS (policy only; not Java execution)')

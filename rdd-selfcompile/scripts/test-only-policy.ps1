@@ -49,6 +49,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.agent.llm.ConvoLogClearTest',
             'com.dwinovo.numen.agent.llm.ConvoLogPoisonTest',
             'com.dwinovo.numen.agent.llm.ConvoLogRestoreTest'
+            # 2026-11-15: exact HttpLlmTransportRetryTest only; no http wildcard/adjacent admission.
+            'com.dwinovo.numen.agent.http.HttpLlmTransportRetryTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.RequestDeliveredAggregationTest',
