@@ -1,4 +1,4 @@
-﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -8,6 +8,7 @@ function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } ca
 # 2026-11-14: exact rationale/reflection consumers; no cross-module or adjacent-name admission.
 $rationaleTests=@(
     @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest'},
+    @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddSubmissionRationaleHandoffTest'},
     @{Module='plugins:learner';WrongModule='plugins:rdd';Class='com.dwinovo.numen.plugins.learner.core.AcxExecutionReflectorTest'}
 )
 foreach($rationaleCase in $rationaleTests){
@@ -18,7 +19,7 @@ foreach($rationaleCase in $rationaleTests){
     MustReject {Get-RddTestOnlyPlan -Module $rationaleCase.Module -Tests @($rationaleCase.Class+'Helper')}
     MustReject {Get-RddTestOnlyPlan -Module $rationaleCase.Module -Tests @($rationaleCase.Class+'*')}
 }
-Write-Output 'rationale/reflection exact registration 10 assertions PASS (policy only; not Java execution)'
+Write-Output ('rationale/reflection exact registration '+(5*$rationaleTests.Count)+' assertions PASS (policy only; not Java execution)')
 # 2026-11-13: exact C1 delivery consumers only; no wildcard/cross-module registration.
 $c1Tests=@(
     @{Module='api:common';Class='com.dwinovo.numen.api.RequestDeliveredAggregationTest'},

@@ -1,4 +1,4 @@
-﻿# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
+# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
     # Module -> exact test classes. Unknown module or class is refused; never build
@@ -12,6 +12,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddSettleStageFlagsTest',
             'com.dwinovo.numen.plugins.rdd.RddStagePlannerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest',
+            'com.dwinovo.numen.plugins.rdd.RddSubmissionRationaleHandoffTest',
             'com.dwinovo.numen.plugins.rdd.RddDecomposerParseTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanGuardTest',
             'com.dwinovo.numen.plugins.rdd.RddPersonalRespawnPolicyTest',
