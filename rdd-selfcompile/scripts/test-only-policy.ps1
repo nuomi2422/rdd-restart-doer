@@ -44,7 +44,11 @@ function Get-RddTestOnlyPlan {
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
-            'com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerTest'
+            'com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerTest',
+            # 2026-11-15: V27 single-pass conversation restore, exact three classes only.
+            'com.dwinovo.numen.agent.llm.ConvoLogClearTest',
+            'com.dwinovo.numen.agent.llm.ConvoLogPoisonTest',
+            'com.dwinovo.numen.agent.llm.ConvoLogRestoreTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.RequestDeliveredAggregationTest',
