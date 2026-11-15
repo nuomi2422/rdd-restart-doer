@@ -26,6 +26,14 @@ setTimeout(() => {
   process.exit(2);
 }, RUN_DEADLINE_MS).unref();
 
+// Opt-in stderr staging diagnostics only (NUMEN_MCP_TRACE=1). Never touches stdout,
+// the MCP protocol/payload, RPC ids, timers or abort/exit semantics.
+const TRACE = process.env.NUMEN_MCP_TRACE === '1';
+const TRACE_T0 = Date.now();
+if (TRACE) {
+  console.error('[numen-mcp] trace on callTimeoutMs=' + CALL_TIMEOUT_MS + ' runDeadlineMs=' + RUN_DEADLINE_MS);
+}
+
 function post(body, sid) {
   return new Promise((resolve, reject) => {
     const data = JSON.stringify(body);
@@ -36,6 +44,8 @@ function post(body, sid) {
       'Content-Length': Buffer.byteLength(data),
     };
     if (sid) headers['Mcp-Session-Id'] = sid;
+    const stageMethod = (body && body.method) || '?';
+    const stageStart = Date.now();
     const label = (body && body.method || '?') + '@' + HOST + ':' + PORT;
     let settled = false;
     let guard = null;
@@ -43,6 +53,15 @@ function post(body, sid) {
       if (settled) return;
       settled = true;
       if (guard) clearTimeout(guard);
+      if (TRACE) {
+        const end = Date.now();
+        console.error('[numen-mcp] post finish method=' + stageMethod
+          + ' start=' + stageStart + ' finish=' + end
+          + ' elapsedMs=' + (end - stageStart)
+          + ' totalMs=' + (end - TRACE_T0)
+          + ' status=' + (val && val.status != null ? val.status : '-')
+          + ' errorCode=' + (err ? String(err.code || err.message).slice(0, 60) : '-'));
+      }
       if (err) reject(err); else resolve(val);
     };
     guard = setTimeout(() => {
