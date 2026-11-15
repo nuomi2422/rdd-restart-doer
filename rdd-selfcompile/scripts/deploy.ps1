@@ -239,6 +239,18 @@ if ($Mode -ceq 'original-learner-successor-28ba' -and $PSBoundParameters.Contain
  } catch { Write-Error ('DEPLOY_LEARNER_SUCCESSOR_28BA_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-15: exact inspected late-callback learner artifact (1e402); all older rollback tuples stay unchanged.
+if ($Mode -ceq 'original-learner-late-1e402' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '1e40290cfad3e64a9fd4f3e1a015c73dd92e3646' -and $MutationId -ceq 'mutation-build-d5fcda28252c4f00b4b73edc70fd4a05' -and $ExpectedSha256 -ieq '886ECA7AF36A0D8273E8FB0591CF6D9322C05B9017B68EB7D98AA4CE34F23BF8') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_LEARNER_LATE_1E402_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # 2026-11-14: exact inspected 86785 nudge RDD artifact; all older rollback tuples and guards stay unchanged.
 if ($Mode -ceq 'original-rdd-nudge-86785' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '86785a7a61cc0cbeff5e0d32262d6e7dd829c194' -and $MutationId -ceq 'mutation-build-9ac2a358204d457eb7a02ace7eabd9cb' -and $ExpectedSha256 -ieq 'A2F081963BDB715D73D26D433A1C0977941DE30515EFA017AB8EB228DD392106') {
  $ErrorActionPreference='Stop'

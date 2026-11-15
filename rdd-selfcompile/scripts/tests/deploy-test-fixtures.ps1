@@ -639,7 +639,8 @@ foreach($release in @(
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
  @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
  @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases},
- @{tag='daily';commit='faede91ce4bf0ff5c9253df798988a4f4f8fddf9';mode='original-daily-faede';tuples=$dailyTuples;cases=$dailyCases}
+ @{tag='daily';commit='faede91ce4bf0ff5c9253df798988a4f4f8fddf9';mode='original-daily-faede';tuples=$dailyTuples;cases=$dailyCases},
+ @{tag='ownlrn';commit='1e40290cfad3e64a9fd4f3e1a015c73dd92e3646';mode='original-learner-late-1e402';tuples=@{'plugins:learner'=@('mutation-build-d5fcda28252c4f00b4b73edc70fd4a05','numen-plugin-learner-1.21.1-0.1.3-dev.jar','886ECA7AF36A0D8273E8FB0591CF6D9322C05B9017B68EB7D98AA4CE34F23BF8',637775)};cases=@($learnerOwnCases|ForEach-Object{'ownlrn-'+$_})}
 )){
  $tuples=$release.tuples
  foreach($case in $release.cases){
