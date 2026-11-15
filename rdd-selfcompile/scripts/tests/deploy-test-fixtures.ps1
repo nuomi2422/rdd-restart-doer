@@ -1,5 +1,5 @@
 ﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[string]$OnlyRelease)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -846,6 +846,7 @@ if($OnlyRelease){
  if($sel.Count -ne 20){throw ('OnlyRelease '+$OnlyRelease+' expected 20 cases, got '+$sel.Count)}
  $uniq=@($sel | ForEach-Object { $_.case } | Select-Object -Unique)
  if($uniq.Count -ne 20){throw ('OnlyRelease '+$OnlyRelease+' case names not unique: '+$uniq.Count)}
+  if($sel.Count -ne $results.Count){throw ('OnlyRelease '+$OnlyRelease+' mixed non-target cases: '+$results.Count+' total')}
 }
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
