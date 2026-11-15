@@ -407,6 +407,18 @@ if ($Mode -ceq 'original-quota-d6c97' -and $PSBoundParameters.ContainsKey('Insta
  } catch { Write-Error ('DEPLOY_QUOTA_D6C97_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# Exact language/header core release only; original stopped-live assembly and rollback checks remain.
+if ($Mode -ceq 'original-ui-ddd42' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'ddd42b8005a9cab35710dc6652adba0bdb8fd5e5' -and $MutationId -ceq 'mutation-build-81c298370ef5495d8af734bd2290953c' -and $ExpectedSha256 -ieq 'C58E1F73D097A20CDCFF1F413C6D9C21F4EF76CD76872B6AE031BE2E493A3DCA') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_UI_DDD42_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
