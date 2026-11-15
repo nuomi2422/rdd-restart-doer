@@ -525,7 +525,7 @@ Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($unloadTest)).Module -ceq 'api:
 foreach($wrongModule in @('api:common','ai','rdd-core','core:neoforge','plugins:rdd','plugins:learner')){
     MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($unloadTest)}; $unloadChecks++
 }
-foreach($wrongTest in @($unloadTest+'*',$unloadTest+'Helper',$unloadTest.ToLowerInvariant(),'com.dwinovo.numen.debug.ChunkMapUnloadAdjacentTest')){
+foreach($wrongTest in @(($unloadTest+'*'),($unloadTest+'Helper'),($unloadTest.ToLowerInvariant()),'com.dwinovo.numen.debug.ChunkMapUnloadAdjacentTest')){
     MustReject {Get-RddTestOnlyPlan -Module 'api:neoforge' -Tests @($wrongTest)}; $unloadChecks++
 }
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($unloadTest,'com.dwinovo.numen.api.RequestDeliveredAggregationTest')}; $unloadChecks++
