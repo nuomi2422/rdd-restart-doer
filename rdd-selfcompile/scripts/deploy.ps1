@@ -419,6 +419,18 @@ if ($Mode -ceq 'original-ui-ddd42' -and $PSBoundParameters.ContainsKey('Instance
  } catch { Write-Error ('DEPLOY_UI_DDD42_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# LH1: two exact original preparation artifacts, with separate source proofs.
+if ($Mode -ceq 'original-lh1-prep' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and (($MutationId -ceq 'mutation-build-61d0b49492df4d238143c230a1a6ed40' -and $ExpectedCommit -ceq 'ab8cc639e9f69fae10c46216e6ad85cf95789815' -and $ExpectedSha256 -ieq '6C1BB8D816A8486F735C94D464D9933DA78F0899839B9F2596328B33CDA3ABF5') -or ($MutationId -ceq 'mutation-build-a19f8a022a5c4f39871cafda0bdbdc06' -and $ExpectedCommit -ceq '03f290fdb510438dc17c07be2b84407ec7f8fec2' -and $ExpectedSha256 -ieq 'FEE71CF0C84F30D0BDF38BEDC9C0E0B608BEE500A5F504E079FBB827CC83A897'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_LH1_PREP_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

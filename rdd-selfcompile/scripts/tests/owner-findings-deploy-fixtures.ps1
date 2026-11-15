@@ -1,5 +1,5 @@
-﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery')][string]$Batch='owner-findings')
+# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery','lh1-prep')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -36,25 +36,47 @@ $last=if($Batch -ceq 'runtime-followups'){'acx'}else{'camera'}
 $cases=@('core','rdd','learner',$last,'missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full')
 if($Batch -ceq 'transport-external'){$cases=@('core','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','wrong-root','running','unknown','jarpath','full','rejected-fde74')}
 if($Batch -ceq 'mine-recovery'){$cases=@('wrong-mode','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','rejected-fde74','core')}
+if($Batch -ceq 'lh1-prep'){
+ $mode='original-lh1-prep'
+ $tuples=@{
+  'core'=@('core:neoforge','mutation-build-61d0b49492df4d238143c230a1a6ed40','numen-neoforge-1.21.1-0.1.3-dev.jar','6C1BB8D816A8486F735C94D464D9933DA78F0899839B9F2596328B33CDA3ABF5','ab8cc639e9f69fae10c46216e6ad85cf95789815',2587339)
+  'learner'=@('plugins:learner','mutation-build-a19f8a022a5c4f39871cafda0bdbdc06','numen-plugin-learner-1.21.1-0.1.3-dev.jar','FEE71CF0C84F30D0BDF38BEDC9C0E0B608BEE500A5F504E079FBB827CC83A897','03f290fdb510438dc17c07be2b84407ec7f8fec2',641209)
+ }
+ $cases=@('core','learner','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','cross-source','cross-module','cross-hash','wrong-size','fixed-size')
+}
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery')){'core'}else{'rdd'})]
+ $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery','lh1-prep')){'core'}else{'rdd'})]
  $id=$f[1];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
+ if($Batch -ceq 'lh1-prep'){$commit=$f[4]}
  $artifact=Join-Path $jd $f[2];Put $artifact 'owner-findings-fixture-artifact';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
- foreach($v in $tuples.Values){$deploy=$deploy.Replace($v[3],$sha);$policy=$policy.Replace($v[3],$sha)}
+ foreach($v in $tuples.Values){
+  $replacement=if($Batch -ceq 'lh1-prep' -and $v[1] -cne $id){'F'*64}else{$sha}
+  $deploy=$deploy.Replace($v[3],$replacement);$policy=$policy.Replace($v[3],$replacement)
+ }
+ if($Batch -ceq 'lh1-prep'){
+  $fixedLength=if($case -ceq 'fixed-size'){(Get-Item $artifact).Length+1}else{(Get-Item $artifact).Length}
+  $policy=$policy.Replace(','+$f[5]+')',','+$fixedLength+')')
+ }
  if($case -eq 'wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-root').Replace([char]92,[char]47))}
  Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
  Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
  $receipt=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$f[0];instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
- if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery')){'plugins:rdd'}else{'core:neoforge'}}
+ if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery','lh1-prep')){'plugins:rdd'}else{'core:neoforge'}}
+ if($Batch -ceq 'lh1-prep'){
+  if($case -ceq 'cross-source'){$receipt.sourceHeadAfter=$tuples['learner'][4]}
+  if($case -ceq 'cross-module'){$receipt.module='plugins:learner'}
+  if($case -ceq 'cross-hash'){$receipt.sha256='F'*64}
+  if($case -ceq 'wrong-size'){$receipt.bytes++}
+ }
  if($case -eq 'dirty-source'){$receipt.sourceDirtyCountAfter=1}
  if($case -eq 'missing-exit'){$receipt.Remove('gradleExit')}
  if($case -eq 'missing-source-proof'){$receipt.Remove('sourceProof')}
@@ -95,6 +117,15 @@ foreach($case in $cases){
   if($f[0] -eq 'core:neoforge' -and (Test-Path $api)){throw 'core left duplicate API'}
   $r=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
   if(!$r.success -or $r.sourceCommit -cne $commit){throw 'bad receipt'}
+  if($Batch -ceq 'lh1-prep'){
+   $expectedBackups=if($f[0] -ceq 'core:neoforge'){2}else{1}
+   if($r.module -cne $f[0] -or $r.sha256 -ine $sha -or $r.root -cne $root.Replace([char]92,[char]47) -or @($r.backups).Count -ne $expectedBackups){throw 'LH1 receipt tuple mismatch'}
+   foreach($backup in $r.backups){
+    $expectedOld=if($backup.original -eq $dest){$oldHash}elseif($backup.original -eq $api){$apiHash}else{throw 'unexpected LH1 backup'}
+    if((Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw 'LH1 backup not recoverable'}
+   }
+   if($f[0] -ceq 'plugins:learner' -and (Get-FileHash $api).Hash -ne $apiHash){throw 'LH1 learner changed API'}
+  }
   if($Batch -ceq 'mine-recovery'){
    if($r.root -cne $root.Replace([char]92,[char]47) -or $r.backups.Count -ne 2){throw 'bad fixed root or backup count'}
    $coreBackup=@($r.backups|Where-Object {$_.original -eq $dest});$apiBackup=@($r.backups|Where-Object {$_.original -eq $api})
