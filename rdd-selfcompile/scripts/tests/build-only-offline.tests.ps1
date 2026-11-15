@@ -48,6 +48,24 @@ Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $false -Module 'pl
 $experienceJar='numen-plugin-experience-1.21.1-0.1.3-dev.jar'
 Assert ((Select-RddBuildArtifact -Names @($experienceJar,'numen-plugin-experience-1.21.1-0.1.3-dev-api.jar','numen-plugin-experience-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-experience') -ceq $experienceJar) 'experience-release-not-classifier'
 Reject {Select-RddBuildArtifact -Names @($experienceJar,$experienceJar) -Prefix 'numen-plugin-experience'} 'experience-conflicting-jars-refused'
+# 2026-11-15: exact settlement/worldstate build-only artifacts; no full/deploy/launch widening.
+foreach($module in @('settlement','worldstate')){
+ $m='plugins:'+$module
+ $prefix='numen-plugin-'+$module
+ $p=Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module $m -SourceRoot fixture -ExpectedCommit ('a'*40)
+ Assert ($p.module -ceq $m -and $p.task -ceq (':'+$m+':jar') -and $p.relativeDir -ceq ('plugins/'+$module+'/build/libs') -and $p.artifactPrefix -ceq $prefix) ($module+'-exact-plan')
+ $jar=$prefix+'-1.21.1-0.1.3-dev.jar'
+ Assert ((Select-RddBuildArtifact -Names @($jar,($prefix+'-1.21.1-0.1.3-dev-api.jar'),($prefix+'-1.21.1-0.1.3-dev-sources.jar')) -Prefix $prefix) -ceq $jar) ($module+'-exact-release')
+ Reject {Get-RddBuildOnlyPlan -Instance gpt -InstanceExplicit $true -Module $m -SourceRoot fixture -ExpectedCommit ('a'*40)} ($module+'-gpt-refused')
+ Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $false -Module $m -SourceRoot fixture -ExpectedCommit ('a'*40)} ($module+'-implicit-instance-refused')
+ Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module $m -SourceRoot fixture -ExpectedCommit 'short'} ($module+'-short-hash-refused')
+ foreach($badModule in @(($m+':runClient'),($m+'Helper'),('plugins:'+$module.ToUpperInvariant()),'plugins:*')){
+  Reject {Get-RddBuildOnlyPlan -Instance test -InstanceExplicit $true -Module $badModule -SourceRoot fixture -ExpectedCommit ('a'*40)} ($module+'-reject-'+$badModule)
+ }
+ Reject {Select-RddBuildArtifact -Names @(($prefix+'-1.21.1-0.1.3-dev-api.jar')) -Prefix $prefix} ($module+'-classifier-only-refused')
+ Reject {Select-RddBuildArtifact -Names @(($prefix+'-1.21.1-0.1.4-dev.jar')) -Prefix $prefix} ($module+'-wrong-version-refused')
+ Reject {Select-RddBuildArtifact -Names @($jar,$jar) -Prefix $prefix} ($module+'-ambiguous-release-refused')
+}
 $n='numen-plugin-rdd-1.21.1-0.1.3-dev.jar'
 Assert ((Select-RddBuildArtifact -Names @($n,'numen-plugin-rdd-1.21.1-0.1.3-dev-api.jar','numen-plugin-rdd-1.21.1-0.1.3-dev-sources.jar') -Prefix 'numen-plugin-rdd') -ceq $n) 'release-not-classifier'
 Reject {Select-RddBuildArtifact -Names @($n,$n) -Prefix 'numen-plugin-rdd'} 'ambiguous-release-refused'
