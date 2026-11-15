@@ -1,4 +1,4 @@
-﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 # H1-min 收敛：mods 只由本入口写；写入前用 mc-instance 的三态拒绝运行中/未知部署。
 # 回滚不再自己 copy，改为调用本入口 -JarPath（同一落点）。
 param(
@@ -367,6 +367,20 @@ if ($Mode -ceq 'original-daily-faede' -and $PSBoundParameters.ContainsKey('Insta
   Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
   exit 0
 } catch { Write-Error ('DEPLOY_DAILY_FAEDE_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
+# 2026-11-16: exact tested manual integration; core embeds API, no standalone API tuple.
+if ($Mode -ceq 'original-manual-0fada' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '0fada9b87cf75f719a7c0de9d269ff7009281b17' -and (
+ ($MutationId -ceq 'mutation-build-917da3d407814f27bb8479f2d1c0b452' -and $ExpectedSha256 -ieq '3CA192EEF304964FC3C4424C5992A83F0E8E369A9741FABE177F15A3235D61B1') -or
+ ($MutationId -ceq 'mutation-build-d2949d98ceab4084a3f18dedde8da948' -and $ExpectedSha256 -ieq '3814920BB30BA6B47E3A97FBF2C92FEF540D19AB9EC416A110F849AE1BC8D3BC'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_MANUAL_0FADA_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
 # Incident freeze: all other deployment remains refused.
