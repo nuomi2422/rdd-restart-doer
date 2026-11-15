@@ -130,6 +130,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.LearnerAutoTaskResultIntakeTest',
             'com.dwinovo.numen.plugins.learner.LearnerTaskResultIntakeTest'
         )
+        'plugins:selfcompile' = @(
+            'com.dwinovo.numen.plugins.selfcompile.generated.RddTradeExecuteToolSoldOutTest'
+        )
         'core:common' = @(
             'com.dwinovo.numen.core.tools.agent.LoadSkillToolReferenceTest',
             'com.dwinovo.numen.core.tools.work.AttackToolContractTest',

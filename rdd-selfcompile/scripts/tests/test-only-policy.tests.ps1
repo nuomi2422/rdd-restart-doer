@@ -645,3 +645,16 @@ foreach($entry in $skillReferenceCases){
     MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class.ToLowerInvariant())}
 }
 Write-Output 'Learned skill reference exact registration 16 assertions PASS (policy only; not Java execution)'
+
+# Test-only admission for one pure sold-out predicate/callsite control, not selfcompile runtime permission.
+$tradeSoldOutTest='com.dwinovo.numen.plugins.selfcompile.generated.RddTradeExecuteToolSoldOutTest'
+$tradeSoldOutPlan=Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest)
+Assert ($tradeSoldOutPlan.Task -ceq ':plugins:selfcompile:test' -and $tradeSoldOutPlan.Module -ceq 'plugins:selfcompile' -and $tradeSoldOutPlan.Tests.Count -eq 1 -and $tradeSoldOutPlan.Tests[0] -ceq $tradeSoldOutTest) 'sold-out test maps only exact selfcompile test task/class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($tradeSoldOutTest)).Module -ceq 'plugins:selfcompile') 'sold-out test has one inferred module'
+foreach($wrong in @('plugins:rdd','plugins:learner','core:common','api:common')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($tradeSoldOutTest)}
+}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest+'Helper')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest.ToLowerInvariant())}
+Write-Output 'Trade sold-out exact registration 9 assertions PASS (policy only; not Java execution)'
