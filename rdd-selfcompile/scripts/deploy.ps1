@@ -395,6 +395,18 @@ if ($Mode -ceq 'original-hp-e4ed' -and $PSBoundParameters.ContainsKey('Instance'
  } catch { Write-Error ('DEPLOY_HP_E4ED_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-16: exact bounded-food quota RDD successor; no core or other plugin permission.
+if ($Mode -ceq 'original-quota-d6c97' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'd6c97dc4693ae6419a1d76c5b83fd2051a92f9c1' -and $MutationId -ceq 'mutation-build-21271b7839bc4c3286c1a0c4581f7af3' -and $ExpectedSha256 -ieq 'AEDF5FC53B0E5171F153FA09F0B32B280B500879295D6BD8579F3C0045BCBEC4') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_QUOTA_D6C97_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

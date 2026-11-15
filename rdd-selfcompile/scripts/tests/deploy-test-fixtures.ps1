@@ -1,5 +1,5 @@
 # 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp')][string]$OnlyRelease)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -640,7 +640,10 @@ $dailyCases=@('daily-rdd','daily-bad-id','daily-bad-commit','daily-bad-sha','dai
  # 2026-11-15: own-learner single-tuple cases (prefix added when the real tuple row lands).
  $learnerOwnCases=@('learner','bad-id','bad-commit','bad-sha','bad-source','bad-proof','wrong-size','fixed-size','wrong-module','escape','copy-failure','wrong-root','running','unknown','env-only','wrong-instance','jarpath','jarname','full','isolated')
 
+$quotaCases=@('quota-rdd','quota-bad-id','quota-bad-commit','quota-bad-sha','quota-bad-source','quota-bad-proof','quota-wrong-size','quota-fixed-size','quota-wrong-module','quota-escape','quota-copy-failure','quota-wrong-root','quota-running','quota-unknown','quota-env-only','quota-wrong-instance','quota-jarpath','quota-jarname','quota-full','quota-isolated')
+$quotaRelease=@{tag='quota';commit='d6c97dc4693ae6419a1d76c5b83fd2051a92f9c1';mode='original-quota-d6c97';tuples=@{'plugins:rdd'=@('mutation-build-21271b7839bc4c3286c1a0c4581f7af3','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','AEDF5FC53B0E5171F153FA09F0B32B280B500879295D6BD8579F3C0045BCBEC4',1206667)};cases=$quotaCases}
 foreach($release in @(
+ $quotaRelease,
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
  @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
  @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases},
@@ -848,7 +851,7 @@ foreach($coreRelease in $coreReleases){
 
 if($OnlyRelease){
  $sel=@($results | Where-Object { $_.case -like ($OnlyRelease + '-*') })
- $expected=if($OnlyRelease -ceq 'ownlrn'){20}else{@($coreReleases | Where-Object { $_.tag -ceq $OnlyRelease })[0].cases.Count}
+ $expected=if($OnlyRelease -ceq 'quota'){$quotaRelease.cases.Count}elseif($OnlyRelease -ceq 'ownlrn'){20}else{@($coreReleases | Where-Object { $_.tag -ceq $OnlyRelease })[0].cases.Count}
  if($sel.Count -ne $expected){throw ('OnlyRelease '+$OnlyRelease+' expected '+$expected+' cases, got '+$sel.Count)}
  $uniq=@($sel | ForEach-Object { $_.case } | Select-Object -Unique)
  if($uniq.Count -ne $expected){throw ('OnlyRelease '+$OnlyRelease+' case names not unique: '+$uniq.Count)}
