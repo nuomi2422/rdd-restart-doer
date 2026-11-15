@@ -1,4 +1,4 @@
-# Offline policy fixtures and static TestOnly native wiring guard.
+﻿# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -545,3 +545,18 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTe
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.TrajectorySlicesAdjacentTest')}; $trajectoryChecks++
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTest+'Helper')}; $trajectoryChecks++
 Write-Output ('TrajectorySlices exact registration ' + $trajectoryChecks + ' assertions PASS (policy only; not Java execution)')
+
+# 2026-11-15: exact RddFutureNeedsSignatureTest only; no adjacent/wildcard/cross-module admission.
+$futureNeedsChecks=0
+$futureNeedsTest='com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureTest'
+$futureNeedsPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest)
+Assert ($futureNeedsPlan.Task -ceq ':plugins:rdd:test' -and $futureNeedsPlan.Module -ceq 'plugins:rdd' -and $futureNeedsPlan.Tests.Count -eq 1 -and $futureNeedsPlan.Tests[0] -ceq $futureNeedsTest) 'RddFutureNeedsSignatureTest maps only the exact RDD test task'; $futureNeedsChecks++
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($futureNeedsTest)).Module -ceq 'plugins:rdd') 'RddFutureNeedsSignatureTest has one inferred owner plugins:rdd'; $futureNeedsChecks++
+foreach($wrongModule in @('api:common','ai','plugins:learner','rdd-core')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($futureNeedsTest)}; $futureNeedsChecks++
+}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest.ToLowerInvariant())}; $futureNeedsChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest+'*')}; $futureNeedsChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureAdjacentTest')}; $futureNeedsChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest+'Helper')}; $futureNeedsChecks++
+Write-Output ('RddFutureNeeds exact registration ' + $futureNeedsChecks + ' assertions PASS (policy only; not Java execution)')

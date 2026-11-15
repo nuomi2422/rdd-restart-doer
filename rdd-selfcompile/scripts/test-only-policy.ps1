@@ -1,4 +1,4 @@
-# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
+﻿# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
     # Module -> exact test classes. Unknown module or class is refused; never build
@@ -39,6 +39,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest',
             'com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest',
+            'com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureTest',
             # Exact existing food-hint consumer; supersedes the unmerged multi-state candidate route.
             'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest'
         )
