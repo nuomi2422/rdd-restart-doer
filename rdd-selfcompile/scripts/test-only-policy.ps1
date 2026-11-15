@@ -124,12 +124,14 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.learner.skills.SkillsAccountingTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillLocationScopeDeliveryTest',
             'com.dwinovo.numen.plugins.learner.skills.SkillRegistrarTest',
+            'com.dwinovo.numen.plugins.learner.skills.LearnedSkillBodyResolverTest',
             'com.dwinovo.numen.plugins.learner.core.ArtifactOutboxTest',
             'com.dwinovo.numen.plugins.learner.contract.ArtifactValidatorTest',
             'com.dwinovo.numen.plugins.learner.LearnerAutoTaskResultIntakeTest',
             'com.dwinovo.numen.plugins.learner.LearnerTaskResultIntakeTest'
         )
         'core:common' = @(
+            'com.dwinovo.numen.core.tools.agent.LoadSkillToolReferenceTest',
             'com.dwinovo.numen.core.tools.work.AttackToolContractTest',
             'com.dwinovo.numen.core.combat.AttackPlanTest',
             'com.dwinovo.numen.core.task.mine.MineHarvestRecoveryConsumerTest',

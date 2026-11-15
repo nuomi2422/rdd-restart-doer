@@ -627,3 +627,21 @@ MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResources
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest+'Helper')}
 Write-Output 'Language resources exact registration 9 assertions PASS (policy only; not Java execution)'
+
+# LH1: exact learned-skill body/reference consumers, each owned by its original module.
+$skillReferenceCases=@(
+    @{Module='core:common';Class='com.dwinovo.numen.core.tools.agent.LoadSkillToolReferenceTest'},
+    @{Module='plugins:learner';Class='com.dwinovo.numen.plugins.learner.skills.LearnedSkillBodyResolverTest'}
+)
+foreach($entry in $skillReferenceCases){
+    $plan=Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class)
+    Assert ($plan.Task -ceq (':'+$entry.Module+':test') -and $plan.Module -ceq $entry.Module -and $plan.Tests.Count -eq 1 -and $plan.Tests[0] -ceq $entry.Class) 'skill reference maps only its exact module/task/class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($entry.Class)).Module -ceq $entry.Module) 'skill reference has one inferred owner'
+    foreach($wrong in @('core:common','plugins:learner','api:common','plugins:acx') | Where-Object {$_ -cne $entry.Module}){
+        MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($entry.Class)}
+    }
+    MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class.ToLowerInvariant())}
+}
+Write-Output 'Learned skill reference exact registration 16 assertions PASS (policy only; not Java execution)'
