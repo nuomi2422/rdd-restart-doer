@@ -1,4 +1,4 @@
-# Offline policy fixtures and static TestOnly native wiring guard.
+﻿# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -515,3 +515,18 @@ MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.h
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @($httpTest+'*')}; $httpChecks++
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.http.HttpLlmTransportTest')}; $httpChecks++
 Write-Output ('V27 http retry exact registration ' + $httpChecks + ' assertions PASS (policy only; not Java execution)')
+
+# Exact existing loader test task; this admission does not enable other Minecraft tests.
+$unloadChecks=0
+$unloadTest='com.dwinovo.numen.debug.ChunkMapUnloadReadyTest'
+$unloadPlan=Get-RddTestOnlyPlan -Module 'api:neoforge' -Tests @($unloadTest)
+Assert ($unloadPlan.Task -ceq ':api:neoforge:test' -and $unloadPlan.Module -ceq 'api:neoforge' -and $unloadPlan.Tests.Count -eq 1 -and $unloadPlan.Tests[0] -ceq $unloadTest) 'bounded unload diagnostic maps only its exact loader task'; $unloadChecks++
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($unloadTest)).Module -ceq 'api:neoforge') 'bounded unload diagnostic has one inferred owner'; $unloadChecks++
+foreach($wrongModule in @('api:common','ai','rdd-core','core:neoforge','plugins:rdd','plugins:learner')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($unloadTest)}; $unloadChecks++
+}
+foreach($wrongTest in @($unloadTest+'*',$unloadTest+'Helper',$unloadTest.ToLowerInvariant(),'com.dwinovo.numen.debug.ChunkMapUnloadAdjacentTest')){
+    MustReject {Get-RddTestOnlyPlan -Module 'api:neoforge' -Tests @($wrongTest)}; $unloadChecks++
+}
+MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($unloadTest,'com.dwinovo.numen.api.RequestDeliveredAggregationTest')}; $unloadChecks++
+Write-Output ('bounded unload exact registration ' + $unloadChecks + ' assertions PASS (policy only; not Java execution)')

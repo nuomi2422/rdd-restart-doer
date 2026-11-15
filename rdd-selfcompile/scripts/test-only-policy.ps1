@@ -1,4 +1,4 @@
-# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
+﻿# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
     # Module -> exact test classes. Unknown module or class is refused; never build
@@ -51,6 +51,10 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.agent.llm.ConvoLogRestoreTest'
             # 2026-11-15: exact HttpLlmTransportRetryTest only; no http wildcard/adjacent admission.
             'com.dwinovo.numen.agent.http.HttpLlmTransportRetryTest'
+        )
+        # 2026-11-15: one bounded native shutdown diagnostic; never admit adjacent MC tests.
+        'api:neoforge' = @(
+            'com.dwinovo.numen.debug.ChunkMapUnloadReadyTest'
         )
         'api:common' = @(
             'com.dwinovo.numen.api.RequestDeliveredAggregationTest',
