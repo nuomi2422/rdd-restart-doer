@@ -591,3 +591,16 @@ foreach($stateFactsTest in $stateFactsTests){
 }
 Assert ((Get-RddTestOnlyPlan -Module 'api:common' -Tests $stateFactsTests).Tests.Count -eq 2) 'both exact state consumers may run together'
 Write-Output 'State facts exact registration 13 assertions PASS (policy only; not Java execution)'
+
+# Exact API-owned header geometry test; no UI module or screen-package admission.
+$headerLayoutTest='com.dwinovo.numen.client.screen.HeaderLayoutTest'
+$headerLayoutPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest)
+Assert ($headerLayoutPlan.Task -ceq ':api:common:test' -and $headerLayoutPlan.Module -ceq 'api:common' -and $headerLayoutPlan.Tests.Count -eq 1 -and $headerLayoutPlan.Tests[0] -ceq $headerLayoutTest) 'header layout maps only the exact api common task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($headerLayoutTest)).Module -ceq 'api:common') 'header layout has one inferred module'
+foreach($wrongModule in @('ui','api:neoforge','plugins:rdd','ai')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($headerLayoutTest)}
+}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest+'Helper')}
+Write-Output 'Header layout exact registration 9 assertions PASS (policy only; not Java execution)'
