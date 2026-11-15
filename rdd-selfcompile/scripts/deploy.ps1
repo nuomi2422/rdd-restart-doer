@@ -383,6 +383,18 @@ if ($Mode -ceq 'original-manual-0fada' -and $PSBoundParameters.ContainsKey('Inst
  } catch { Write-Error ('DEPLOY_MANUAL_0FADA_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-16: verified HP provenance fix, exact core with embedded API only.
+if ($Mode -ceq 'original-hp-e4ed' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'e4edcb356ff50516e3e145c06b718bdfbf5dce1b' -and $MutationId -ceq 'mutation-build-2cde0f776f7045b5ac6ce050a3479243' -and $ExpectedSha256 -ieq 'FEA637B008E50E0DA5D8C55264300AA127F61355E07B3284C9E310FBEEC5C862') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_HP_E4ED_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
