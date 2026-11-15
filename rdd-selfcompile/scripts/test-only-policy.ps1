@@ -81,7 +81,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.ExecutorCompanionIsolationTest',
             'com.dwinovo.numen.entity.TemporaryEntityProtectionTest',
             'com.dwinovo.numen.task.TaskRecordTest',
-            'com.dwinovo.numen.api.CompanionEndpointTest'
+            'com.dwinovo.numen.api.CompanionEndpointTest',
+            'com.dwinovo.numen.client.preview.PreviewStartupTest'
         )
         'plugins:learner' = @(
             'com.dwinovo.numen.plugins.learner.LearnerAutoDeliveryIntakeTest',

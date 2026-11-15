@@ -560,3 +560,10 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest+
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureAdjacentTest')}; $futureNeedsChecks++
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($futureNeedsTest+'Helper')}; $futureNeedsChecks++
 Write-Output ('RddFutureNeeds exact registration ' + $futureNeedsChecks + ' assertions PASS (policy only; not Java execution)')
+
+# 2026-11-15: exact PreviewStartupTest; helper name rejected.
+$previewStartupTest='com.dwinovo.numen.client.preview.PreviewStartupTest'
+$previewStartupPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($previewStartupTest)
+Assert ($previewStartupPlan.Task -ceq ':api:common:test' -and $previewStartupPlan.Module -ceq 'api:common' -and $previewStartupPlan.Tests.Count -eq 1 -and $previewStartupPlan.Tests[0] -ceq $previewStartupTest) 'PreviewStartupTest maps only the exact api:common task'
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($previewStartupTest+'Helper')}
+Write-Output 'PreviewStartup exact registration 2 assertions PASS (policy only; not Java execution)'
