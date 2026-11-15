@@ -646,7 +646,7 @@ foreach($release in @(
  $kind=$case.Substring($release.tag.Length+1)
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $module=if($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($tuples.ContainsKey('plugins:experience') -and $kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
+ $module=if($tuples.Count -eq 1){@($tuples.Keys)[0]}elseif($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($tuples.ContainsKey('plugins:experience') -and $kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
  $commit=$release.commit
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
@@ -735,6 +735,9 @@ foreach($release in @(
 }
 
 # 2026-11-15: V26 and V27 core releases share one copied-entry/receipt/backup runner; cases stay explicit.
+ # 2026-11-15: own-learner single-tuple cases (prefix added when the real tuple row lands).
+ $learnerOwnCases=@('learner','bad-id','bad-commit','bad-sha','bad-source','bad-proof','wrong-size','fixed-size','wrong-module','escape','copy-failure','wrong-root','running','unknown','env-only','wrong-instance','jarpath','jarname','full','isolated')
+
 $v26Cases=@('v26-core','v26-rdd','v26-env-only','v26-wrong-instance','v26-bad-id','v26-bad-commit','v26-bad-sha','v26-swapped-sha','v26-wrong-module','v26-wrong-size','v26-fixed-size','v26-dirty-source','v26-missing-exit','v26-nonzero-exit','v26-running','v26-unknown','v26-wrong-root','v26-jarpath','v26-jarname','v26-full','v26-isolated','v26-escape','v26-corrupt-artifact','v26-core-copy-failure','v26-rdd-copy-failure')
 $convoCases=@('convo-core','convo-bad-id','convo-bad-sha','convo-bad-source','convo-wrong-module','convo-wrong-size','convo-bad-proof','convo-escape','convo-copy-failure','convo-wrong-root','convo-running','convo-unknown','convo-env-only','convo-wrong-instance','convo-jarpath','convo-jarname','convo-full','convo-isolated')
 $kbqCases=@('kbq-core','kbq-bad-id','kbq-bad-sha','kbq-bad-source','kbq-wrong-module','kbq-wrong-size','kbq-bad-proof','kbq-escape','kbq-copy-failure','kbq-wrong-root','kbq-running','kbq-unknown','kbq-env-only','kbq-wrong-instance','kbq-jarpath','kbq-jarname','kbq-full','kbq-isolated')
