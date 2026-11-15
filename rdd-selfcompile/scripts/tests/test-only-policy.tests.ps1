@@ -577,3 +577,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($respawnEventTest
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($respawnEventTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($respawnEventTest+'Helper')}
 Write-Output 'Respawn event exact registration 5 assertions PASS (policy only; not Java execution)'
+
+# Exact existing health-facts consumers; mandatory plan prose is not current SELF evidence.
+$stateFactsTests=@('com.dwinovo.numen.api.StateFactsTest','com.dwinovo.numen.api.StateFragmentRegistryTest')
+foreach($stateFactsTest in $stateFactsTests){
+    $plan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($stateFactsTest)
+    Assert ($plan.Task -ceq ':api:common:test' -and $plan.Module -ceq 'api:common' -and $plan.Tests.Count -eq 1 -and $plan.Tests[0] -ceq $stateFactsTest) 'state facts maps only the exact api common class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($stateFactsTest)).Module -ceq 'api:common') 'state facts has one inferred module'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($stateFactsTest)}
+    MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($stateFactsTest+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($stateFactsTest+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($stateFactsTest.ToLowerInvariant())}
+}
+Assert ((Get-RddTestOnlyPlan -Module 'api:common' -Tests $stateFactsTests).Tests.Count -eq 2) 'both exact state consumers may run together'
+Write-Output 'State facts exact registration 13 assertions PASS (policy only; not Java execution)'

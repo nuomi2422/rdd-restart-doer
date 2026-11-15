@@ -77,6 +77,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.CapturedOwnerInputTest',
             'com.dwinovo.numen.client.chat.QuickVoiceCaptureTest',
             'com.dwinovo.numen.api.ExecutorRetrievalInputTest',
+            'com.dwinovo.numen.api.StateFactsTest',
+            'com.dwinovo.numen.api.StateFragmentRegistryTest',
             'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
             'com.dwinovo.numen.api.ExecutorCompanionIsolationTest',
             'com.dwinovo.numen.entity.TemporaryEntityProtectionTest',
