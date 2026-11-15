@@ -1,13 +1,14 @@
 ﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
 $src=Split-Path $PSScriptRoot -Parent
 $utf8=[Text.UTF8Encoding]::new($true)
 function Put($p,$s){[IO.File]::WriteAllText($p,$s,$utf8)}
-$cases=@('missing','gpt','env-only','bad-sha','bad-receipt','escape','running','unknown','copy-failure','core','rdd','learner','repeat','link','missing-exit','original-learner','original-env-only','original-wrong-instance','original-wrong-mutation','original-bad-sha','original-bad-commit','original-running','original-unknown')
 $results=@()
+if(-not $OnlyRelease){
+$cases=@('missing','gpt','env-only','bad-sha','bad-receipt','escape','running','unknown','copy-failure','core','rdd','learner','repeat','link','missing-exit','original-learner','original-env-only','original-wrong-instance','original-wrong-mutation','original-bad-sha','original-bad-commit','original-running','original-unknown')
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'test';$live=Join-Path $d 'live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$live,$mut,(Join-Path $root 'mods') | Out-Null
@@ -615,6 +616,7 @@ foreach($case in $parallelCases){
  $results+=@{case=$case;module=$module;exit=$exit;passed=$true;poison=0;oldBackupPreserved=$true;unchangedPeers=4;scope='copied exact aa735 plugin entry, fixture files/CIM only; no production deployment'}
 }
 
+}
 # 2026-11-14: 8853 same-source plugins, three copies plus 20 shared/cross-pair refusals.
 # Preserve the original 188 cases verbatim; only relocated scripts, fake jars and fake CIM run here.
 $why8853Tuples=@{
@@ -645,6 +647,7 @@ foreach($release in @(
  @{tag='daily';commit='faede91ce4bf0ff5c9253df798988a4f4f8fddf9';mode='original-daily-faede';tuples=$dailyTuples;cases=$dailyCases},
  @{tag='ownlrn';commit='1e40290cfad3e64a9fd4f3e1a015c73dd92e3646';mode='original-learner-late-1e402';tuples=@{'plugins:learner'=@('mutation-build-d5fcda28252c4f00b4b73edc70fd4a05','numen-plugin-learner-1.21.1-0.1.3-dev.jar','886ECA7AF36A0D8273E8FB0591CF6D9322C05B9017B68EB7D98AA4CE34F23BF8',637775)};cases=@($learnerOwnCases|ForEach-Object{'ownlrn-'+$_})}
 )){
+ if($OnlyRelease -and $release.tag -ne $OnlyRelease){continue}
  $tuples=$release.tuples
  foreach($case in $release.cases){
  $kind=$case.Substring($release.tag.Length+1)
@@ -748,6 +751,7 @@ $coreReleases=@(
  @{tag='kbq';commit='83ddd36f00aecd64b220155bf53658dbac776df0';mode='original-kb-quota-83ddd';coreId='mutation-build-e5184f70bd7b41fdabdc3f85cbf17306';coreHash='FB48F4779F68827A3CCD8EDBAE002A6D2F769EBED005C6298E16C1556CC00A4D';coreBytes=3083591;policyBytes=@(3083591);cases=$kbqCases}
 )
 foreach($coreRelease in $coreReleases){
+ if($OnlyRelease -and $coreRelease.tag -ne $OnlyRelease){continue}
  $tag=$coreRelease.tag
  foreach($case in $coreRelease.cases){
   $kind=$case.Substring($tag.Length+1)
@@ -837,6 +841,12 @@ foreach($coreRelease in $coreReleases){
  }
 }
 
+if($OnlyRelease){
+ $sel=@($results | Where-Object { $_.case -like ($OnlyRelease + '-*') })
+ if($sel.Count -ne 20){throw ('OnlyRelease '+$OnlyRelease+' expected 20 cases, got '+$sel.Count)}
+ $uniq=@($sel | ForEach-Object { $_.case } | Select-Object -Unique)
+ if($uniq.Count -ne 20){throw ('OnlyRelease '+$OnlyRelease+' case names not unique: '+$uniq.Count)}
+}
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 4)
 Write-Output ('PASS '+$results.Count+' isolated test-deploy cases; no production entry/CIM/config')
 # Do not leak the expected nonzero exit from the final refusal fixture.
