@@ -635,6 +635,9 @@ $b2c1Tuples=@{
 $b2c1Cases=@('b2c1-rdd','b2c1-bad-commit','b2c1-wrong-size','b2c1-fixed-size','b2c1-bad-proof','b2c1-escape','b2c1-bad-source','b2c1-copy-failure','b2c1-wrong-root','b2c1-running','b2c1-unknown','b2c1-env-only','b2c1-wrong-instance','b2c1-jarpath','b2c1-jarname','b2c1-full','b2c1-isolated')
 $dailyTuples=@{'plugins:rdd'=@('mutation-build-faa7ff97c0c44bb6b9d36aef17281ae9','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','C9798F2F4068266AF4574400ABD754B6CEF814D08B23E5A4FA3DC569E9A4C1E1',1195737)}
 $dailyCases=@('daily-rdd','daily-bad-id','daily-bad-commit','daily-bad-sha','daily-wrong-size','daily-fixed-size','daily-bad-proof','daily-escape','daily-bad-source','daily-wrong-module','daily-copy-failure','daily-wrong-root','daily-running','daily-unknown','daily-env-only','daily-wrong-instance','daily-jarpath','daily-jarname','daily-full','daily-isolated')
+ # 2026-11-15: own-learner single-tuple cases (prefix added when the real tuple row lands).
+ $learnerOwnCases=@('learner','bad-id','bad-commit','bad-sha','bad-source','bad-proof','wrong-size','fixed-size','wrong-module','escape','copy-failure','wrong-root','running','unknown','env-only','wrong-instance','jarpath','jarname','full','isolated')
+
 foreach($release in @(
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
  @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
@@ -736,9 +739,6 @@ foreach($release in @(
 }
 
 # 2026-11-15: V26 and V27 core releases share one copied-entry/receipt/backup runner; cases stay explicit.
- # 2026-11-15: own-learner single-tuple cases (prefix added when the real tuple row lands).
- $learnerOwnCases=@('learner','bad-id','bad-commit','bad-sha','bad-source','bad-proof','wrong-size','fixed-size','wrong-module','escape','copy-failure','wrong-root','running','unknown','env-only','wrong-instance','jarpath','jarname','full','isolated')
-
 $v26Cases=@('v26-core','v26-rdd','v26-env-only','v26-wrong-instance','v26-bad-id','v26-bad-commit','v26-bad-sha','v26-swapped-sha','v26-wrong-module','v26-wrong-size','v26-fixed-size','v26-dirty-source','v26-missing-exit','v26-nonzero-exit','v26-running','v26-unknown','v26-wrong-root','v26-jarpath','v26-jarname','v26-full','v26-isolated','v26-escape','v26-corrupt-artifact','v26-core-copy-failure','v26-rdd-copy-failure')
 $convoCases=@('convo-core','convo-bad-id','convo-bad-sha','convo-bad-source','convo-wrong-module','convo-wrong-size','convo-bad-proof','convo-escape','convo-copy-failure','convo-wrong-root','convo-running','convo-unknown','convo-env-only','convo-wrong-instance','convo-jarpath','convo-jarname','convo-full','convo-isolated')
 $kbqCases=@('kbq-core','kbq-bad-id','kbq-bad-sha','kbq-bad-source','kbq-wrong-module','kbq-wrong-size','kbq-bad-proof','kbq-escape','kbq-copy-failure','kbq-wrong-root','kbq-running','kbq-unknown','kbq-env-only','kbq-wrong-instance','kbq-jarpath','kbq-jarname','kbq-full','kbq-isolated')
