@@ -167,7 +167,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
         )
         'plugins:acx' = @(
-            'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest'
+            'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest',
+            'com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
         )
         # 2026-11-14: exact existing experience bridge consumers; no prefix or whole-module execution.
         'plugins:experience' = @(

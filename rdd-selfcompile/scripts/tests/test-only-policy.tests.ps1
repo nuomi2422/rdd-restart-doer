@@ -41,6 +41,16 @@ foreach($case in $c1Tests){
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($c1Tests[0].Class,$c1Tests[1].Class)}
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.OtherTest')}
 Write-Output 'C1 exact registration 23 assertions PASS (policy only; not Java execution)'
+# LH2 preparation: one existing farm consumer, never a package-prefix release.
+$farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
+$farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)
+Assert ($farmPlan.Module -ceq 'plugins:acx' -and $farmPlan.Task -ceq ':plugins:acx:test' -and $farmPlan.Tests.Count -eq 1 -and $farmPlan.Tests[0] -ceq $farmTest) 'farm consumer keeps its exact module and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($farmTest)).Module -ceq 'plugins:acx') 'farm consumer has one inferred owner'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($farmTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest+'Helper')}
+Write-Output 'farm preparation exact registration 5 assertions PASS (policy only; not Java execution)'
+
 # Exact existing assembler consumer only; no retrieval package or adjacent class admission.
 $assemblerTest='com.dwinovo.numen.agent.retrieval.MinimalContextAssemblerTest'
 $assemblerPlan=Get-RddTestOnlyPlan -Module 'ai' -Tests @($assemblerTest)
