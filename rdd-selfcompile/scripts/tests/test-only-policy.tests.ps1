@@ -1,4 +1,4 @@
-﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -530,3 +530,18 @@ foreach($wrongTest in @(($unloadTest+'*'),($unloadTest+'Helper'),($unloadTest.To
 }
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($unloadTest,'com.dwinovo.numen.api.RequestDeliveredAggregationTest')}; $unloadChecks++
 Write-Output ('bounded unload exact registration ' + $unloadChecks + ' assertions PASS (policy only; not Java execution)')
+
+# 2026-11-15: exact TrajectorySlicesTest consumer only; no adjacent/wildcard/cross-module admission.
+$trajectoryChecks=0
+$trajectoryTest='com.dwinovo.numen.plugins.learner.core.TrajectorySlicesTest'
+$trajectoryPlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTest)
+Assert ($trajectoryPlan.Task -ceq ':plugins:learner:test' -and $trajectoryPlan.Module -ceq 'plugins:learner' -and $trajectoryPlan.Tests.Count -eq 1 -and $trajectoryPlan.Tests[0] -ceq $trajectoryTest) 'TrajectorySlicesTest maps only the exact learner test task'; $trajectoryChecks++
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($trajectoryTest)).Module -ceq 'plugins:learner') 'TrajectorySlicesTest has one inferred owner plugins:learner'; $trajectoryChecks++
+foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($trajectoryTest)}; $trajectoryChecks++
+}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTest.ToLowerInvariant())}; $trajectoryChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTest+'*')}; $trajectoryChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @('com.dwinovo.numen.plugins.learner.core.TrajectorySlicesAdjacentTest')}; $trajectoryChecks++
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($trajectoryTest+'Helper')}; $trajectoryChecks++
+Write-Output ('TrajectorySlices exact registration ' + $trajectoryChecks + ' assertions PASS (policy only; not Java execution)')
