@@ -633,10 +633,13 @@ $b2c1Tuples=@{
  'plugins:rdd'=@('mutation-build-c3a130228cf54d41a05fa168e0446338','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','18C226A3450D36DE2CD4B126F4D639FA4A66E154AC9979DC02E91EEFD28F00DA',1193497)
 }
 $b2c1Cases=@('b2c1-rdd','b2c1-bad-commit','b2c1-wrong-size','b2c1-fixed-size','b2c1-bad-proof','b2c1-escape','b2c1-bad-source','b2c1-copy-failure','b2c1-wrong-root','b2c1-running','b2c1-unknown','b2c1-env-only','b2c1-wrong-instance','b2c1-jarpath','b2c1-jarname','b2c1-full','b2c1-isolated')
+$dailyTuples=@{'plugins:rdd'=@('mutation-build-faa7ff97c0c44bb6b9d36aef17281ae9','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','C9798F2F4068266AF4574400ABD754B6CEF814D08B23E5A4FA3DC569E9A4C1E1',1195737)}
+$dailyCases=@('daily-rdd','daily-bad-id','daily-bad-commit','daily-bad-sha','daily-wrong-size','daily-fixed-size','daily-bad-proof','daily-escape','daily-bad-source','daily-wrong-module','daily-copy-failure','daily-wrong-root','daily-running','daily-unknown','daily-env-only','daily-wrong-instance','daily-jarpath','daily-jarname','daily-full','daily-isolated')
 foreach($release in @(
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
  @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
- @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases}
+ @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases},
+ @{tag='daily';commit='faede91ce4bf0ff5c9253df798988a4f4f8fddf9';mode='original-daily-faede';tuples=$dailyTuples;cases=$dailyCases}
 )){
  $tuples=$release.tuples
  foreach($case in $release.cases){
@@ -689,7 +692,9 @@ foreach($release in @(
  if($kind -eq 'full'){$argsText='-Mode full -Instance gpt'}
  if($kind -eq 'isolated'){$argsText='-Mode isolated-test -Instance test'}
  if($kind -eq 'bad-commit'){$commit='0'*40}
+ if($kind -eq 'bad-id'){$id='mutation-build-not-'+$release.tag}
  $wanted=$sha
+ if($kind -eq 'bad-sha'){$wanted='0'*64}
  if($kind -eq 'rdd-sha-learner'){$wanted=$fixtureHashes['plugins:learner']}
  if($kind -eq 'learner-id-experience'){$id=$tuples['plugins:experience'][0]}
  if($kind -eq 'experience-sha-rdd'){$wanted=$fixtureHashes['plugins:rdd']}

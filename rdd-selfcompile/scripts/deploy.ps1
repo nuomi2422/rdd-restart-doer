@@ -345,6 +345,18 @@ if ($Mode -ceq 'original-kb-quota-83ddd' -and $PSBoundParameters.ContainsKey('In
 } catch { Write-Error ('DEPLOY_KB_QUOTA_83DDD_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-15: exact V30 daily-condition RDD artifact (faede) only; every older rollback tuple stays unchanged.
+if ($Mode -ceq 'original-daily-faede' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'faede91ce4bf0ff5c9253df798988a4f4f8fddf9' -and $MutationId -ceq 'mutation-build-faa7ff97c0c44bb6b9d36aef17281ae9' -and $ExpectedSha256 -ieq 'C9798F2F4068266AF4574400ABD754B6CEF814D08B23E5A4FA3DC569E9A4C1E1') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+} catch { Write-Error ('DEPLOY_DAILY_FAEDE_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
