@@ -1,4 +1,4 @@
-﻿# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
+# Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
     # Module -> exact test classes. Unknown module or class is refused; never build
@@ -80,6 +80,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.ExecutorBudgetAggregationTest',
             'com.dwinovo.numen.api.ExecutorCompanionIsolationTest',
             'com.dwinovo.numen.entity.TemporaryEntityProtectionTest',
+            'com.dwinovo.numen.entity.RespawnEventSnapshotTest',
             'com.dwinovo.numen.task.TaskRecordTest',
             'com.dwinovo.numen.api.CompanionEndpointTest',
             'com.dwinovo.numen.client.preview.PreviewStartupTest'

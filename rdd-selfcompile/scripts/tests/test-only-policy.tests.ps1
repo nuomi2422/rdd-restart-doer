@@ -1,4 +1,4 @@
-﻿# Offline policy fixtures and static TestOnly native wiring guard.
+# Offline policy fixtures and static TestOnly native wiring guard.
 # 2026-11-12: caller Stop must not let PS5.1 stderr preempt native exit capture.
 # Normal script invocation only; native execution requires the managed parent run.
 $ErrorActionPreference = 'Stop'
@@ -567,3 +567,13 @@ $previewStartupPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($previewSt
 Assert ($previewStartupPlan.Task -ceq ':api:common:test' -and $previewStartupPlan.Module -ceq 'api:common' -and $previewStartupPlan.Tests.Count -eq 1 -and $previewStartupPlan.Tests[0] -ceq $previewStartupTest) 'PreviewStartupTest maps only the exact api:common task'
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($previewStartupTest+'Helper')}
 Write-Output 'PreviewStartup exact registration 2 assertions PASS (policy only; not Java execution)'
+
+# Exact final respawn event projection; no entity package wildcard or cross-module permission.
+$respawnEventTest='com.dwinovo.numen.entity.RespawnEventSnapshotTest'
+$respawnEventPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($respawnEventTest)
+Assert ($respawnEventPlan.Task -ceq ':api:common:test' -and $respawnEventPlan.Module -ceq 'api:common' -and $respawnEventPlan.Tests.Count -eq 1 -and $respawnEventPlan.Tests[0] -ceq $respawnEventTest) 'respawn event maps only the exact api:common task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($respawnEventTest)).Module -ceq 'api:common') 'respawn event has one inferred module'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($respawnEventTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($respawnEventTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($respawnEventTest+'Helper')}
+Write-Output 'Respawn event exact registration 5 assertions PASS (policy only; not Java execution)'
