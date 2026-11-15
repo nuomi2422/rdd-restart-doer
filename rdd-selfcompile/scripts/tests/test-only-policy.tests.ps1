@@ -604,3 +604,16 @@ MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest.
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($headerLayoutTest+'Helper')}
 Write-Output 'Header layout exact registration 9 assertions PASS (policy only; not Java execution)'
+
+# Exact generated language-resource contract; no data/build-tool wildcard.
+$languageResourcesTest='com.dwinovo.numen.data.LanguageResourcesTest'
+$languageResourcesPlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest)
+Assert ($languageResourcesPlan.Task -ceq ':api:common:test' -and $languageResourcesPlan.Module -ceq 'api:common' -and $languageResourcesPlan.Tests.Count -eq 1 -and $languageResourcesPlan.Tests[0] -ceq $languageResourcesTest) 'language resources maps only the exact api common task'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($languageResourcesTest)).Module -ceq 'api:common') 'language resources has one inferred module'
+foreach($wrongModule in @('ui','api:neoforge','plugins:rdd','ai')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($languageResourcesTest)}
+}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($languageResourcesTest+'Helper')}
+Write-Output 'Language resources exact registration 9 assertions PASS (policy only; not Java execution)'

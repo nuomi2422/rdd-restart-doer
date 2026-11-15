@@ -86,6 +86,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.task.TaskRecordTest',
             'com.dwinovo.numen.api.CompanionEndpointTest',
             'com.dwinovo.numen.client.screen.HeaderLayoutTest',
+            'com.dwinovo.numen.data.LanguageResourcesTest',
             'com.dwinovo.numen.client.preview.PreviewStartupTest'
         )
         'plugins:learner' = @(
