@@ -457,6 +457,17 @@ foreach($deathConsumer in @('com.dwinovo.numen.plugins.rdd.RddDeathFactsConsumer
     MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathConsumer+'Helper')}
 }
 Write-Output 'death consumers exact registration 12 assertions PASS (policy only; not Java execution)'
+# Exact existing Fact consumers and candidate Carry projection only; admission does not enable disabled Java tests.
+foreach($projectionConsumer in @('com.dwinovo.numen.plugins.rdd.RddFactContextTest','com.dwinovo.numen.plugins.rdd.G1b2ManifestCacheTest','com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest','com.dwinovo.numen.plugins.rdd.G1c2FingerprintTest','com.dwinovo.numen.plugins.rdd.G1c3TransformAttributionTest','com.dwinovo.numen.plugins.rdd.RddCarryProjectionTest')){
+    $projectionPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($projectionConsumer)
+    Assert ($projectionPlan.Task -ceq ':plugins:rdd:test' -and $projectionPlan.Tests.Count -eq 1 -and $projectionPlan.Tests[0] -ceq $projectionConsumer) 'projection consumer preserves exact task and class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($projectionConsumer)).Module -ceq 'plugins:rdd') 'projection consumer has one owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($projectionConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($projectionConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($projectionConsumer+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($projectionConsumer+'Helper')}
+}
+Write-Output 'Fact and Carry projection exact registration 36 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
