@@ -1,5 +1,5 @@
-﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation')][string]$OnlyRelease)
+# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -753,7 +753,9 @@ $hpCases=@('hp-core','hp-env-only','hp-wrong-instance','hp-bad-id','hp-bad-commi
 $names=@{'core:neoforge'='numen-neoforge-1.21.1-0.1.3-dev.jar';'plugins:rdd'='numen-plugin-rdd-1.21.1-0.1.3-dev.jar';'plugins:learner'='numen-plugin-learner-1.21.1-0.1.3-dev.jar'}
 $uiCases=@($hpCases | ForEach-Object { $_ -replace '^hp-','ui-' })
 $consolidationCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','consolidation-' })
+$trioCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','trio-' }) + @('trio-learner','trio-learner-copy-failure','trio-learner-bad-sha','trio-learner-wrong-module','trio-learner-bad-source','trio-learner-fixed-size','trio-learner-running','trio-learner-unknown','trio-learner-escape')
 $coreReleases=@(
+ @{tag='trio';commit='3ee7ff271c6c02bb74f828e7ba75cc27464b9600';mode='original-trio-3ee7';coreId='mutation-build-13df6869a04f4607b499dd8c9d250e65';coreHash='4840D714F0E31C5E0F1C59214AF9A9C040A91C6E594328399492C5B37393DD6A';rddId='mutation-build-6abbdea615ba45d196b497ba7685f909';rddHash='1E01B60F697154AB082FBAAED8DB0EEA93BDAD4A43385A5ABF88D98DDDCE5287';learnerId='mutation-build-63eaefff6767450e8dba4982162948a3';learnerHash='E0B937ECF0B828835FFE764BB2B339D4F9A70F0968849C9319FE67BFAF5160E8';policyBytes=@(2588508,1221026,640473);cases=$trioCases},
  @{tag='consolidation';commit='3238c63e087aff10bd82eca1471740d48478976c';mode='original-consolidation-3238';coreId='mutation-build-8f22b2d6d6fb487fa19c4207006c8d9d';coreHash='905DAA01BB3ADBBB479E3F498D0B42E416B918F58B63401808271121F87D4A4E';coreBytes=2589178;rddId='mutation-build-01d8b35cca62496fa1a1f2d13d25fe3a';rddHash='6D3E38E5A12BD9A54F9C3F6A6CAB3C2320DE8376567E02DD1A5274326C3C23D2';rddBytes=1220172;policyBytes=@(2589178,1220172);cases=$consolidationCases},
  @{tag='ui';commit='ddd42b8005a9cab35710dc6652adba0bdb8fd5e5';mode='original-ui-ddd42';coreId='mutation-build-81c298370ef5495d8af734bd2290953c';coreHash='C58E1F73D097A20CDCFF1F413C6D9C21F4EF76CD76872B6AE031BE2E493A3DCA';coreBytes=2581905;policyBytes=@(2581905);cases=$uiCases},
  @{tag='hp';commit='e4edcb356ff50516e3e145c06b718bdfbf5dce1b';mode='original-hp-e4ed';coreId='mutation-build-2cde0f776f7045b5ac6ce050a3479243';coreHash='FEA637B008E50E0DA5D8C55264300AA127F61355E07B3284C9E310FBEEC5C862';coreBytes=2568857;policyBytes=@(2568857);cases=$hpCases},
@@ -769,9 +771,11 @@ foreach($coreRelease in $coreReleases){
   $kind=$case.Substring($tag.Length+1)
   $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
   New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
-  $module=if($kind -eq 'rdd' -or $kind -eq 'rdd-copy-failure'){'plugins:rdd'}else{'core:neoforge'}
-  $id=if($module -ceq 'core:neoforge'){$coreRelease.coreId}else{$coreRelease.rddId}
-  $fixedHash=if($module -ceq 'core:neoforge'){$coreRelease.coreHash}else{$coreRelease.rddHash}
+  $learnerCase=$kind -eq 'learner' -or $kind.StartsWith('learner-')
+  $module=if($learnerCase){'plugins:learner'}elseif($kind -eq 'rdd' -or $kind -eq 'rdd-copy-failure'){'plugins:rdd'}else{'core:neoforge'}
+  if($learnerCase -and $kind.StartsWith('learner-')){$kind=$kind.Substring('learner-'.Length)}
+  $id=if($module -ceq 'core:neoforge'){$coreRelease.coreId}elseif($module -ceq 'plugins:learner'){$coreRelease.learnerId}else{$coreRelease.rddId}
+  $fixedHash=if($module -ceq 'core:neoforge'){$coreRelease.coreHash}elseif($module -ceq 'plugins:learner'){$coreRelease.learnerHash}else{$coreRelease.rddHash}
   $otherTupleHash=if($module -ceq 'core:neoforge'){$coreRelease.rddHash}else{$coreRelease.coreHash}
   $md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
   $artifact=Join-Path $jd $names[$module];Put $artifact ($tag+'-fixture-only-'+$module)
@@ -784,7 +788,7 @@ foreach($coreRelease in $coreReleases){
   $fixedSize=if($kind -eq 'fixed-size'){$length+1}else{$length}
   foreach($b in $coreRelease.policyBytes){$policy=$policy.Replace(','+$b+')',','+$fixedSize+')')}
   if($kind -eq 'wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
-  $copyFail=$kind -in @('copy-failure','core-copy-failure','rdd-copy-failure')
+  $copyFail=$kind -in @('copy-failure','core-copy-failure','rdd-copy-failure','learner-copy-failure')
   if($copyFail){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture $tag copy failure'")}
   Put (Join-Path $scripts 'deploy.ps1') $deploy;Put (Join-Path $scripts 'deploy-test-policy.ps1') $policy
   Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
@@ -794,7 +798,7 @@ foreach($coreRelease in $coreReleases){
   $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
   if($kind -eq 'bad-source'){$r.sourceHeadAfter='0'*40}
   if($kind -eq 'bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
-  if($kind -eq 'wrong-module'){$r.module='plugins:learner'}
+  if($kind -eq 'wrong-module'){$r.module=if($module -ceq 'plugins:learner'){'plugins:rdd'}else{'plugins:learner'}}
   if($kind -eq 'wrong-size'){$r.bytes=$length+1}
   if($kind -eq 'dirty-source'){$r.sourceDirtyCountAfter=1}
   if($kind -eq 'missing-exit'){$r.Remove('gradleExit')}
@@ -806,7 +810,8 @@ foreach($coreRelease in $coreReleases){
   $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api ($tag+'-old-api');$apiHash=(Get-FileHash $api).Hash
   $otherModule=if($module -ceq 'core:neoforge'){'plugins:rdd'}else{'core:neoforge'}
   $otherMod=Join-Path (Join-Path $root 'mods') $names[$otherModule];Put $otherMod ($tag+'-other-module');$otherModHash=(Get-FileHash $otherMod).Hash
-  $learner=Join-Path (Join-Path $root 'mods') $names['plugins:learner'];Put $learner ($tag+'-old-learner');$learnerHash=(Get-FileHash $learner).Hash
+  $peerRdd=Join-Path (Join-Path $root 'mods') $names['plugins:rdd'];if($learnerCase){Put $peerRdd ($tag+'-peer-rdd');$peerRddHash=(Get-FileHash $peerRdd).Hash}
+  $learner=Join-Path (Join-Path $root 'mods') $names['plugins:learner'];if($module -cne 'plugins:learner'){Put $learner ($tag+'-old-learner')};$learnerHash=(Get-FileHash $learner).Hash
   $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other ($tag+'-unrelated');$otherHash=(Get-FileHash $other).Hash
   $cim=if($kind -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($kind -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
   $argsText='-Mode '+$coreRelease.mode+' -Instance gpt'
@@ -823,11 +828,12 @@ foreach($coreRelease in $coreReleases){
   $runner=Join-Path $d 'run.ps1';Put $runner $wrapper
   $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -File $runner 2>&1;$exit=$LASTEXITCODE;$ErrorActionPreference='Stop'
   Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
-  $ok=$kind -in @('core','rdd')
+  $ok=$kind -in @('core','rdd','learner')
   if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure in '+$case)}
   if(($exit -eq 0) -ne $ok){throw ('unexpected '+$case+' exit '+$exit)}
   if(Test-Path $poison){throw $tag+' entry invoked generic config/launch'}
-  if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $otherMod).Hash -ne $otherModHash -or (Get-FileHash $learner).Hash -ne $learnerHash){throw $tag+' entry touched another package'}
+  if((Get-FileHash $other).Hash -ne $otherHash -or (Get-FileHash $otherMod).Hash -ne $otherModHash -or ($module -cne 'plugins:learner' -and (Get-FileHash $learner).Hash -ne $learnerHash)){throw $tag+' entry touched another package'}
+  if($learnerCase -and (Get-FileHash $peerRdd).Hash -ne $peerRddHash){throw 'learner changed peer RDD'}
   $receipts=@(Get-ChildItem $md -Filter 'deploy-test-*.json')
   $expectedBackups=if($module -ceq 'core:neoforge'){2}else{1}
   if($ok -or $copyFail){

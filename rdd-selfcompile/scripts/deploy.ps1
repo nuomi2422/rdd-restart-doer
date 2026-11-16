@@ -479,6 +479,18 @@ if ($Mode -ceq 'original-consolidation-3238' -and $PSBoundParameters.ContainsKey
  } catch { Write-Error ('DEPLOY_CONSOLIDATION_3238_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# Exact reviewed 3ee7 trio only; no arbitrary source/path channel.
+if ($Mode -ceq 'original-trio-3ee7' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '3ee7ff271c6c02bb74f828e7ba75cc27464b9600' -and (($MutationId -ceq 'mutation-build-13df6869a04f4607b499dd8c9d250e65' -and $ExpectedSha256 -ieq '4840D714F0E31C5E0F1C59214AF9A9C040A91C6E594328399492C5B37393DD6A') -or ($MutationId -ceq 'mutation-build-6abbdea615ba45d196b497ba7685f909' -and $ExpectedSha256 -ieq '1E01B60F697154AB082FBAAED8DB0EEA93BDAD4A43385A5ABF88D98DDDCE5287') -or ($MutationId -ceq 'mutation-build-63eaefff6767450e8dba4982162948a3' -and $ExpectedSha256 -ieq 'E0B937ECF0B828835FFE764BB2B339D4F9A70F0968849C9319FE67BFAF5160E8'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_TRIO_3EE7_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
