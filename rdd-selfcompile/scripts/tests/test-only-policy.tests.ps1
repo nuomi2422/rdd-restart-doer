@@ -413,6 +413,17 @@ foreach($inventoryConsumer in @('com.dwinovo.numen.plugins.rdd.RddInventoryProje
     MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($inventoryConsumer+'Helper')}
 }
 Write-Output 'inventory consumers exact registration 12 assertions PASS (policy only; not Java execution)'
+# Original budget consumer and the prompt extraction seam only; exact class registration.
+foreach($promptConsumer in @('com.dwinovo.numen.plugins.rdd.RddDecomposerAssetBoundsTest','com.dwinovo.numen.plugins.rdd.RddDecomposerPromptDelegationTest')){
+    $promptPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($promptConsumer)
+    Assert ($promptPlan.Task -ceq ':plugins:rdd:test' -and $promptPlan.Tests.Count -eq 1 -and $promptPlan.Tests[0] -ceq $promptConsumer) 'prompt consumer keeps exact class and task'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($promptConsumer)).Module -ceq 'plugins:rdd') 'prompt consumer has one owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($promptConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($promptConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($promptConsumer+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($promptConsumer+'Extra')}
+}
+Write-Output 'prompt consumers exact registration 12 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
