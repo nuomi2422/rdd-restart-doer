@@ -515,6 +515,18 @@ if ($Mode -ceq 'original-v02-plan-40905' -and $PSBoundParameters.ContainsKey('In
  } catch { Write-Error ('DEPLOY_V02_PLAN_40905_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# Exact 4e110 projection single RDD artifact only; no source/path override.
+if ($Mode -ceq 'original-projection-4e110' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '4e11016f70f310d87c57faa4818037fa7bcce100' -and $MutationId -ceq 'mutation-build-a72f05bde6494b1cb714cd0a334b9615' -and $ExpectedSha256 -ieq 'CFE9BEAAC8FBEF881F7F207DD5FD5608B788FA669D09416810F1BD86313D99D3') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_PROJECTION_4E110_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
