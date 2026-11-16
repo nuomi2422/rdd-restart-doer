@@ -24,6 +24,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddHomeReserveFreshnessTest',
             'com.dwinovo.numen.plugins.rdd.RddExternalResetWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
+            'com.dwinovo.numen.plugins.rdd.RddEarlyProposalPublisherTest',
+            'com.dwinovo.numen.plugins.rdd.RddControlFlagReadsTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',
             'com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest',
@@ -155,6 +157,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.core.pathing.calc.NavGoalDiagnosticsTest'
         )
         'rdd-core' = @(
+            'com.dwinovo.numen.rdd.core.EarlyCompletionTest',
+            'com.dwinovo.numen.rdd.core.RddEarlyCompletionProposalTest',
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
             'com.dwinovo.numen.rdd.core.G3cPlanPatchTest',
             'com.dwinovo.numen.rdd.core.G3eSafePointTest',

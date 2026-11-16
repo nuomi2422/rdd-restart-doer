@@ -424,6 +424,18 @@ foreach($promptConsumer in @('com.dwinovo.numen.plugins.rdd.RddDecomposerAssetBo
     MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($promptConsumer+'Extra')}
 }
 Write-Output 'prompt consumers exact registration 12 assertions PASS (policy only; not Java execution)'
+# Bounded responsibility-split consumers and original pure early-completion controls.
+foreach($consumerSpec in @(@('plugins:rdd','com.dwinovo.numen.plugins.rdd.RddEarlyProposalPublisherTest'),@('plugins:rdd','com.dwinovo.numen.plugins.rdd.RddControlFlagReadsTest'),@('rdd-core','com.dwinovo.numen.rdd.core.EarlyCompletionTest'),@('rdd-core','com.dwinovo.numen.rdd.core.RddEarlyCompletionProposalTest'))){
+    $consumerModule=$consumerSpec[0];$consumerClass=$consumerSpec[1]
+    $consumerPlan=Get-RddTestOnlyPlan -Module $consumerModule -Tests @($consumerClass)
+    Assert ($consumerPlan.Task -ceq (':'+$consumerModule+':test') -and $consumerPlan.Tests.Count -eq 1 -and $consumerPlan.Tests[0] -ceq $consumerClass) 'responsibility consumer maps exact task and class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($consumerClass)).Module -ceq $consumerModule) 'responsibility consumer has one owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($consumerClass)}
+    MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($consumerClass)}
+    MustReject {Get-RddTestOnlyPlan -Module $consumerModule -Tests @($consumerClass+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module $consumerModule -Tests @($consumerClass+'Helper')}
+}
+Write-Output 'responsibility consumers exact registration 24 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
