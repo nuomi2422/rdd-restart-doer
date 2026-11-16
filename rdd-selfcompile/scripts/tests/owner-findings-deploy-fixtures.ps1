@@ -1,5 +1,5 @@
-# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery','lh1-prep')][string]$Batch='owner-findings')
+﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery','lh1-prep','class-split')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -44,23 +44,32 @@ if($Batch -ceq 'lh1-prep'){
  }
  $cases=@('core','learner','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','cross-source','cross-module','cross-hash','wrong-size','fixed-size')
 }
+# 2026-11-16: class-split shares LH1's exact-tuple controls, but both sources have the same commit.
+if($Batch -ceq 'class-split'){
+ $mode='original-class-split'
+ $tuples=@{
+  'core'=@('core:neoforge','mutation-build-60d0165f55ac4b7f9c61281e9cdc1663','numen-neoforge-1.21.1-0.1.3-dev.jar','0200317C9BE01B46DF7087900063F021127FF5F4A16546E858D243B6B85CE900','7f09b9587731fa5caca670169ad1ff51298b3e81',2588931)
+  'rdd'=@('plugins:rdd','mutation-build-8ea1cec5df834d04bcb90077743187d7','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','40BFD00E914D3781616E5D13BF2A07FBB344445C72D78C4693459DE6879EB80D','7f09b9587731fa5caca670169ad1ff51298b3e81',1210867)
+ }
+ $cases=@('core','rdd','wrong-mode','isolated-test','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','cross-source','cross-module','cross-hash','wrong-size','fixed-size')
+}
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
- $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery','lh1-prep')){'core'}else{'rdd'})]
+ $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery','lh1-prep','class-split')){'core'}else{'rdd'})]
  $id=$f[1];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
- if($Batch -ceq 'lh1-prep'){$commit=$f[4]}
+ if($Batch -cin @('lh1-prep','class-split')){$commit=$f[4]}
  $artifact=Join-Path $jd $f[2];Put $artifact 'owner-findings-fixture-artifact';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  foreach($v in $tuples.Values){
-  $replacement=if($Batch -ceq 'lh1-prep' -and $v[1] -cne $id){'F'*64}else{$sha}
+  $replacement=if($Batch -cin @('lh1-prep','class-split') -and $v[1] -cne $id){'F'*64}else{$sha}
   $deploy=$deploy.Replace($v[3],$replacement);$policy=$policy.Replace($v[3],$replacement)
  }
- if($Batch -ceq 'lh1-prep'){
+ if($Batch -cin @('lh1-prep','class-split')){
   $fixedLength=if($case -ceq 'fixed-size'){(Get-Item $artifact).Length+1}else{(Get-Item $artifact).Length}
   $policy=$policy.Replace(','+$f[5]+')',','+$fixedLength+')')
  }
@@ -70,10 +79,10 @@ foreach($case in $cases){
  $poison=Join-Path $d 'poison.txt'
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
  $receipt=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$f[0];instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
- if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery','lh1-prep')){'plugins:rdd'}else{'core:neoforge'}}
- if($Batch -ceq 'lh1-prep'){
-  if($case -ceq 'cross-source'){$receipt.sourceHeadAfter=$tuples['learner'][4]}
-  if($case -ceq 'cross-module'){$receipt.module='plugins:learner'}
+ if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery','lh1-prep','class-split')){'plugins:rdd'}else{'core:neoforge'}}
+ if($Batch -cin @('lh1-prep','class-split')){
+  if($case -ceq 'cross-source'){$receipt.sourceHeadAfter=if($Batch -ceq 'class-split'){'0'*40}else{$tuples['learner'][4]}}
+  if($case -ceq 'cross-module'){$receipt.module=if($Batch -ceq 'class-split'){$tuples['rdd'][0]}else{'plugins:learner'}}
   if($case -ceq 'cross-hash'){$receipt.sha256='F'*64}
   if($case -ceq 'wrong-size'){$receipt.bytes++}
  }
@@ -87,6 +96,7 @@ foreach($case in $cases){
  $cim=if($case -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
  $argsText='-Mode '+$mode+' -Instance gpt'
  if($case -eq 'wrong-mode'){$argsText='-Mode original-transport-external -Instance gpt'}
+ if($case -eq 'isolated-test'){$argsText='-Mode isolated-test -Instance test'}
  if($case -eq 'jarname'){$argsText+=' -JarName override.jar'}
  if($case -eq 'missing-mode'){$argsText='-Instance gpt'}
  if($case -eq 'env-only'){$argsText='-Mode '+$mode}
@@ -102,6 +112,7 @@ foreach($case in $cases){
  $ErrorActionPreference='Continue';$output=& powershell.exe -NoProfile -ExecutionPolicy Bypass -File $runner 2>&1;$code=$LASTEXITCODE;$ErrorActionPreference='Stop'
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure '+$case)}
+ if($Batch -ceq 'class-split' -and $case -ceq 'isolated-test' -and ($output -join ' ') -notmatch 'class-split requires original deployment'){throw 'isolated class-split source guard not reached'}
  $ok=$tuples.ContainsKey($case)
  if(($code -eq 0) -ne $ok){
   if($Batch -ceq 'mine-recovery'){
@@ -117,14 +128,14 @@ foreach($case in $cases){
   if($f[0] -eq 'core:neoforge' -and (Test-Path $api)){throw 'core left duplicate API'}
   $r=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
   if(!$r.success -or $r.sourceCommit -cne $commit){throw 'bad receipt'}
-  if($Batch -ceq 'lh1-prep'){
+  if($Batch -cin @('lh1-prep','class-split')){
    $expectedBackups=if($f[0] -ceq 'core:neoforge'){2}else{1}
-   if($r.module -cne $f[0] -or $r.sha256 -ine $sha -or $r.root -cne $root.Replace([char]92,[char]47) -or @($r.backups).Count -ne $expectedBackups){throw 'LH1 receipt tuple mismatch'}
+   if($r.module -cne $f[0] -or $r.sha256 -ine $sha -or $r.root -cne $root.Replace([char]92,[char]47) -or @($r.backups).Count -ne $expectedBackups){throw 'exact receipt tuple mismatch'}
    foreach($backup in $r.backups){
-    $expectedOld=if($backup.original -eq $dest){$oldHash}elseif($backup.original -eq $api){$apiHash}else{throw 'unexpected LH1 backup'}
-    if((Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw 'LH1 backup not recoverable'}
+    $expectedOld=if($backup.original -eq $dest){$oldHash}elseif($backup.original -eq $api){$apiHash}else{throw 'unexpected exact-tuple backup'}
+    if((Get-FileHash $backup.saved).Hash -ne $expectedOld -or $backup.sha256 -ne $expectedOld){throw 'exact-tuple backup not recoverable'}
    }
-   if($f[0] -ceq 'plugins:learner' -and (Get-FileHash $api).Hash -ne $apiHash){throw 'LH1 learner changed API'}
+   if($f[0] -cne 'core:neoforge' -and (Get-FileHash $api).Hash -ne $apiHash){throw 'plugin changed API'}
   }
   if($Batch -ceq 'mine-recovery'){
    if($r.root -cne $root.Replace([char]92,[char]47) -or $r.backups.Count -ne 2){throw 'bad fixed root or backup count'}

@@ -1,4 +1,4 @@
-# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 # H1-min 收敛：mods 只由本入口写；写入前用 mc-instance 的三态拒绝运行中/未知部署。
 # 回滚不再自己 copy，改为调用本入口 -JarPath（同一落点）。
 param(
@@ -429,6 +429,18 @@ if ($Mode -ceq 'original-lh1-prep' -and $PSBoundParameters.ContainsKey('Instance
   Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
   exit 0
  } catch { Write-Error ('DEPLOY_LH1_PREP_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
+# 2026-11-16: exact class-split core (embedded API) and RDD only; no standalone API deployment.
+if ($Mode -ceq 'original-class-split' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '7f09b9587731fa5caca670169ad1ff51298b3e81' -and (($MutationId -ceq 'mutation-build-60d0165f55ac4b7f9c61281e9cdc1663' -and $ExpectedSha256 -ieq '0200317C9BE01B46DF7087900063F021127FF5F4A16546E858D243B6B85CE900') -or ($MutationId -ceq 'mutation-build-8ea1cec5df834d04bcb90077743187d7' -and $ExpectedSha256 -ieq '40BFD00E914D3781616E5D13BF2A07FBB344445C72D78C4693459DE6879EB80D'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_CLASS_SPLIT_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
 # Incident freeze: all other deployment remains refused.
