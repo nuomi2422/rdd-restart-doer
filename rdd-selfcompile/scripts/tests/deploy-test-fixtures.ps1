@@ -1,4 +1,4 @@
-# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
+﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
 param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
