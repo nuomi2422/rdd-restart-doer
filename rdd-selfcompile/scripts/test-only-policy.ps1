@@ -63,6 +63,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddGoalDriverInjectionTest',
             'com.dwinovo.numen.plugins.rdd.SideTaskNudgeDeliveryTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest',
+            'com.dwinovo.numen.plugins.rdd.RddSupervisionNotificationsTest',
             'com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureTest',
             # Exact existing food-hint consumer; supersedes the unmerged multi-state candidate route.
             'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest',

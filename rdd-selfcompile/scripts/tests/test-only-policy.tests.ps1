@@ -499,6 +499,16 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($baseFactsCon
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseFactsConsumer+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseFactsConsumer+'Helper')}
 Write-Output 'Base facts consumer exact registration 6 assertions PASS (policy only; not Java execution)'
+# Exact full notification owner plus facade excerpts with bounded IO shells; not client delivery.
+$notificationsConsumer='com.dwinovo.numen.plugins.rdd.RddSupervisionNotificationsTest'
+$notificationsPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($notificationsConsumer)
+Assert ($notificationsPlan.Task -ceq ':plugins:rdd:test' -and $notificationsPlan.Tests.Count -eq 1 -and $notificationsPlan.Tests[0] -ceq $notificationsConsumer) 'notifications consumer preserves exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($notificationsConsumer)).Module -ceq 'plugins:rdd') 'notifications consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($notificationsConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($notificationsConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($notificationsConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($notificationsConsumer+'Helper')}
+Write-Output 'Notifications consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
