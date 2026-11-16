@@ -681,3 +681,13 @@ foreach($c in $splitCases){
     MustReject {Get-RddTestOnlyPlan -Module $c.Module -Tests @($c.Class+'Helper')}
 }
 Write-Output 'Class split exact registration 25 assertions PASS (policy only; not Java execution)'
+
+# Exact regression for the observed pending-primary death settlement handoff.
+$pendingDeathTest='com.dwinovo.numen.plugins.rdd.RddPendingDeathSettlementReplanTest'
+$pendingDeathPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($pendingDeathTest)
+Assert ($pendingDeathPlan.Task -ceq ':plugins:rdd:test' -and $pendingDeathPlan.Tests.Count -eq 1 -and $pendingDeathPlan.Tests[0] -ceq $pendingDeathTest) 'pending death handoff maps only exact RDD class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($pendingDeathTest)).Module -ceq 'plugins:rdd') 'pending death handoff has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($pendingDeathTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($pendingDeathTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($pendingDeathTest+'Helper')}
+Write-Output 'Pending death settlement exact registration 5 assertions PASS (policy only; not Java execution)'
