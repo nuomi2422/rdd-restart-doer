@@ -478,6 +478,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reservationC
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reservationConsumer+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reservationConsumer+'Helper')}
 Write-Output 'reservation consumer exact registration 6 assertions PASS (policy only; not Java execution)'
+# Exact loss analysis and original bounded Repair consumers; no host launch or policy widening.
+foreach($repairConsumer in @('com.dwinovo.numen.plugins.rdd.RddRepairLossAnalysisTest','com.dwinovo.numen.plugins.rdd.RddRepairDispatchTimeoutTest','com.dwinovo.numen.plugins.rdd.RddRepairDispatchPinTest','com.dwinovo.numen.plugins.rdd.S1SemanticsWiringTest','com.dwinovo.numen.plugins.rdd.RddRepairLogPolicyTest')){
+    $repairPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($repairConsumer)
+    Assert ($repairPlan.Task -ceq ':plugins:rdd:test' -and $repairPlan.Tests.Count -eq 1 -and $repairPlan.Tests[0] -ceq $repairConsumer) 'repair consumer preserves exact task and class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($repairConsumer)).Module -ceq 'plugins:rdd') 'repair consumer has one owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($repairConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($repairConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($repairConsumer+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($repairConsumer+'Helper')}
+}
+Write-Output 'Repair consumers exact registration 30 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
