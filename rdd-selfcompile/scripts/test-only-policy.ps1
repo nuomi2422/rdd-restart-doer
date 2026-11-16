@@ -5,6 +5,7 @@ function Get-RddTestOnlyPlan {
     # a Gradle task or test filter from caller text.
     $allowlist = @{
         'plugins:rdd' = @(
+            'com.dwinovo.numen.plugins.rdd.RddRiskGateExceptionThrottleTest',
             'com.dwinovo.numen.plugins.rdd.RddSurvivalIntentTest',
             'com.dwinovo.numen.plugins.rdd.RddSurvivalPreemptReplanHostTest',
             'com.dwinovo.numen.plugins.rdd.RddSurvivalGateTest',
@@ -137,6 +138,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.selfcompile.generated.RddTradeExecuteToolSoldOutTest'
         )
         'core:common' = @(
+            'com.dwinovo.numen.core.task.chain.MobDefenseChainTest',
             'com.dwinovo.numen.core.tools.agent.LoadSkillToolReferenceTest',
             'com.dwinovo.numen.core.tools.work.AttackToolContractTest',
             'com.dwinovo.numen.core.combat.AttackPlanTest',

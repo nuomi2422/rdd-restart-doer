@@ -708,3 +708,25 @@ MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditions
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditionsTest+'*')}; $worldFactConditionsNegative++
 MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.*')}; $worldFactConditionsNegative++
 Write-Output ('WorldFactConditions exact registration '+$worldFactConditionsPositive+' positive, '+$worldFactConditionsNegative+' negative ('+($worldFactConditionsPositive+$worldFactConditionsNegative)+' assertions) PASS (policy only; not Java execution)')
+
+# Existing defense/throttle regressions only; no package or cross-module admission.
+$defenseThrottleCases=@(
+    @{Module='core:common';Class='com.dwinovo.numen.core.task.chain.MobDefenseChainTest';Adjacent='com.dwinovo.numen.core.task.chain.MobDefenseChainAdjacentTest';Package='com.dwinovo.numen.core.task.chain.*'},
+    @{Module='plugins:rdd';Class='com.dwinovo.numen.plugins.rdd.RddRiskGateExceptionThrottleTest';Adjacent='com.dwinovo.numen.plugins.rdd.RddRiskGateExceptionThrottleAdjacentTest';Package='com.dwinovo.numen.plugins.rdd.*'}
+)
+$defenseThrottlePositive=0; $defenseThrottleNegative=0
+foreach($entry in $defenseThrottleCases){
+    $plan=Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class)
+    Assert ($plan.Task -ceq (':'+$entry.Module+':test') -and $plan.Module -ceq $entry.Module -and $plan.Tests.Count -eq 1 -and $plan.Tests[0] -ceq $entry.Class) 'defense/throttle explicit exact module/task/class'; $defenseThrottlePositive++
+    $inferred=Get-RddTestOnlyPlan -Module '' -Tests @($entry.Class)
+    Assert ($inferred.Task -ceq (':'+$entry.Module+':test') -and $inferred.Module -ceq $entry.Module -and $inferred.Tests.Count -eq 1 -and $inferred.Tests[0] -ceq $entry.Class) 'defense/throttle inferred exact owner/task/class'; $defenseThrottlePositive++
+    foreach($wrong in @('core:common','core:neoforge','plugins:rdd','api:common','ai','rdd-core','plugins:learner') | Where-Object {$_ -cne $entry.Module}){
+        MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($entry.Class)}; $defenseThrottleNegative++
+    }
+    foreach($invalid in @($entry.Adjacent,($entry.Class+'Helper'),($entry.Class+'*'),$entry.Package,$entry.Class.ToLowerInvariant(),$entry.Class.ToUpperInvariant())){
+        MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($invalid)}; $defenseThrottleNegative++
+        MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $defenseThrottleNegative++
+    }
+}
+MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($defenseThrottleCases[0].Class,$defenseThrottleCases[1].Class)}; $defenseThrottleNegative++
+Write-Output ('Defense/throttle exact registration '+$defenseThrottlePositive+' positive, '+$defenseThrottleNegative+' negative PASS (policy only; not Java execution)')
