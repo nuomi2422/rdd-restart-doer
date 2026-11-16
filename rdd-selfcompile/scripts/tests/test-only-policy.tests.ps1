@@ -468,6 +468,16 @@ foreach($projectionConsumer in @('com.dwinovo.numen.plugins.rdd.RddFactContextTe
     MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($projectionConsumer+'Helper')}
 }
 Write-Output 'Fact and Carry projection exact registration 36 assertions PASS (policy only; not Java execution)'
+# Original pure reservation render/ledger consumer only; preserve exact module and rejection controls.
+$reservationConsumer='com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest'
+$reservationPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reservationConsumer)
+Assert ($reservationPlan.Task -ceq ':plugins:rdd:test' -and $reservationPlan.Tests.Count -eq 1 -and $reservationPlan.Tests[0] -ceq $reservationConsumer) 'reservation consumer preserves exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($reservationConsumer)).Module -ceq 'plugins:rdd') 'reservation consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reservationConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reservationConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reservationConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reservationConsumer+'Helper')}
+Write-Output 'reservation consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',

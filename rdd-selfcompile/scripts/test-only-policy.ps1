@@ -49,6 +49,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.G1bImportanceConsumerTest',
             'com.dwinovo.numen.plugins.rdd.G1c2FingerprintTest',
             'com.dwinovo.numen.plugins.rdd.G1c3TransformAttributionTest',
+            'com.dwinovo.numen.plugins.rdd.G1cReservationWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddCarryProjectionTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetsToolTest',
             'com.dwinovo.numen.plugins.rdd.RddAssetStoreTest',
