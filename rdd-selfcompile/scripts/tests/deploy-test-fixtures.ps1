@@ -1,5 +1,5 @@
 ﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio','d20e','v02','projection')][string]$OnlyRelease)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio','d20e','v02','projection','unified')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -644,12 +644,14 @@ $v02Tuples=@{'plugins:rdd'=@('mutation-build-ebf6c66645bc4c8f873271dc57a38380','
 $v02Cases=@('v02-rdd','v02-bad-id','v02-bad-commit','v02-bad-sha','v02-bad-source','v02-bad-proof','v02-wrong-size','v02-fixed-size','v02-wrong-module','v02-escape','v02-copy-failure','v02-wrong-root','v02-running','v02-unknown','v02-env-only','v02-wrong-instance','v02-jarpath','v02-jarname','v02-full','v02-isolated')
 $v02Release=@{tag='v02';commit='40905ed44408bf01b32cba1359501ecc5de472f9';mode='original-v02-plan-40905';tuples=$v02Tuples;cases=$v02Cases}
 $projectionRelease=@{tag='projection';commit='4e11016f70f310d87c57faa4818037fa7bcce100';mode='original-projection-4e110';tuples=@{'plugins:rdd'=@('mutation-build-a72f05bde6494b1cb714cd0a334b9615','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','CFE9BEAAC8FBEF881F7F207DD5FD5608B788FA669D09416810F1BD86313D99D3',1242975)};cases=@($v02Cases | ForEach-Object {$_ -replace '^v02-','projection-'})}
+$unifiedRelease=@{tag='unified';commit='66e3e1ce6a0f7226d127213638dd70245656864a';mode='original-unified-66e3';tuples=@{'plugins:rdd'=@('mutation-build-4a3462707a304321b628e69862f570dd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','710B5787894DA9BB0C80AA5CE412A3A0AF1CF7B8A9BA3E93382D1CC12E98456C',1250767)};cases=@($v02Cases | ForEach-Object {$_ -replace '^v02-','unified-'})}
 $quotaCases=@('quota-rdd','quota-bad-id','quota-bad-commit','quota-bad-sha','quota-bad-source','quota-bad-proof','quota-wrong-size','quota-fixed-size','quota-wrong-module','quota-escape','quota-copy-failure','quota-wrong-root','quota-running','quota-unknown','quota-env-only','quota-wrong-instance','quota-jarpath','quota-jarname','quota-full','quota-isolated')
 $quotaRelease=@{tag='quota';commit='d6c97dc4693ae6419a1d76c5b83fd2051a92f9c1';mode='original-quota-d6c97';tuples=@{'plugins:rdd'=@('mutation-build-21271b7839bc4c3286c1a0c4581f7af3','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','AEDF5FC53B0E5171F153FA09F0B32B280B500879295D6BD8579F3C0045BCBEC4',1206667)};cases=$quotaCases}
 foreach($release in @(
  $quotaRelease,
  $v02Release,
  $projectionRelease,
+ $unifiedRelease,
  @{tag='8853';commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a';mode='original-why-8853';tuples=$why8853Tuples;cases=$why8853Cases},
  @{tag='v25';commit='144ac9570932de65b80ae61d0ffffcb317934922';mode='original-v25-144ac';tuples=$v25Tuples;cases=$v25Cases},
  @{tag='b2c1';commit='9f94bbbad357687538dc4c50498ae05a729d7f86';mode='original-b2-c1-9f94';tuples=$b2c1Tuples;cases=$b2c1Cases},
@@ -869,7 +871,7 @@ foreach($coreRelease in $coreReleases){
 
 if($OnlyRelease){
  $sel=@($results | Where-Object { $_.case -like ($OnlyRelease + '-*') })
- $expected=if($OnlyRelease -ceq 'quota'){$quotaRelease.cases.Count}elseif($OnlyRelease -ceq 'v02'){$v02Release.cases.Count}elseif($OnlyRelease -ceq 'projection'){$projectionRelease.cases.Count}elseif($OnlyRelease -ceq 'ownlrn'){20}else{@($coreReleases | Where-Object { $_.tag -ceq $OnlyRelease })[0].cases.Count}
+ $expected=if($OnlyRelease -ceq 'quota'){$quotaRelease.cases.Count}elseif($OnlyRelease -ceq 'v02'){$v02Release.cases.Count}elseif($OnlyRelease -ceq 'projection'){$projectionRelease.cases.Count}elseif($OnlyRelease -ceq 'unified'){$unifiedRelease.cases.Count}elseif($OnlyRelease -ceq 'ownlrn'){20}else{@($coreReleases | Where-Object { $_.tag -ceq $OnlyRelease })[0].cases.Count}
  if($sel.Count -ne $expected){throw ('OnlyRelease '+$OnlyRelease+' expected '+$expected+' cases, got '+$sel.Count)}
  $uniq=@($sel | ForEach-Object { $_.case } | Select-Object -Unique)
  if($uniq.Count -ne $expected){throw ('OnlyRelease '+$OnlyRelease+' case names not unique: '+$uniq.Count)}
