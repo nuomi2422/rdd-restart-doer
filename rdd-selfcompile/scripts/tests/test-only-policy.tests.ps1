@@ -489,6 +489,16 @@ foreach($repairConsumer in @('com.dwinovo.numen.plugins.rdd.RddRepairLossAnalysi
     MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($repairConsumer+'Helper')}
 }
 Write-Output 'Repair consumers exact registration 30 assertions PASS (policy only; not Java execution)'
+# Exact Base source-slice fixture consumer; admission does not execute Java or native world sampling.
+$baseFactsConsumer='com.dwinovo.numen.plugins.rdd.RddBaseFactsConsumerTest'
+$baseFactsPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseFactsConsumer)
+Assert ($baseFactsPlan.Task -ceq ':plugins:rdd:test' -and $baseFactsPlan.Tests.Count -eq 1 -and $baseFactsPlan.Tests[0] -ceq $baseFactsConsumer) 'base facts consumer preserves exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($baseFactsConsumer)).Module -ceq 'plugins:rdd') 'base facts consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($baseFactsConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($baseFactsConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseFactsConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseFactsConsumer+'Helper')}
+Write-Output 'Base facts consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',

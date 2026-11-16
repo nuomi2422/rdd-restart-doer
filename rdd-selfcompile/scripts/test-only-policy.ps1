@@ -37,6 +37,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddPlanningKnowledgeTest',
             'com.dwinovo.numen.plugins.rdd.RddSurvivalDoctrineTest',
             'com.dwinovo.numen.plugins.rdd.RddBasePlaybookTest',
+            'com.dwinovo.numen.plugins.rdd.RddBaseFactsConsumerTest',
             'com.dwinovo.numen.plugins.rdd.RddAlarmResponseTextTest',
             'com.dwinovo.numen.plugins.rdd.RddMonitorJournalTest',
             'com.dwinovo.numen.plugins.rdd.SleepRiskHostTest',
