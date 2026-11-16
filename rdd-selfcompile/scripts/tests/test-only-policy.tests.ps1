@@ -391,6 +391,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest+'Hel
 MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest.ToLowerInvariant())}
 MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.task.move.MoveToArrivalAdjacentTest')}
 Write-Output 'goto arrival consumer exact registration 10 assertions PASS (policy only; not Java execution)'
+# Existing Stage-B node/recurrence consumer only; preserve exact module ownership.
+$nodeTypeTest='com.dwinovo.numen.plugins.rdd.RddDecomposerNodeTypeTest'
+$nodeTypePlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest)
+Assert ($nodeTypePlan.Task -ceq ':plugins:rdd:test' -and $nodeTypePlan.Tests.Count -eq 1 -and $nodeTypePlan.Tests[0] -ceq $nodeTypeTest) 'Stage-B node consumer keeps the exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($nodeTypeTest)).Module -ceq 'plugins:rdd') 'Stage-B node consumer has one inferred owner'
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($nodeTypeTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($nodeTypeTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest+'Helper')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest.ToLowerInvariant())}
+Write-Output 'Stage-B node consumer exact registration 7 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
