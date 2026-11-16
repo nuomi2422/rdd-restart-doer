@@ -402,6 +402,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest+'*'
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest+'Helper')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($nodeTypeTest.ToLowerInvariant())}
 Write-Output 'Stage-B node consumer exact registration 7 assertions PASS (policy only; not Java execution)'
+# Exact current inventory projection and original completion consumer; no package widening.
+foreach($inventoryConsumer in @('com.dwinovo.numen.plugins.rdd.RddInventoryProjectionTest','com.dwinovo.numen.plugins.rdd.EarlyAchievementInventoryRegressionTest')){
+    $inventoryPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($inventoryConsumer)
+    Assert ($inventoryPlan.Task -ceq ':plugins:rdd:test' -and $inventoryPlan.Tests.Count -eq 1 -and $inventoryPlan.Tests[0] -ceq $inventoryConsumer) 'inventory consumer keeps exact class and task'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($inventoryConsumer)).Module -ceq 'plugins:rdd') 'inventory consumer has one inferred owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($inventoryConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($inventoryConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($inventoryConsumer+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($inventoryConsumer+'Helper')}
+}
+Write-Output 'inventory consumers exact registration 12 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
