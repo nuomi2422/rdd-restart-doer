@@ -443,6 +443,18 @@ if ($Mode -ceq 'original-class-split' -and $PSBoundParameters.ContainsKey('Insta
  } catch { Write-Error ('DEPLOY_CLASS_SPLIT_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-16: exact pending-death drop-only handoff RDD successor; keep installed core unchanged.
+if ($Mode -ceq 'original-pending-death-b650' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'b650e75f0f5244a72f175c03679bdfd742a88ee2' -and $MutationId -ceq 'mutation-build-ea8be9aa893543648b3784c6e8597f27' -and $ExpectedSha256 -ieq '0D91487B6244722459FABE96CAD4DC971B9C825FAC308AE9347687FAAA11E713') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_PENDING_DEATH_B650_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

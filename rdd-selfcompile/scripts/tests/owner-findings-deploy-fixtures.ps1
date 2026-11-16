@@ -1,5 +1,5 @@
 ﻿# 2026-11-12: copied exact four-artifact deployment entry; temporary files/fake CIM, never live IO.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery','lh1-prep','class-split')][string]$Batch='owner-findings')
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('owner-findings','runtime-followups','transport-external','mine-recovery','lh1-prep','class-split','pending-death-b650')][string]$Batch='owner-findings')
 $ErrorActionPreference='Stop'
 if(Test-Path -LiteralPath $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory -Path $EvidenceDir | Out-Null
@@ -53,23 +53,29 @@ if($Batch -ceq 'class-split'){
  }
  $cases=@('core','rdd','wrong-mode','isolated-test','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','cross-source','cross-module','cross-hash','wrong-size','fixed-size')
 }
+# 2026-11-16: only the pending-death RDD successor; every negative case selects that RDD tuple.
+if($Batch -ceq 'pending-death-b650'){
+ $mode='original-pending-death-b650'
+ $tuples=@{'rdd'=@('plugins:rdd','mutation-build-ea8be9aa893543648b3784c6e8597f27','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','0D91487B6244722459FABE96CAD4DC971B9C825FAC308AE9347687FAAA11E713','b650e75f0f5244a72f175c03679bdfd742a88ee2',1213368)}
+ $cases=@('rdd','wrong-mode','isolated-test','missing-mode','env-only','wrong-instance','bad-commit','bad-sha','wrong-mutation','wrong-module','dirty-source','missing-exit','missing-source-proof','wrong-root','running','unknown','jarpath','jarname','full','cross-source','cross-module','cross-hash','wrong-size','fixed-size','class-split-purpose','lh1-prep-purpose')
+}
 $results=@()
 foreach($case in $cases){
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
  $f=$tuples[$(if($tuples.ContainsKey($case)){$case}elseif($Batch -cin @('transport-external','mine-recovery','lh1-prep','class-split')){'core'}else{'rdd'})]
  $id=$f[1];$md=Join-Path $mut $id;$jd=Join-Path $md 'jar';New-Item -ItemType Directory $jd | Out-Null
- if($Batch -cin @('lh1-prep','class-split')){$commit=$f[4]}
+ if($Batch -cin @('lh1-prep','class-split','pending-death-b650')){$commit=$f[4]}
  $artifact=Join-Path $jd $f[2];Put $artifact 'owner-findings-fixture-artifact';$sha=(Get-FileHash $artifact -Algorithm SHA256).Hash
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
  foreach($v in $tuples.Values){
-  $replacement=if($Batch -cin @('lh1-prep','class-split') -and $v[1] -cne $id){'F'*64}else{$sha}
+  $replacement=if($Batch -cin @('lh1-prep','class-split','pending-death-b650') -and $v[1] -cne $id){'F'*64}else{$sha}
   $deploy=$deploy.Replace($v[3],$replacement);$policy=$policy.Replace($v[3],$replacement)
  }
- if($Batch -cin @('lh1-prep','class-split')){
+ if($Batch -cin @('lh1-prep','class-split','pending-death-b650')){
   $fixedLength=if($case -ceq 'fixed-size'){(Get-Item $artifact).Length+1}else{(Get-Item $artifact).Length}
   $policy=$policy.Replace(','+$f[5]+')',','+$fixedLength+')')
  }
@@ -80,9 +86,9 @@ foreach($case in $cases){
  foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
  $receipt=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$f[0];instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=(Get-Item $artifact).Length}
  if($case -eq 'wrong-module'){$receipt.module=if($Batch -cin @('transport-external','mine-recovery','lh1-prep','class-split')){'plugins:rdd'}else{'core:neoforge'}}
- if($Batch -cin @('lh1-prep','class-split')){
-  if($case -ceq 'cross-source'){$receipt.sourceHeadAfter=if($Batch -ceq 'class-split'){'0'*40}else{$tuples['learner'][4]}}
-  if($case -ceq 'cross-module'){$receipt.module=if($Batch -ceq 'class-split'){$tuples['rdd'][0]}else{'plugins:learner'}}
+ if($Batch -cin @('lh1-prep','class-split','pending-death-b650')){
+  if($case -ceq 'cross-source'){$receipt.sourceHeadAfter=if($Batch -cin @('class-split','pending-death-b650')){'0'*40}else{$tuples['learner'][4]}}
+  if($case -ceq 'cross-module'){$receipt.module=if($Batch -ceq 'pending-death-b650'){'core:neoforge'}elseif($Batch -ceq 'class-split'){$tuples['rdd'][0]}else{'plugins:learner'}}
   if($case -ceq 'cross-hash'){$receipt.sha256='F'*64}
   if($case -ceq 'wrong-size'){$receipt.bytes++}
  }
@@ -93,10 +99,15 @@ foreach($case in $cases){
  $dest=Join-Path (Join-Path $root 'mods') $f[2];Put $dest 'old-artifact';$oldHash=(Get-FileHash $dest).Hash
  $api=Join-Path (Join-Path $root 'mods') 'numen_api-neoforge-1.21.1-0.1.3-dev.jar';Put $api 'old-api';$apiHash=(Get-FileHash $api).Hash
  $other=Join-Path (Join-Path $root 'mods') 'unrelated.jar';Put $other 'unrelated';$otherHash=(Get-FileHash $other).Hash
+ if($Batch -ceq 'pending-death-b650'){
+  $core=Join-Path (Join-Path $root 'mods') 'numen-neoforge-1.21.1-0.1.3-dev.jar';Put $core 'old-core';$coreHash=(Get-FileHash $core).Hash
+ }
  $cim=if($case -eq 'running'){'return @([pscustomobject]@{CommandLine=''java --gameDir "ROOT"''})'.Replace('ROOT',$root)}elseif($case -eq 'unknown'){'throw "CIM unavailable"'}else{'return @()'}
  $argsText='-Mode '+$mode+' -Instance gpt'
  if($case -eq 'wrong-mode'){$argsText='-Mode original-transport-external -Instance gpt'}
  if($case -eq 'isolated-test'){$argsText='-Mode isolated-test -Instance test'}
+ if($case -ceq 'class-split-purpose'){$argsText='-Mode original-class-split -Instance gpt'}
+ if($case -ceq 'lh1-prep-purpose'){$argsText='-Mode original-lh1-prep -Instance gpt'}
  if($case -eq 'jarname'){$argsText+=' -JarName override.jar'}
  if($case -eq 'missing-mode'){$argsText='-Instance gpt'}
  if($case -eq 'env-only'){$argsText='-Mode '+$mode}
@@ -113,6 +124,7 @@ foreach($case in $cases){
  Put (Join-Path $d 'output.txt') ($output -join [Environment]::NewLine)
  if(($output -join ' ') -match 'ParserError|UnexpectedToken'){throw ('parse failure '+$case)}
  if($Batch -ceq 'class-split' -and $case -ceq 'isolated-test' -and ($output -join ' ') -notmatch 'class-split requires original deployment'){throw 'isolated class-split source guard not reached'}
+ if($Batch -ceq 'pending-death-b650' -and $case -ceq 'isolated-test' -and ($output -join ' ') -notmatch 'pending-death b650 requires original deployment'){throw 'isolated pending-death source guard not reached'}
  $ok=$tuples.ContainsKey($case)
  if(($code -eq 0) -ne $ok){
   if($Batch -ceq 'mine-recovery'){
@@ -128,7 +140,7 @@ foreach($case in $cases){
   if($f[0] -eq 'core:neoforge' -and (Test-Path $api)){throw 'core left duplicate API'}
   $r=Get-Content $receipts[0].FullName -Raw | ConvertFrom-Json
   if(!$r.success -or $r.sourceCommit -cne $commit){throw 'bad receipt'}
-  if($Batch -cin @('lh1-prep','class-split')){
+  if($Batch -cin @('lh1-prep','class-split','pending-death-b650')){
    $expectedBackups=if($f[0] -ceq 'core:neoforge'){2}else{1}
    if($r.module -cne $f[0] -or $r.sha256 -ine $sha -or $r.root -cne $root.Replace([char]92,[char]47) -or @($r.backups).Count -ne $expectedBackups){throw 'exact receipt tuple mismatch'}
    foreach($backup in $r.backups){
@@ -147,7 +159,10 @@ foreach($case in $cases){
   if((Get-FileHash $dest).Hash -ne $oldHash -or (Get-FileHash $api).Hash -ne $apiHash){throw ('refusal wrote mods '+$case)}
   foreach($p in $receipts){if((Get-Content $p.FullName -Raw|ConvertFrom-Json).success){throw 'false success'}}
  }
- $results+=@{case=$case;exit=$code;passed=$true;scope='copied entry, relocated files and fake CIM only; not live deploy'}
+ if($Batch -ceq 'pending-death-b650' -and (Get-FileHash $core).Hash -ne $coreHash){throw ('RDD changed core '+$case)}
+ $result=@{case=$case;exit=$code;passed=$true;scope='copied entry, relocated files and fake CIM only; not live deploy'}
+ if($Batch -ceq 'pending-death-b650'){$result.coreHashBefore=$coreHash;$result.coreHashAfter=(Get-FileHash $core).Hash}
+ $results+=$result
 }
 Put (Join-Path $EvidenceDir 'results.json') ($results|ConvertTo-Json -Depth 5)
 Write-Output ('PASS '+$results.Count+' exact owner findings deployment fixtures; no live mods or processes')
