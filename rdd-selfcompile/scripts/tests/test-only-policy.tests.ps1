@@ -436,6 +436,16 @@ foreach($consumerSpec in @(@('plugins:rdd','com.dwinovo.numen.plugins.rdd.RddEar
     MustReject {Get-RddTestOnlyPlan -Module $consumerModule -Tests @($consumerClass+'Helper')}
 }
 Write-Output 'responsibility consumers exact registration 24 assertions PASS (policy only; not Java execution)'
+# Verbatim cold-restore consumer; admission does not claim full Plugin platform coverage.
+$restoreConsumer='com.dwinovo.numen.plugins.rdd.RddRuntimeRestoreConsumerTest'
+$restorePlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($restoreConsumer)
+Assert ($restorePlan.Task -ceq ':plugins:rdd:test' -and $restorePlan.Tests.Count -eq 1 -and $restorePlan.Tests[0] -ceq $restoreConsumer) 'restore consumer preserves exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($restoreConsumer)).Module -ceq 'plugins:rdd') 'restore consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($restoreConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($restoreConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($restoreConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($restoreConsumer+'Helper')}
+Write-Output 'restore consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',

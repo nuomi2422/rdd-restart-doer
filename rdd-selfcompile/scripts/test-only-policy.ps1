@@ -26,6 +26,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddEarlyCompletionEvidenceTest',
             'com.dwinovo.numen.plugins.rdd.RddEarlyProposalPublisherTest',
             'com.dwinovo.numen.plugins.rdd.RddControlFlagReadsTest',
+            'com.dwinovo.numen.plugins.rdd.RddRuntimeRestoreConsumerTest',
             'com.dwinovo.numen.plugins.rdd.VerifiedCompletionIntegrationTest',
             'com.dwinovo.numen.plugins.rdd.StageCompletionCommitTest',
             'com.dwinovo.numen.plugins.rdd.RddMainlineWiringPinTest',
