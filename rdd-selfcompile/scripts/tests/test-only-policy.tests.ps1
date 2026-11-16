@@ -446,6 +446,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($restoreConsu
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($restoreConsumer+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($restoreConsumer+'Helper')}
 Write-Output 'restore consumer exact registration 6 assertions PASS (policy only; not Java execution)'
+# Exact death-facts consumer and original ledger store; no Java execution or package widening.
+foreach($deathConsumer in @('com.dwinovo.numen.plugins.rdd.RddDeathFactsConsumerTest','com.dwinovo.numen.plugins.rdd.RddDeathLedgerStoreTest')){
+    $deathPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathConsumer)
+    Assert ($deathPlan.Task -ceq ':plugins:rdd:test' -and $deathPlan.Tests.Count -eq 1 -and $deathPlan.Tests[0] -ceq $deathConsumer) 'death consumer preserves exact task and class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($deathConsumer)).Module -ceq 'plugins:rdd') 'death consumer has one owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($deathConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($deathConsumer)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathConsumer+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($deathConsumer+'Helper')}
+}
+Write-Output 'death consumers exact registration 12 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
