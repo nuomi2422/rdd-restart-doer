@@ -663,3 +663,21 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSol
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:selfcompile' -Tests @($tradeSoldOutTest.ToLowerInvariant())}
 Write-Output 'Trade sold-out exact registration 9 assertions PASS (policy only; not Java execution)'
+
+# Mechanical class split regression selection: exact consumers, no module/package widening.
+$splitCases=@(
+    @{Module='plugins:rdd';Class='com.dwinovo.numen.plugins.rdd.RddReplanPlanRendererTest'},
+    @{Module='api:common';Class='com.dwinovo.numen.client.agent.BodySnapshotRendererFormatTest'},
+    @{Module='rdd-core';Class='com.dwinovo.numen.rdd.core.G3cPlanPatchTest'},
+    @{Module='rdd-core';Class='com.dwinovo.numen.rdd.core.G3eSafePointTest'},
+    @{Module='rdd-core';Class='com.dwinovo.numen.rdd.core.TaskChainPatchBoundaryTest'}
+)
+foreach($c in $splitCases){
+    $p=Get-RddTestOnlyPlan -Module $c.Module -Tests @($c.Class)
+    Assert ($p.Task -ceq (':'+$c.Module+':test') -and $p.Tests.Count -eq 1 -and $p.Tests[0] -ceq $c.Class) 'split control maps exact module/class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($c.Class)).Module -ceq $c.Module) 'split control has unique owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($c.Class)}
+    MustReject {Get-RddTestOnlyPlan -Module $c.Module -Tests @($c.Class+'*')}
+    MustReject {Get-RddTestOnlyPlan -Module $c.Module -Tests @($c.Class+'Helper')}
+}
+Write-Output 'Class split exact registration 25 assertions PASS (policy only; not Java execution)'

@@ -41,7 +41,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddPlanningObservationWiringTest',
             'com.dwinovo.numen.plugins.rdd.RddFutureNeedsSignatureTest',
             # Exact existing food-hint consumer; supersedes the unmerged multi-state candidate route.
-            'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest'
+            'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest',
+            'com.dwinovo.numen.plugins.rdd.RddReplanPlanRendererTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
@@ -87,7 +88,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.api.CompanionEndpointTest',
             'com.dwinovo.numen.client.screen.HeaderLayoutTest',
             'com.dwinovo.numen.data.LanguageResourcesTest',
-            'com.dwinovo.numen.client.preview.PreviewStartupTest'
+            'com.dwinovo.numen.client.preview.PreviewStartupTest',
+            'com.dwinovo.numen.client.agent.BodySnapshotRendererFormatTest'
         )
         'plugins:learner' = @(
             'com.dwinovo.numen.plugins.learner.LearnerAutoDeliveryIntakeTest',
@@ -145,6 +147,9 @@ function Get-RddTestOnlyPlan {
         )
         'rdd-core' = @(
             'com.dwinovo.numen.rdd.core.TaskChainCompletionCopyTest',
+            'com.dwinovo.numen.rdd.core.G3cPlanPatchTest',
+            'com.dwinovo.numen.rdd.core.G3eSafePointTest',
+            'com.dwinovo.numen.rdd.core.TaskChainPatchBoundaryTest',
             'com.dwinovo.numen.rdd.core.BaseSelectorTest',
             'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest',
             'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
