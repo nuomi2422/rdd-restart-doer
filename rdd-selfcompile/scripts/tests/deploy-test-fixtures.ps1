@@ -1,5 +1,5 @@
-# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui')][string]$OnlyRelease)
+﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -752,7 +752,9 @@ $manualCases=@('manual-core','manual-rdd','manual-env-only','manual-wrong-instan
 $hpCases=@('hp-core','hp-env-only','hp-wrong-instance','hp-bad-id','hp-bad-commit','hp-bad-sha','hp-bad-source','hp-bad-proof','hp-wrong-module','hp-wrong-size','hp-fixed-size','hp-dirty-source','hp-missing-exit','hp-nonzero-exit','hp-running','hp-unknown','hp-wrong-root','hp-jarpath','hp-jarname','hp-full','hp-isolated','hp-escape','hp-corrupt-artifact','hp-core-copy-failure')
 $names=@{'core:neoforge'='numen-neoforge-1.21.1-0.1.3-dev.jar';'plugins:rdd'='numen-plugin-rdd-1.21.1-0.1.3-dev.jar';'plugins:learner'='numen-plugin-learner-1.21.1-0.1.3-dev.jar'}
 $uiCases=@($hpCases | ForEach-Object { $_ -replace '^hp-','ui-' })
+$consolidationCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','consolidation-' })
 $coreReleases=@(
+ @{tag='consolidation';commit='3238c63e087aff10bd82eca1471740d48478976c';mode='original-consolidation-3238';coreId='mutation-build-8f22b2d6d6fb487fa19c4207006c8d9d';coreHash='905DAA01BB3ADBBB479E3F498D0B42E416B918F58B63401808271121F87D4A4E';coreBytes=2589178;rddId='mutation-build-01d8b35cca62496fa1a1f2d13d25fe3a';rddHash='6D3E38E5A12BD9A54F9C3F6A6CAB3C2320DE8376567E02DD1A5274326C3C23D2';rddBytes=1220172;policyBytes=@(2589178,1220172);cases=$consolidationCases},
  @{tag='ui';commit='ddd42b8005a9cab35710dc6652adba0bdb8fd5e5';mode='original-ui-ddd42';coreId='mutation-build-81c298370ef5495d8af734bd2290953c';coreHash='C58E1F73D097A20CDCFF1F413C6D9C21F4EF76CD76872B6AE031BE2E493A3DCA';coreBytes=2581905;policyBytes=@(2581905);cases=$uiCases},
  @{tag='hp';commit='e4edcb356ff50516e3e145c06b718bdfbf5dce1b';mode='original-hp-e4ed';coreId='mutation-build-2cde0f776f7045b5ac6ce050a3479243';coreHash='FEA637B008E50E0DA5D8C55264300AA127F61355E07B3284C9E310FBEEC5C862';coreBytes=2568857;policyBytes=@(2568857);cases=$hpCases},
  @{tag='manual';commit='0fada9b87cf75f719a7c0de9d269ff7009281b17';mode='original-manual-0fada';coreId='mutation-build-917da3d407814f27bb8479f2d1c0b452';coreHash='3CA192EEF304964FC3C4424C5992A83F0E8E369A9741FABE177F15A3235D61B1';coreBytes=2568296;rddId='mutation-build-d2949d98ceab4084a3f18dedde8da948';rddHash='3814920BB30BA6B47E3A97FBF2C92FEF540D19AB9EC416A110F849AE1BC8D3BC';rddBytes=1206594;policyBytes=@(2568296,1206594);cases=$manualCases},

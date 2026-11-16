@@ -467,6 +467,18 @@ if ($Mode -ceq 'original-recovering-b2c' -and $PSBoundParameters.ContainsKey('In
  } catch { Write-Error ('DEPLOY_RECOVERING_B2C_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# Exact 3238 reviewed consolidation pair; no arbitrary source or jar selection.
+if ($Mode -ceq 'original-consolidation-3238' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '3238c63e087aff10bd82eca1471740d48478976c' -and (($MutationId -ceq 'mutation-build-8f22b2d6d6fb487fa19c4207006c8d9d' -and $ExpectedSha256 -ieq '905DAA01BB3ADBBB479E3F498D0B42E416B918F58B63401808271121F87D4A4E') -or ($MutationId -ceq 'mutation-build-01d8b35cca62496fa1a1f2d13d25fe3a' -and $ExpectedSha256 -ieq '6D3E38E5A12BD9A54F9C3F6A6CAB3C2320DE8376567E02DD1A5274326C3C23D2'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_CONSOLIDATION_3238_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
