@@ -691,3 +691,20 @@ MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($pendingDeathTest)}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($pendingDeathTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($pendingDeathTest+'Helper')}
 Write-Output 'Pending death settlement exact registration 5 assertions PASS (policy only; not Java execution)'
+
+# 042R6: exact existing schema-facts consumer, distinct from WorldFactConditionsPinTest.
+$worldFactConditionsTest='com.dwinovo.numen.rdd.core.WorldFactConditionsTest'
+$worldFactConditionsPositive=0; $worldFactConditionsNegative=0
+$worldFactConditionsPlan=Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditionsTest)
+Assert ($worldFactConditionsPlan.Task -ceq ':rdd-core:test' -and $worldFactConditionsPlan.Module -ceq 'rdd-core' -and $worldFactConditionsPlan.Tests.Count -eq 1 -and $worldFactConditionsPlan.Tests[0] -ceq $worldFactConditionsTest) 'world fact conditions explicit selection keeps only the exact rdd-core task/class'; $worldFactConditionsPositive++
+$worldFactConditionsInferred=Get-RddTestOnlyPlan -Module '' -Tests @($worldFactConditionsTest)
+Assert ($worldFactConditionsInferred.Task -ceq ':rdd-core:test' -and $worldFactConditionsInferred.Module -ceq 'rdd-core' -and $worldFactConditionsInferred.Tests.Count -eq 1 -and $worldFactConditionsInferred.Tests[0] -ceq $worldFactConditionsTest) 'world fact conditions inference has only the exact rdd-core owner/task/class'; $worldFactConditionsPositive++
+foreach($wrongModule in @('plugins:rdd','plugins:learner','api:common','ai')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($worldFactConditionsTest)}; $worldFactConditionsNegative++
+}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.WorldFactConditionsAdjacentTest')}; $worldFactConditionsNegative++
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditionsTest+'Helper')}; $worldFactConditionsNegative++
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditionsTest.ToLowerInvariant())}; $worldFactConditionsNegative++
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($worldFactConditionsTest+'*')}; $worldFactConditionsNegative++
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @('com.dwinovo.numen.rdd.core.*')}; $worldFactConditionsNegative++
+Write-Output ('WorldFactConditions exact registration '+$worldFactConditionsPositive+' positive, '+$worldFactConditionsNegative+' negative ('+($worldFactConditionsPositive+$worldFactConditionsNegative)+' assertions) PASS (policy only; not Java execution)')

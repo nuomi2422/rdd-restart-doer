@@ -154,6 +154,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.rdd.core.BaseSelectorTest',
             'com.dwinovo.numen.rdd.core.TaskChainDailyDispatchTest',
             'com.dwinovo.numen.rdd.core.WorldFactConditionsPinTest',
+            'com.dwinovo.numen.rdd.core.WorldFactConditionsTest',
             'com.dwinovo.numen.rdd.side.FoodSupplySideTaskTypeTest',
             'com.dwinovo.numen.rdd.side.SideTaskEngineTest',
             'com.dwinovo.numen.rdd.side.SideTaskRecurringTest',
