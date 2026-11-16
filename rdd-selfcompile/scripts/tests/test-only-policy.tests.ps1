@@ -180,6 +180,11 @@ $cameraPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $cameraTests
 Assert ($cameraPlan.Task -ceq ':plugins:camera:test' -and $cameraPlan.Tests.Count -eq 2) 'camera refresh tests must map only to camera'
 foreach($cameraTest in $cameraTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($cameraTest)}}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests @('com.dwinovo.numen.plugins.camera.possess.*')}
+$sealTests = @('com.dwinovo.numen.plugins.camera.rec.SealLaunchTest','com.dwinovo.numen.plugins.camera.rec.VideoRecorderSealWiringPinTest')
+$sealPlan = Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests $sealTests
+Assert ($sealPlan.Task -ceq ':plugins:camera:test' -and $sealPlan.Tests.Count -eq 2) 'exact seal regressions map only to camera'
+foreach($n in $sealTests){MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($n)}}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:camera' -Tests @('com.dwinovo.numen.plugins.camera.rec.*')}
 $acxLocationTest = 'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest'
 $acxLocationPlan = Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($acxLocationTest)
 Assert ($acxLocationPlan.Task -ceq ':plugins:acx:test' -and $acxLocationPlan.Tests.Count -eq 1) 'ACX artifact location uses only the exact ACX task'

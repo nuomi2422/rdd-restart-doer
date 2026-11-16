@@ -183,7 +183,9 @@ function Get-RddTestOnlyPlan {
         )
         'plugins:camera' = @(
             'com.dwinovo.numen.plugins.camera.possess.PossessionRefreshWiringTest',
-            'com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest'
+            'com.dwinovo.numen.plugins.camera.possess.FollowRefreshTest',
+            'com.dwinovo.numen.plugins.camera.rec.SealLaunchTest',
+            'com.dwinovo.numen.plugins.camera.rec.VideoRecorderSealWiringPinTest'
         )
         'plugins:maidlink' = @(
             'com.dwinovo.numen.plugins.maidlink.MaidSelfHostContractTest'
