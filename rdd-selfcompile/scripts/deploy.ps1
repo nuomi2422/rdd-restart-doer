@@ -455,6 +455,18 @@ if ($Mode -ceq 'original-pending-death-b650' -and $PSBoundParameters.ContainsKey
  } catch { Write-Error ('DEPLOY_PENDING_DEATH_B650_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-16: exact recovering-scope RDD successor only; keep installed core unchanged.
+if ($Mode -ceq 'original-recovering-b2c' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'b2c31651979645a1007130465e5df3eee3e09ea8' -and $MutationId -ceq 'mutation-build-5ba3aaaeec62478f860acefd1b24bcf1' -and $ExpectedSha256 -ieq '0DEF5F96DB0CA315EB2F15A2B3CE816A5C46D7FC11F47CD2DE67A67F7F6477D3') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_RECOVERING_B2C_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2
