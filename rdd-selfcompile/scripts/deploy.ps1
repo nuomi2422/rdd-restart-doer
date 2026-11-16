@@ -491,6 +491,18 @@ if ($Mode -ceq 'original-trio-3ee7' -and $PSBoundParameters.ContainsKey('Instanc
  } catch { Write-Error ('DEPLOY_TRIO_3EE7_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# Exact d20e integrated pair only; no source/path override.
+if ($Mode -ceq 'original-pair-d20e' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq 'd20e061a87eeba7c2128f4940ff90b5dc9f5226d' -and (($MutationId -ceq 'mutation-build-6dbaf640631746f3960336119f97a01a' -and $ExpectedSha256 -ieq '362C8FEFB8ED5D8E8EF2D803465535AF1AAB6D162B59C3BB802ED1EB059A915B') -or ($MutationId -ceq 'mutation-build-818e9da828e4480a8779809bc9091976' -and $ExpectedSha256 -ieq '5558F0C546C5BA6A710996633DB3A6377DF09489BA25CF2A74DEA68114874707'))) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot/deploy-test-policy.ps1"
+  . "$PSScriptRoot/mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_PAIR_D20E_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # Incident freeze: all other deployment remains refused.
 Write-Output ("DEPLOY_REFUSED: incident-freeze: deploy disabled pending commander batch")
 exit 2

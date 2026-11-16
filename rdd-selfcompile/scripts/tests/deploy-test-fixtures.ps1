@@ -1,5 +1,5 @@
 ﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio')][string]$OnlyRelease)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio','d20e')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -754,7 +754,9 @@ $names=@{'core:neoforge'='numen-neoforge-1.21.1-0.1.3-dev.jar';'plugins:rdd'='nu
 $uiCases=@($hpCases | ForEach-Object { $_ -replace '^hp-','ui-' })
 $consolidationCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','consolidation-' })
 $trioCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','trio-' }) + @('trio-learner','trio-learner-copy-failure','trio-learner-bad-sha','trio-learner-wrong-module','trio-learner-bad-source','trio-learner-fixed-size','trio-learner-running','trio-learner-unknown','trio-learner-escape')
+$d20eCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','d20e-' })
 $coreReleases=@(
+ @{tag='d20e';commit='d20e061a87eeba7c2128f4940ff90b5dc9f5226d';mode='original-pair-d20e';coreId='mutation-build-6dbaf640631746f3960336119f97a01a';coreHash='362C8FEFB8ED5D8E8EF2D803465535AF1AAB6D162B59C3BB802ED1EB059A915B';rddId='mutation-build-818e9da828e4480a8779809bc9091976';rddHash='5558F0C546C5BA6A710996633DB3A6377DF09489BA25CF2A74DEA68114874707';policyBytes=@(2588701,1223729);cases=$d20eCases},
  @{tag='trio';commit='3ee7ff271c6c02bb74f828e7ba75cc27464b9600';mode='original-trio-3ee7';coreId='mutation-build-13df6869a04f4607b499dd8c9d250e65';coreHash='4840D714F0E31C5E0F1C59214AF9A9C040A91C6E594328399492C5B37393DD6A';rddId='mutation-build-6abbdea615ba45d196b497ba7685f909';rddHash='1E01B60F697154AB082FBAAED8DB0EEA93BDAD4A43385A5ABF88D98DDDCE5287';learnerId='mutation-build-63eaefff6767450e8dba4982162948a3';learnerHash='E0B937ECF0B828835FFE764BB2B339D4F9A70F0968849C9319FE67BFAF5160E8';policyBytes=@(2588508,1221026,640473);cases=$trioCases},
  @{tag='consolidation';commit='3238c63e087aff10bd82eca1471740d48478976c';mode='original-consolidation-3238';coreId='mutation-build-8f22b2d6d6fb487fa19c4207006c8d9d';coreHash='905DAA01BB3ADBBB479E3F498D0B42E416B918F58B63401808271121F87D4A4E';coreBytes=2589178;rddId='mutation-build-01d8b35cca62496fa1a1f2d13d25fe3a';rddHash='6D3E38E5A12BD9A54F9C3F6A6CAB3C2320DE8376567E02DD1A5274326C3C23D2';rddBytes=1220172;policyBytes=@(2589178,1220172);cases=$consolidationCases},
  @{tag='ui';commit='ddd42b8005a9cab35710dc6652adba0bdb8fd5e5';mode='original-ui-ddd42';coreId='mutation-build-81c298370ef5495d8af734bd2290953c';coreHash='C58E1F73D097A20CDCFF1F413C6D9C21F4EF76CD76872B6AE031BE2E493A3DCA';coreBytes=2581905;policyBytes=@(2581905);cases=$uiCases},
