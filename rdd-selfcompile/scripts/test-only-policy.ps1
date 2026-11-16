@@ -145,6 +145,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.core.task.mine.MineHarvestRecoveryConsumerTest',
             'com.dwinovo.numen.api.PlanningKnowledgeAggregationTest',
             'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
+            'com.dwinovo.numen.core.task.move.MoveToArrivalConsumerTest',
             'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
             'com.dwinovo.numen.core.pathing.calc.NavGoalDiagnosticsTest'
         )

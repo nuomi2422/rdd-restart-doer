@@ -380,6 +380,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planningObservat
 $journalControlPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @('com.dwinovo.numen.plugins.rdd.RddMonitorJournalTest')
 Assert ($journalControlPlan.Task -ceq ':plugins:rdd:test' -and $journalControlPlan.Tests.Count -eq 1) 'existing journal control stays registered'
 Write-Output 'planning observation exact registration 9 assertions PASS (policy only; not Java execution)'
+# 2026-11-17: exact goto arrival consumer; no wildcard, adjacent class or module widening.
+$arrivalTest='com.dwinovo.numen.core.task.move.MoveToArrivalConsumerTest'
+$arrivalPlan=Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest)
+Assert ($arrivalPlan.Task -ceq ':core:common:test' -and $arrivalPlan.Module -ceq 'core:common' -and $arrivalPlan.Tests.Count -eq 1 -and $arrivalPlan.Tests[0] -ceq $arrivalTest) 'arrival consumer keeps the exact core task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($arrivalTest)).Module -ceq 'core:common') 'arrival consumer has one inferred owner'
+foreach($wrongModule in @('api:common','plugins:rdd','plugins:learner','rdd-core')){MustReject {Get-RddTestOnlyPlan -Module $wrongModule -Tests @($arrivalTest)}}
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest+'Helper')}
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @($arrivalTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'core:common' -Tests @('com.dwinovo.numen.core.task.move.MoveToArrivalAdjacentTest')}
+Write-Output 'goto arrival consumer exact registration 10 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
