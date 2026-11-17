@@ -100,6 +100,17 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($boundHostTest+'H
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($boundHostTest+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @('com.dwinovo.numen.acx.test.AcxBoundHostConsumerTest')}
 Write-Output 'bound host exact registration 7 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: B real CompanionBridge/FacadeTools consumer, exact class only.
+$bridgeTest='com.dwinovo.numen.plugins.acx.AcxCompanionBridgeConsumerTest'
+$bridgePlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($bridgeTest)
+Assert ($bridgePlan.Module -ceq 'plugins:acx' -and $bridgePlan.Task -ceq ':plugins:acx:test' -and $bridgePlan.Tests.Count -eq 1 -and $bridgePlan.Tests[0] -ceq $bridgeTest) 'companion bridge keeps exact module/task/class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($bridgeTest)).Module -ceq 'plugins:acx') 'companion bridge has one inferred owner'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($bridgeTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($bridgeTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($bridgeTest+'Helper')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($bridgeTest+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @('com.dwinovo.numen.acx.test.AcxCompanionBridgeConsumerTest')}
+Write-Output 'companion bridge exact registration 7 assertions PASS (policy only; not Java execution)'
 # LH2 preparation: one existing farm consumer, never a package-prefix release.
 $farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
 $farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)
