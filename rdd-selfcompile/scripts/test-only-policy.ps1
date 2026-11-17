@@ -164,6 +164,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.selfcompile.generated.RddTradeExecuteToolSoldOutTest'
         )
         'core:common' = @(
+            # 174 temporary shelter: exact gate and in-flight consumer, not a Java pass.
+            'com.dwinovo.numen.core.task.build.BuildInPlaceTest',
+            'com.dwinovo.numen.core.task.build.BuildInPlaceConsumerTest',
             'com.dwinovo.numen.core.task.chain.MobDefenseChainTest',
             'com.dwinovo.numen.core.tools.agent.LoadSkillToolReferenceTest',
             'com.dwinovo.numen.core.tools.work.AttackToolContractTest',
@@ -210,6 +213,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
         )
         'plugins:acx' = @(
+            'com.dwinovo.numen.acx.test.Dig3Seal1EmergencyAcTest',
             'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest',
             'com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
         )

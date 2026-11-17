@@ -879,3 +879,29 @@ foreach($entry in $defenseThrottleCases){
 }
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($defenseThrottleCases[0].Class,$defenseThrottleCases[1].Class)}; $defenseThrottleNegative++
 Write-Output ('Defense/throttle exact registration '+$defenseThrottlePositive+' positive, '+$defenseThrottleNegative+' negative PASS (policy only; not Java execution)')
+
+# 174 temporary shelter: exact admission only; the in-flight consumer is not a Java pass.
+$shelterCases=@(
+    @{Module='core:common';Class='com.dwinovo.numen.core.task.build.BuildInPlaceTest';Adjacent='com.dwinovo.numen.core.task.build.BuildInPlaceAdjacentTest';Package='com.dwinovo.numen.core.task.build.*'},
+    @{Module='core:common';Class='com.dwinovo.numen.core.task.build.BuildInPlaceConsumerTest';Adjacent='com.dwinovo.numen.core.task.build.BuildInPlaceConsumerAdjacentTest';Package='com.dwinovo.numen.core.task.build.*'},
+    @{Module='plugins:acx';Class='com.dwinovo.numen.acx.test.Dig3Seal1EmergencyAcTest';Adjacent='com.dwinovo.numen.acx.test.Dig3Seal1EmergencyAcAdjacentTest';Package='com.dwinovo.numen.acx.test.*'}
+)
+$shelterPositive=0; $shelterNegative=0
+foreach($entry in $shelterCases){
+    $plan=Get-RddTestOnlyPlan -Module $entry.Module -Tests @($entry.Class)
+    Assert ($plan.Task -ceq (':'+$entry.Module+':test') -and $plan.Module -ceq $entry.Module -and $plan.Tests.Count -eq 1 -and $plan.Tests[0] -ceq $entry.Class) 'shelter explicit selection preserves exact module/task/class'; $shelterPositive++
+    $inferred=Get-RddTestOnlyPlan -Module '' -Tests @($entry.Class)
+    Assert ($inferred.Task -ceq (':'+$entry.Module+':test') -and $inferred.Module -ceq $entry.Module -and $inferred.Tests.Count -eq 1 -and $inferred.Tests[0] -ceq $entry.Class) 'shelter inference preserves exact module/task/class'; $shelterPositive++
+    foreach($wrong in @('core:common','plugins:acx','core:neoforge','plugins:rdd') | Where-Object {$_ -cne $entry.Module}){
+        MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($entry.Class)}; $shelterNegative++
+    }
+    foreach($invalid in @($entry.Adjacent,($entry.Class+'Helper'),($entry.Class+'*'),$entry.Package,$entry.Class.ToLowerInvariant())){
+        MustReject {Get-RddTestOnlyPlan -Module $entry.Module -Tests @($invalid)}; $shelterNegative++
+        MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $shelterNegative++
+    }
+}
+$buildPair=@($shelterCases[0].Class,$shelterCases[1].Class)
+$buildPlan=Get-RddTestOnlyPlan -Module 'core:common' -Tests $buildPair
+Assert ($buildPlan.Task -ceq ':core:common:test' -and $buildPlan.Tests.Count -eq 2 -and $buildPlan.Tests[0] -ceq $buildPair[0] -and $buildPlan.Tests[1] -ceq $buildPair[1]) 'only the exact build pair may share the core test task'; $shelterPositive++
+MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($buildPair[0],$shelterCases[2].Class)}; $shelterNegative++
+Write-Output ('174 shelter exact registration '+$shelterPositive+' positive, '+$shelterNegative+' negative PASS (policy only; not Java execution)')
