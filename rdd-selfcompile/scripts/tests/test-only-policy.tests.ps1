@@ -509,6 +509,16 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($notification
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($notificationsConsumer+'*')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($notificationsConsumer+'Helper')}
 Write-Output 'Notifications consumer exact registration 6 assertions PASS (policy only; not Java execution)'
+# Exact whole failure-recovery owner plus optional-food source with bounded platform shells; not live watchers.
+$failureRecoveryConsumer='com.dwinovo.numen.plugins.rdd.RddFailureRecoveryConsumerTest'
+$failureRecoveryPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($failureRecoveryConsumer)
+Assert ($failureRecoveryPlan.Task -ceq ':plugins:rdd:test' -and $failureRecoveryPlan.Module -ceq 'plugins:rdd' -and $failureRecoveryPlan.Tests.Count -eq 1 -and $failureRecoveryPlan.Tests[0] -ceq $failureRecoveryConsumer) 'failure recovery consumer preserves exact task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($failureRecoveryConsumer)).Module -ceq 'plugins:rdd') 'failure recovery consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($failureRecoveryConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($failureRecoveryConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($failureRecoveryConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($failureRecoveryConsumer+'Helper')}
+Write-Output 'Failure recovery consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 $navTests = @(
     'com.dwinovo.numen.core.task.move.MoveToTaskRecordTest',
     'com.dwinovo.numen.core.pathing.calc.NavGoalMembershipTest',
