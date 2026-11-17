@@ -921,3 +921,19 @@ foreach($invalid in @('com.dwinovo.numen.plugins.rdd.RddStallWatcher*',($stallWa
     MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $stallWatcherNegative+=2
 }
 Write-Output ('StallWatcher consumer exact registration '+$stallWatcherPositive+' positive, '+$stallWatcherNegative+' negative PASS (policy only; not Java execution)')
+
+# 2026-11-17: exact SideTaskFoodDecline host consumer (source owner attempt06); plan-level admission only.
+$foodDeclineConsumerTest='com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest'
+$foodDeclinePositive=0; $foodDeclineNegative=0
+$foodDeclinePlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($foodDeclineConsumerTest)
+Assert ($foodDeclinePlan.Task -ceq ':plugins:rdd:test' -and $foodDeclinePlan.Module -ceq 'plugins:rdd' -and $foodDeclinePlan.Tests.Count -eq 1 -and $foodDeclinePlan.Tests[0] -ceq $foodDeclineConsumerTest) 'SideTaskFoodDecline consumer maps only the exact plugins:rdd task/class'; $foodDeclinePositive++
+$foodDeclineInferred=Get-RddTestOnlyPlan -Module '' -Tests @($foodDeclineConsumerTest)
+Assert ($foodDeclineInferred.Module -ceq 'plugins:rdd' -and $foodDeclineInferred.Task -ceq ':plugins:rdd:test' -and $foodDeclineInferred.Tests.Count -eq 1 -and $foodDeclineInferred.Tests[0] -ceq $foodDeclineConsumerTest) 'SideTaskFoodDecline consumer has one inferred owner'; $foodDeclinePositive++
+foreach($wrong in @('core:common','core:neoforge','api:common','ai','rdd-core','plugins:learner')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($foodDeclineConsumerTest)}; $foodDeclineNegative++
+}
+foreach($invalid in @('com.dwinovo.numen.plugins.rdd.SideTaskFoodDecline*',($foodDeclineConsumerTest+'Helper'),$foodDeclineConsumerTest.ToLowerInvariant())){
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($invalid)}
+    MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $foodDeclineNegative+=2
+}
+Write-Output ('SideTaskFoodDecline consumer exact registration '+$foodDeclinePositive+' positive, '+$foodDeclineNegative+' negative PASS (policy only; not Java execution)')

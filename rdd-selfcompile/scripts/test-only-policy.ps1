@@ -71,7 +71,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddReplanPlanRendererTest',
             'com.dwinovo.numen.plugins.rdd.RddPendingDeathSettlementReplanTest',
             # 2026-11-17: exact StallWatcher track/handleStalled consumer; no package or adjacent admission.
-            'com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest'
+            'com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest',
+            # 2026-11-17: exact SideTaskFoodDecline host consumer; plan-level admission only.
+            'com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
