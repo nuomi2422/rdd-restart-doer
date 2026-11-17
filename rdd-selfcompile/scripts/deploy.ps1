@@ -552,7 +552,14 @@ if ($Mode -ceq 'original-unified-66e3' -and $PSBoundParameters.ContainsKey('Inst
 }
 
 # 2026-11-17: reviewed 174 survival pair only; retain learner and every old rollback tuple.
-if ($Mode -ceq 'original-survival-174' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $ExpectedCommit -ceq '38422e0df34f029083009ec85a156ee50bf29667' -and (($MutationId -ceq 'mutation-build-f4884a29b162458985825805573ef648' -and $ExpectedSha256 -ieq 'C3C501C23878BC3D55A245AF91B6ABC01F28C04E21B18ADBBDD4680D3AF3FDFE') -or ($MutationId -ceq 'mutation-build-9a05838189a74b04ae673940d76018b9' -and $ExpectedSha256 -ieq 'EF20451B4E368F0E9FC809F18A69552EEC7374F389C7644FEB65BF0E4CFCF5BB'))) {
+if ($Mode -ceq 'original-survival-174' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and (
+  ($ExpectedCommit -ceq '38422e0df34f029083009ec85a156ee50bf29667' -and (
+    ($MutationId -ceq 'mutation-build-f4884a29b162458985825805573ef648' -and $ExpectedSha256 -ieq 'C3C501C23878BC3D55A245AF91B6ABC01F28C04E21B18ADBBDD4680D3AF3FDFE') -or
+    ($MutationId -ceq 'mutation-build-9a05838189a74b04ae673940d76018b9' -and $ExpectedSha256 -ieq 'EF20451B4E368F0E9FC809F18A69552EEC7374F389C7644FEB65BF0E4CFCF5BB'))) -or
+  ($ExpectedCommit -ceq 'd217c86a8ada53fa2f40ef22f4e0cea146796091' -and (
+    ($MutationId -ceq 'mutation-build-193a887f389241d682276a17684cdca8' -and $ExpectedSha256 -ieq 'B89BBDD952A4481D90933DACA88CF178E66AC373B341F79B1FD6575DAEDFAB68') -or
+    ($MutationId -ceq 'mutation-build-9151b49642aa4bfca0d5540e90b4209b' -and $ExpectedSha256 -ieq '83EFC5764154F49D87AF058F18EC1C76FFE8AC8511542FB5AC6EBAD73FA8F264')))
+)) {
  $ErrorActionPreference='Stop'
  try {
   . "$PSScriptRoot/deploy-test-policy.ps1"
