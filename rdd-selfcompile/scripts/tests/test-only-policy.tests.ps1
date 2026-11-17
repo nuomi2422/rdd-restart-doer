@@ -331,6 +331,16 @@ foreach($wrongModule in @('api:common','ai','plugins:rdd','rdd-core')){MustRejec
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest.ToLowerInvariant())}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStatePersistenceTest+'*')}
 Write-Output 'review state persistence exact registration 8 assertions PASS (policy only; not Java execution)'
+# Exact file/Gson, host-lock and pre-move read-refusal consumer; not native or move-failure proof.
+$reviewStateFileConsumer='com.dwinovo.numen.plugins.learner.ReviewStateFileConsumerTest'
+$reviewStateFilePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStateFileConsumer)
+Assert ($reviewStateFilePlan.Task -ceq ':plugins:learner:test' -and $reviewStateFilePlan.Module -ceq 'plugins:learner' -and $reviewStateFilePlan.Tests.Count -eq 1 -and $reviewStateFilePlan.Tests[0] -ceq $reviewStateFileConsumer) 'review state file consumer preserves exact module, task and class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($reviewStateFileConsumer)).Module -ceq 'plugins:learner') 'review state file consumer has one owner'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($reviewStateFileConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'rdd-core' -Tests @($reviewStateFileConsumer)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStateFileConsumer+'*')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($reviewStateFileConsumer+'Helper')}
+Write-Output 'Review state file consumer exact registration 6 assertions PASS (policy only; not Java execution)'
 # 2026-11-13: real scanOnce task-result host consumer must stay exact and learner-owned; no prefix widening.
 $autoTaskResultIntakeTest='com.dwinovo.numen.plugins.learner.LearnerAutoTaskResultIntakeTest'
 $autoTaskResultIntakePlan=Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($autoTaskResultIntakeTest)
