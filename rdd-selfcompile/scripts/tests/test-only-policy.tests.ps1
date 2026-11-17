@@ -41,6 +41,20 @@ foreach($case in $c1Tests){
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($c1Tests[0].Class,$c1Tests[1].Class)}
 MustReject {Get-RddTestOnlyPlan -Module 'ai' -Tests @('com.dwinovo.numen.agent.llm.OtherTest')}
 Write-Output 'C1 exact registration 23 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: A-group run receipt isolation and its exact existing offline neighbor only.
+$receiptTests=@('com.dwinovo.numen.acx.test.AcxRunReceiptIsolationTest','com.dwinovo.numen.acx.test.AcxOfflineSuiteTest')
+foreach($receiptTest in $receiptTests){
+    $receiptPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($receiptTest)
+    Assert ($receiptPlan.Module -ceq 'plugins:acx' -and $receiptPlan.Task -ceq ':plugins:acx:test' -and $receiptPlan.Tests.Count -eq 1 -and $receiptPlan.Tests[0] -ceq $receiptTest) 'receipt consumer keeps exact module/task/class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($receiptTest)).Module -ceq 'plugins:acx') 'receipt consumer has one inferred owner'
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($receiptTest)}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($receiptTest.ToLowerInvariant())}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($receiptTest+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($receiptTest+'*')}
+}
+$receiptPair=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests $receiptTests
+Assert ($receiptPair.Task -ceq ':plugins:acx:test' -and $receiptPair.Tests.Count -eq 2) 'receipt exact pair remains one module'
+Write-Output 'receipt isolation exact registration 13 assertions PASS (policy only; not Java execution)'
 # LH2 preparation: one existing farm consumer, never a package-prefix release.
 $farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
 $farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)

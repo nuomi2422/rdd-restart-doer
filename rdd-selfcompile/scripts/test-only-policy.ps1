@@ -219,6 +219,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
         )
         'plugins:acx' = @(
+            'com.dwinovo.numen.acx.test.AcxRunReceiptIsolationTest',
+            'com.dwinovo.numen.acx.test.AcxOfflineSuiteTest',
             'com.dwinovo.numen.acx.test.Dig3Seal1EmergencyAcTest',
             'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest',
             'com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
