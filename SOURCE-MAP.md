@@ -1,17 +1,20 @@
-# 源码与发布去向（2026-11-18核验）
+# 源码与发布去向（2026-11-18 03:40 核验）
 
-| 用途 | 位置及准确版本 |
-|---|---|
-| 项目门面与基础管线 | nuomi2422/rdd-restart-doer，master |
-| 工具发布 | nuomi2422/rdd-harness，main |
-| 文档发布 | nuomi2422/rdd-docs，master；以知识库入口开始 |
-| 本机游戏整合源码 | workspace/minecraft-numen，main，04bfe4b245201683ae87165d67db70dac3423e56 |
-| Numen fork | nuomi2422/minecraft-numen，默认1.21.1，5bf1a057a356e97c0d7025bd066539fefb7b8e2f；远端未见main |
-| 历史完整源码快照 | 本仓backup/minecraft-numen-04bfe4b-20261117，04bfe4b245201683ae87165d67db70dac3423e56 |
-| 历史工作区快照 | 本仓backup/workspace-619109e-20261117，619109e72dd287f3c407260c1d607f483ff1610a |
-| 历史Harness快照 | 本仓backup/rdd-harness-5bafe55-20261117，5bafe5550f6fe8750dccb8b81be0b9427b4ff2d3 |
-| 历史文档快照 | rdd-docs的review/docs-2b717d2-20261117，2b717d2846dc5f2098be5b8da099afcaf38397c2 |
+总共四个仓库，只有文档是闭源的。
 
-旧备份分支保留，不再向门面仓混入其它仓完整历史。完整源码后续使用专用私有源码仓，目标未确定前保留本机已验证bundle。本轮未向公开fork上传内部整合源码，也未修改仓可见性。
+| 用途 | 仓 | 可见性 | 准确版本 |
+|---|---|---|---|
+| 外部展示（本仓） | nuomi2422/rdd-restart-doer | 公开 | master |
+| 游戏源码 | nuomi2422/minecraft-numen | 公开 | main = 04bfe4b245201683ae87165d67db70dac3423e56 |
+| Harness 工具与技能 | nuomi2422/rdd-harness | 公开 | main |
+| 文档与知识库 | nuomi2422/rdd-docs | 私有（含 API/凭据） | master |
 
-本地旧分支仅归档已被main包含、无worktree占用的项；bundle和refs/archive保留恢复。并行053工作树及未合入分支保留。版本位置不证明已部署或实机有效。
+## 指针
+
+- 游戏源码：https://github.com/nuomi2422/minecraft-numen/tree/main —— fork 自 Dwinovo/minecraft-numen（上游只拉不推），RDD 的改动全部在这条 main 上。
+- Harness：https://github.com/nuomi2422/rdd-harness
+- 文档：https://github.com/nuomi2422/rdd-docs （需要权限，因为里面有 API 凭据）
+
+## 说明
+
+本仓只做展示和指针，不承载源码本体。历史 backup/* 分支是 2026-11 之前的快照，内容与源码、harness 重复，保留待清理，不作为真源。版本位置不证明已部署或实机有效。

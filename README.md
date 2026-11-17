@@ -1,10 +1,10 @@
 # RDD 自编译工作台 · rdd-restart-doer
 
-> **2026-11-18 现行入口**：先读 [RDD 知识库](https://github.com/nuomi2422/rdd-docs/tree/master/知识库)（访问需权限）。本仓只承载项目门面与基础管线；下列旧流程、分支与部署记录保留历史，以知识库现行正文和实际证据为准。源码与历史备份的准确去向见[源码地图](SOURCE-MAP.md)，上传不等于部署或实机通过。
+> **2026-11-18 现行入口**：四个仓库，只有文档闭源。本仓是**外部展示**，只放项目介绍和指针；游戏源码在公开 fork [minecraft-numen](https://github.com/nuomi2422/minecraft-numen/tree/main) 的 main 分支，Harness 在 [rdd-harness](https://github.com/nuomi2422/rdd-harness)，文档在 [rdd-docs](https://github.com/nuomi2422/rdd-docs)（需要权限，因为里面有 API 凭据）。准确版本见[源码地图](SOURCE-MAP.md)。上传不等于部署或实机通过。
 
 > 一套围绕 **Numen（住在 Minecraft 里的 AI 同伴）** 的 **自编译 / 自验证工程闭环**。
 > AI 在这里改源码 → 编译成 jar → 部署进游戏 → 真正进游戏驱动它干活 → 从监测台读证据判定成败。
-> **源码本体不在本仓**，在套娃仓库 `minecraft-numen`（见 [仓库索引](#二--仓库索引套娃仓库)）；本仓放**流程层**：阶段状态机、门禁、外脑池、编排脚本、文档索引。
+> **源码本体不在本仓**，在公开 fork [nuomi2422/minecraft-numen](https://github.com/nuomi2422/minecraft-numen/tree/main)（fork 自 Dwinovo/minecraft-numen，上游只拉不推）；本仓放**流程层**：阶段状态机、门禁、外脑池、编排脚本、文档索引。
 
 <p>
   <img src="rdd-monitor-verified.png" alt="进游戏实机验证取到的画面" width="640">
@@ -36,8 +36,8 @@ node stager\bin\repo-status.js
 
 | 仓库 | 路径 | 角色 | 远程 | 分支/状态 |
 |---|---|---|---|---|
-| **rdd-restart-doer** | `D:\rdd\workspace` | 外层：流程层（stager / 门禁 / 外脑池 / 编排脚本） | `nuomi2422/rdd-restart-doer`（private） | `master` |
-| **minecraft-numen** | `minecraft-numen\` | ★ **源码真源**：全部游戏代码（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1） | `origin` = `Dwinovo/minecraft-numen`（上游）；`backup` = `nuomi2422/minecraft-numen`（我们的 fork） | `redline-1` |
+| **rdd-restart-doer** | `D:\rdd\workspace` | 外层：流程层（stager / 门禁 / 外脑池 / 编排脚本） | `nuomi2422/rdd-restart-doer`（public） | `master` |
+| **minecraft-numen** | `minecraft-numen\` | ★ **源码真源**：全部游戏代码（Java / Gradle 9.2 / JDK 21 / NeoForge 1.21.1） | `origin` = `Dwinovo/minecraft-numen`（上游，只拉不推）；`backup` = `nuomi2422/minecraft-numen`（我们的公开 fork） | `main`（已推公开 fork） |
 | **ai-bridge** | `rdd-selfcompile\ai-bridge\` | 浏览器外脑桥（MCP 9527 → Chrome 扩展 → 网页 AI） | `origin` = `SoulChildTc/ai-bridge`；`backup` = `nuomi2422/ai-bridge-backup` | `main` |
 | **rdd-monitor-publish-20260913** | `rdd-monitor-publish-20260913\` | ★ **监测台 live 副本**（只读观测，端口 8776） | `origin` = `Asumi-Nishiki/TouhouLittleMaid-HeartPact`；`backup` = `nuomi2422/heartpact-automation-backup` | `codex/rdd-monitor-publish-20260913` |
 | **mc-openclaw-controller** | `mc-openclaw-controller\` | 客户端键鼠/感知控制器（8080），**已弃用留档**但运行时仍是依赖 | `origin` = `nuomi2422/minecraft-openclaw-controller-archive`；`upstream` = `fangbm/Minecraft-OpenClaw-Controller` | `main` |
