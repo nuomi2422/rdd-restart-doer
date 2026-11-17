@@ -69,7 +69,9 @@ function Get-RddTestOnlyPlan {
             # Exact existing food-hint consumer; supersedes the unmerged multi-state candidate route.
             'com.dwinovo.numen.plugins.rdd.RddNeedsTextTest',
             'com.dwinovo.numen.plugins.rdd.RddReplanPlanRendererTest',
-            'com.dwinovo.numen.plugins.rdd.RddPendingDeathSettlementReplanTest'
+            'com.dwinovo.numen.plugins.rdd.RddPendingDeathSettlementReplanTest',
+            # 2026-11-17: exact StallWatcher track/handleStalled consumer; no package or adjacent admission.
+            'com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',

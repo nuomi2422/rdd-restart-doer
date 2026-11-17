@@ -905,3 +905,19 @@ $buildPlan=Get-RddTestOnlyPlan -Module 'core:common' -Tests $buildPair
 Assert ($buildPlan.Task -ceq ':core:common:test' -and $buildPlan.Tests.Count -eq 2 -and $buildPlan.Tests[0] -ceq $buildPair[0] -and $buildPlan.Tests[1] -ceq $buildPair[1]) 'only the exact build pair may share the core test task'; $shelterPositive++
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($buildPair[0],$shelterCases[2].Class)}; $shelterNegative++
 Write-Output ('174 shelter exact registration '+$shelterPositive+' positive, '+$shelterNegative+' negative PASS (policy only; not Java execution)')
+
+# 2026-11-17: exact StallWatcher consumer (real track/handleStalled source + mock IO boundary); no wildcard or adjacent admission.
+$stallWatcherConsumerTest='com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest'
+$stallWatcherPositive=0; $stallWatcherNegative=0
+$stallWatcherPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($stallWatcherConsumerTest)
+Assert ($stallWatcherPlan.Task -ceq ':plugins:rdd:test' -and $stallWatcherPlan.Module -ceq 'plugins:rdd' -and $stallWatcherPlan.Tests.Count -eq 1 -and $stallWatcherPlan.Tests[0] -ceq $stallWatcherConsumerTest) 'StallWatcher consumer maps only the exact plugins:rdd task/class'; $stallWatcherPositive++
+$stallWatcherInferred=Get-RddTestOnlyPlan -Module '' -Tests @($stallWatcherConsumerTest)
+Assert ($stallWatcherInferred.Module -ceq 'plugins:rdd' -and $stallWatcherInferred.Task -ceq ':plugins:rdd:test' -and $stallWatcherInferred.Tests.Count -eq 1 -and $stallWatcherInferred.Tests[0] -ceq $stallWatcherConsumerTest) 'StallWatcher consumer has one inferred owner'; $stallWatcherPositive++
+foreach($wrong in @('core:common','core:neoforge','api:common','ai','rdd-core','plugins:learner')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($stallWatcherConsumerTest)}; $stallWatcherNegative++
+}
+foreach($invalid in @('com.dwinovo.numen.plugins.rdd.RddStallWatcher*',($stallWatcherConsumerTest+'Helper'),$stallWatcherConsumerTest.ToLowerInvariant())){
+    MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($invalid)}
+    MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $stallWatcherNegative+=2
+}
+Write-Output ('StallWatcher consumer exact registration '+$stallWatcherPositive+' positive, '+$stallWatcherNegative+' negative PASS (policy only; not Java execution)')
