@@ -120,7 +120,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.client.screen.HeaderLayoutTest',
             'com.dwinovo.numen.data.LanguageResourcesTest',
             'com.dwinovo.numen.client.preview.PreviewStartupTest',
-            'com.dwinovo.numen.client.agent.BodySnapshotRendererFormatTest'
+            'com.dwinovo.numen.client.agent.BodySnapshotRendererFormatTest',
+            # 2026-11-17: exact SystemPromptWake consumer; plan-level admission only.
+            'com.dwinovo.numen.client.agent.SystemPromptWakeConsumerTest'
         )
         'plugins:learner' = @(
             'com.dwinovo.numen.plugins.learner.LearnerAutoDeliveryIntakeTest',

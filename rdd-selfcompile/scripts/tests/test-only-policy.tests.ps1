@@ -937,3 +937,19 @@ foreach($invalid in @('com.dwinovo.numen.plugins.rdd.SideTaskFoodDecline*',($foo
     MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $foodDeclineNegative+=2
 }
 Write-Output ('SideTaskFoodDecline consumer exact registration '+$foodDeclinePositive+' positive, '+$foodDeclineNegative+' negative PASS (policy only; not Java execution)')
+
+# 2026-11-17: exact SystemPromptWake consumer (API source owner 4号); plan-level admission only.
+$systemWakeConsumerTest='com.dwinovo.numen.client.agent.SystemPromptWakeConsumerTest'
+$systemWakePositive=0; $systemWakeNegative=0
+$systemWakePlan=Get-RddTestOnlyPlan -Module 'api:common' -Tests @($systemWakeConsumerTest)
+Assert ($systemWakePlan.Task -ceq ':api:common:test' -and $systemWakePlan.Module -ceq 'api:common' -and $systemWakePlan.Tests.Count -eq 1 -and $systemWakePlan.Tests[0] -ceq $systemWakeConsumerTest) 'SystemPromptWake consumer maps only the exact api:common task/class'; $systemWakePositive++
+$systemWakeInferred=Get-RddTestOnlyPlan -Module '' -Tests @($systemWakeConsumerTest)
+Assert ($systemWakeInferred.Module -ceq 'api:common' -and $systemWakeInferred.Task -ceq ':api:common:test' -and $systemWakeInferred.Tests.Count -eq 1 -and $systemWakeInferred.Tests[0] -ceq $systemWakeConsumerTest) 'SystemPromptWake consumer has one inferred owner'; $systemWakePositive++
+foreach($wrong in @('core:common','core:neoforge','plugins:rdd','ai','rdd-core','plugins:learner')){
+    MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($systemWakeConsumerTest)}; $systemWakeNegative++
+}
+foreach($invalid in @('com.dwinovo.numen.client.agent.SystemPromptWake*',($systemWakeConsumerTest+'Helper'),$systemWakeConsumerTest.ToLowerInvariant())){
+    MustReject {Get-RddTestOnlyPlan -Module 'api:common' -Tests @($invalid)}
+    MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $systemWakeNegative+=2
+}
+Write-Output ('SystemPromptWake consumer exact registration '+$systemWakePositive+' positive, '+$systemWakeNegative+' negative PASS (policy only; not Java execution)')
