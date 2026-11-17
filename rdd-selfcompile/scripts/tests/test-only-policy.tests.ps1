@@ -55,6 +55,23 @@ foreach($receiptTest in $receiptTests){
 $receiptPair=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests $receiptTests
 Assert ($receiptPair.Task -ceq ':plugins:acx:test' -and $receiptPair.Tests.Count -eq 2) 'receipt exact pair remains one module'
 Write-Output 'receipt isolation exact registration 13 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: C-group stock derivation/projection/planning remain three exact owners.
+$stockCases=@(
+    @{Module='world-state-core';Class='com.dwinovo.numen.worldstate.core.derive.SelfStockDerivationTest'},
+    @{Module='plugins:worldstate';Class='com.dwinovo.numen.plugins.worldstate.SelfStockProjectionTest'},
+    @{Module='plugins:rdd';Class='com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest'}
+)
+foreach($stockCase in $stockCases){
+    $stockPlan=Get-RddTestOnlyPlan -Module $stockCase.Module -Tests @($stockCase.Class)
+    Assert ($stockPlan.Module -ceq $stockCase.Module -and $stockPlan.Task -ceq (':'+$stockCase.Module+':test') -and $stockPlan.Tests.Count -eq 1 -and $stockPlan.Tests[0] -ceq $stockCase.Class) 'stock consumer keeps exact module/task/class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($stockCase.Class)).Module -ceq $stockCase.Module) 'stock consumer has one inferred owner'
+    foreach($wrong in @('world-state-core','plugins:worldstate','plugins:rdd') | Where-Object {$_ -cne $stockCase.Module}){MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($stockCase.Class)}}
+    MustReject {Get-RddTestOnlyPlan -Module $stockCase.Module -Tests @($stockCase.Class.ToLowerInvariant())}
+    MustReject {Get-RddTestOnlyPlan -Module $stockCase.Module -Tests @($stockCase.Class+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module $stockCase.Module -Tests @($stockCase.Class+'*')}
+}
+MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($stockCases[0].Class,$stockCases[1].Class)}
+Write-Output 'stock exact registration 22 assertions PASS (policy only; not Java execution)'
 # LH2 preparation: one existing farm consumer, never a package-prefix release.
 $farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
 $farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)

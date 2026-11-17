@@ -73,7 +73,8 @@ function Get-RddTestOnlyPlan {
             # 2026-11-17: exact StallWatcher track/handleStalled consumer; no package or adjacent admission.
             'com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest',
             # 2026-11-17: exact SideTaskFoodDecline host consumer; plan-level admission only.
-            'com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest'
+            'com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest',
+            'com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
@@ -213,7 +214,11 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.rdd.side.FoodSupplyAdmissionPriorityTest'
         )
         'world-state-core' = @(
-            'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest'
+            'com.dwinovo.numen.worldstate.core.model.WorldIdentityTest',
+            'com.dwinovo.numen.worldstate.core.derive.SelfStockDerivationTest'
+        )
+        'plugins:worldstate' = @(
+            'com.dwinovo.numen.plugins.worldstate.SelfStockProjectionTest'
         )
         'maid-link-core' = @(
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
