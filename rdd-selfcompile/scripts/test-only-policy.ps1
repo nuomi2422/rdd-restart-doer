@@ -74,7 +74,8 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddStallWatcherConsumerTest',
             # 2026-11-17: exact SideTaskFoodDecline host consumer; plan-level admission only.
             'com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest',
-            'com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest'
+            'com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest',
+            'com.dwinovo.numen.plugins.rdd.RddPlanningHpFactTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',
@@ -218,7 +219,9 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.worldstate.core.derive.SelfStockDerivationTest'
         )
         'plugins:worldstate' = @(
-            'com.dwinovo.numen.plugins.worldstate.SelfStockProjectionTest'
+            'com.dwinovo.numen.plugins.worldstate.SelfStockProjectionTest',
+            'com.dwinovo.numen.plugins.worldstate.ObservationResponsesTest',
+            'com.dwinovo.numen.plugins.worldstate.SelfSampleReaderTest'
         )
         'maid-link-core' = @(
             'com.dwinovo.numen.link.core.MaidLinkCoreContractTest'
@@ -226,6 +229,7 @@ function Get-RddTestOnlyPlan {
         'plugins:acx' = @(
             'com.dwinovo.numen.acx.test.AcxRunReceiptIsolationTest',
             'com.dwinovo.numen.acx.test.AcxOfflineSuiteTest',
+            'com.dwinovo.numen.acx.test.AcxSessionOwnerConsumerTest',
             'com.dwinovo.numen.acx.test.Dig3Seal1EmergencyAcTest',
             'com.dwinovo.numen.acx.test.AcxArtifactLocationScopeTest',
             'com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'

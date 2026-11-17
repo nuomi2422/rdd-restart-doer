@@ -72,6 +72,23 @@ foreach($stockCase in $stockCases){
 }
 MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($stockCases[0].Class,$stockCases[1].Class)}
 Write-Output 'stock exact registration 22 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: explicit B owner consumer and C named neighbors, never package admission.
+$ownerStockNeighbors=@(
+    @{Module='plugins:rdd';Class='com.dwinovo.numen.plugins.rdd.RddPlanningHpFactTest'},
+    @{Module='plugins:worldstate';Class='com.dwinovo.numen.plugins.worldstate.ObservationResponsesTest'},
+    @{Module='plugins:worldstate';Class='com.dwinovo.numen.plugins.worldstate.SelfSampleReaderTest'},
+    @{Module='plugins:acx';Class='com.dwinovo.numen.acx.test.AcxSessionOwnerConsumerTest'}
+)
+foreach($neighbor in $ownerStockNeighbors){
+    $neighborPlan=Get-RddTestOnlyPlan -Module $neighbor.Module -Tests @($neighbor.Class)
+    Assert ($neighborPlan.Module -ceq $neighbor.Module -and $neighborPlan.Task -ceq (':'+$neighbor.Module+':test') -and $neighborPlan.Tests.Count -eq 1 -and $neighborPlan.Tests[0] -ceq $neighbor.Class) 'owner/stock neighbor keeps exact module/task/class'
+    Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($neighbor.Class)).Module -ceq $neighbor.Module) 'owner/stock neighbor has one inferred owner'
+    foreach($wrong in @('plugins:rdd','plugins:worldstate','plugins:acx') | Where-Object {$_ -cne $neighbor.Module}){MustReject {Get-RddTestOnlyPlan -Module $wrong -Tests @($neighbor.Class)}}
+    MustReject {Get-RddTestOnlyPlan -Module $neighbor.Module -Tests @($neighbor.Class.ToLowerInvariant())}
+    MustReject {Get-RddTestOnlyPlan -Module $neighbor.Module -Tests @($neighbor.Class+'Helper')}
+    MustReject {Get-RddTestOnlyPlan -Module $neighbor.Module -Tests @($neighbor.Class+'*')}
+}
+Write-Output 'owner and stock neighbors exact registration 28 assertions PASS (policy only; not Java execution)'
 # LH2 preparation: one existing farm consumer, never a package-prefix release.
 $farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
 $farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)
