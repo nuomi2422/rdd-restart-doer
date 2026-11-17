@@ -558,7 +558,10 @@ if ($Mode -ceq 'original-survival-174' -and $PSBoundParameters.ContainsKey('Inst
     ($MutationId -ceq 'mutation-build-9a05838189a74b04ae673940d76018b9' -and $ExpectedSha256 -ieq 'EF20451B4E368F0E9FC809F18A69552EEC7374F389C7644FEB65BF0E4CFCF5BB'))) -or
   ($ExpectedCommit -ceq 'd217c86a8ada53fa2f40ef22f4e0cea146796091' -and (
     ($MutationId -ceq 'mutation-build-193a887f389241d682276a17684cdca8' -and $ExpectedSha256 -ieq 'B89BBDD952A4481D90933DACA88CF178E66AC373B341F79B1FD6575DAEDFAB68') -or
-    ($MutationId -ceq 'mutation-build-9151b49642aa4bfca0d5540e90b4209b' -and $ExpectedSha256 -ieq '83EFC5764154F49D87AF058F18EC1C76FFE8AC8511542FB5AC6EBAD73FA8F264')))
+    ($MutationId -ceq 'mutation-build-9151b49642aa4bfca0d5540e90b4209b' -and $ExpectedSha256 -ieq '83EFC5764154F49D87AF058F18EC1C76FFE8AC8511542FB5AC6EBAD73FA8F264'))) -or
+  ($ExpectedCommit -ceq '04bfe4b245201683ae87165d67db70dac3423e56' -and (
+    ($MutationId -ceq 'mutation-build-4fb0a7913e284b12b42e76c48aa5f96c' -and $ExpectedSha256 -ieq '644977E1F8E487719EBC660EA050037CEA52971BCAF6B6BE9C26194B091CCFB1') -or
+    ($MutationId -ceq 'mutation-build-6146ec9034f44279b611117c9fefa437' -and $ExpectedSha256 -ieq 'F43E78E10A9B86BE67C94D883E7F110EED3E9DBA308B27BBF5CE10948BFF837D')))
 )) {
  $ErrorActionPreference='Stop'
  try {
