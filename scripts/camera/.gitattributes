@@ -1,0 +1,3 @@
+# Preserve frozen script bytes, line endings and PowerShell UTF-8 BOM on checkout.
+*.cjs -text
+*.ps1 -text
