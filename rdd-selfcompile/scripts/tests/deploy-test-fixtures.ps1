@@ -1,5 +1,5 @@
 ﻿# 2026-11-11: copied deployment entry; temporary IO and fake CIM only.
-param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio','d20e','v02','projection','unified')][string]$OnlyRelease)
+param([Parameter(Mandatory=$true)][string]$EvidenceDir,[ValidateSet('ownlrn','hp','quota','ui','consolidation','trio','cb7','d20e','v02','projection','unified')][string]$OnlyRelease)
 $ErrorActionPreference='Stop'
 if(Test-Path $EvidenceDir){throw 'fresh fixture directory required'}
 New-Item -ItemType Directory $EvidenceDir | Out-Null
@@ -547,6 +547,7 @@ foreach($case in $parallelCases){
   $a=Join-Path $jd $t[1];Put $a ('aa735-fixture-only-'+$m);$h=(Get-FileHash $a).Hash;$length=(Get-Item $a).Length;$fixtureHashes[$m]=$h
   $deploy=$deploy.Replace($t[2],$h);$policy=$policy.Replace($t[2],$h)
   $fixedSize=if($case -eq 'aa735-fixed-size' -and $m -ceq $module){$length+1}else{$length}
+  $policy=$policy.Replace((','+$t[3]+','),(','+$fixedSize+','))
   $policy=$policy.Replace((','+$t[3]+')'),(','+$fixedSize+')'))
   $r=@{artifact=$a;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$m;instance='test';mutationId=$t[0];sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$h;bytes=$length;sourceProof='pre-post-checks-consistent'}
   if($m -ceq $module){
@@ -665,7 +666,7 @@ foreach($release in @(
  $d=Join-Path $EvidenceDir $case;$scripts=Join-Path $d 'scripts';$root=Join-Path $d 'original-live';$mut=Join-Path $d 'mutations'
  New-Item -ItemType Directory $scripts,$root,$mut,(Join-Path $root 'mods') | Out-Null
  $module=if($tuples.Count -eq 1){@($tuples.Keys)[0]}elseif($tuples.ContainsKey('plugins:learner') -and $kind -in @('learner','learner-id-experience','wrong-size','fixed-size','bad-proof','unknown','jarname')){'plugins:learner'}elseif($tuples.ContainsKey('plugins:experience') -and $kind -in @('experience','experience-id-rdd','experience-sha-rdd','wrong-module','env-only','copy-failure','isolated','assembly-crossed','assembly-name')){'plugins:experience'}else{'plugins:rdd'}
- $commit=$release.commit
+ $commit=if($release.ContainsKey('commits') -and $release.commits.ContainsKey($module)){$release.commits[$module]}else{$release.commit}
  $deploy=Get-Content (Join-Path $src 'deploy.ps1') -Raw -Encoding UTF8
  $policy=Get-Content (Join-Path $src 'deploy-test-policy.ps1') -Raw -Encoding UTF8
  $deploy=$deploy.Replace('D:/rdd/workspace/rdd-selfcompile/mutations',$mut.Replace([char]92,[char]47)).Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47)).Replace('D:/rdd/workspace/rdd-selfcompile/instances/test',(Join-Path $d 'isolated-unused').Replace([char]92,[char]47))
@@ -676,6 +677,7 @@ foreach($release in @(
   $a=Join-Path $jd $t[1];Put $a ($release.tag+'-fixture-only-'+$m);$h=(Get-FileHash $a).Hash;$length=(Get-Item $a).Length;$fixtureHashes[$m]=$h
   $deploy=$deploy.Replace($t[2],$h);$policy=$policy.Replace($t[2],$h)
   $fixedSize=if($kind -eq 'fixed-size' -and $m -ceq $module){$length+1}else{$length}
+  $policy=$policy.Replace((','+$t[3]+','),(','+$fixedSize+','))
   $policy=$policy.Replace((','+$t[3]+')'),(','+$fixedSize+')'))
   $r=@{artifact=$a;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$m;instance='test';mutationId=$t[0];sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sha256=$h;bytes=$length;sourceProof='pre-post-checks-consistent'}
   if($m -ceq $module){
@@ -762,10 +764,12 @@ $names=@{'core:neoforge'='numen-neoforge-1.21.1-0.1.3-dev.jar';'plugins:rdd'='nu
 $uiCases=@($hpCases | ForEach-Object { $_ -replace '^hp-','ui-' })
 $consolidationCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','consolidation-' })
 $trioCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','trio-' }) + @('trio-learner','trio-learner-copy-failure','trio-learner-bad-sha','trio-learner-wrong-module','trio-learner-bad-source','trio-learner-fixed-size','trio-learner-running','trio-learner-unknown','trio-learner-escape')
+$cb7Cases=@($manualCases | ForEach-Object { $_ -replace '^manual-','cb7-' }) + @('cb7-learner','cb7-learner-copy-failure','cb7-learner-bad-sha','cb7-learner-wrong-module','cb7-learner-bad-source','cb7-learner-fixed-size','cb7-learner-running','cb7-learner-unknown','cb7-learner-escape')
 $d20eCases=@($manualCases | ForEach-Object { $_ -replace '^manual-','d20e-' })
 $coreReleases=@(
  @{tag='d20e';commit='d20e061a87eeba7c2128f4940ff90b5dc9f5226d';mode='original-pair-d20e';coreId='mutation-build-6dbaf640631746f3960336119f97a01a';coreHash='362C8FEFB8ED5D8E8EF2D803465535AF1AAB6D162B59C3BB802ED1EB059A915B';rddId='mutation-build-818e9da828e4480a8779809bc9091976';rddHash='5558F0C546C5BA6A710996633DB3A6377DF09489BA25CF2A74DEA68114874707';policyBytes=@(2588701,1223729);cases=$d20eCases},
  @{tag='trio';commit='3ee7ff271c6c02bb74f828e7ba75cc27464b9600';mode='original-trio-3ee7';coreId='mutation-build-13df6869a04f4607b499dd8c9d250e65';coreHash='4840D714F0E31C5E0F1C59214AF9A9C040A91C6E594328399492C5B37393DD6A';rddId='mutation-build-6abbdea615ba45d196b497ba7685f909';rddHash='1E01B60F697154AB082FBAAED8DB0EEA93BDAD4A43385A5ABF88D98DDDCE5287';learnerId='mutation-build-63eaefff6767450e8dba4982162948a3';learnerHash='E0B937ECF0B828835FFE764BB2B339D4F9A70F0968849C9319FE67BFAF5160E8';policyBytes=@(2588508,1221026,640473);cases=$trioCases},
+ @{tag='cb7';commit='c764d3f1bb3ba28814ce3496944d61144bf74297';commits=@{'core:neoforge'='c764d3f1bb3ba28814ce3496944d61144bf74297';'plugins:rdd'='c764d3f1bb3ba28814ce3496944d61144bf74297';'plugins:learner'='cb7f8fa7f798ae19e54ac7e22e05a5a53c131e55'};mode='original-trio-cb7';coreId='mutation-build-387e668e375e48c89288cfa6bd44ff15';coreHash='BE3EE8B2836104D18D412F2C3EC10265E957D631B480256853D22A41109C1F87';rddId='mutation-build-cc72c915e5aa432f9556f057af4661f9';rddHash='D3A1A1C912E536629CF114E12E2FA534523158E168AA00A96A9A0F7247AA5DEA';learnerId='mutation-build-c991005bded949bfa2ff7f4cc06c9e24';learnerHash='110742902A1E00113D2604F3A93481EE9C679FFE4BFA13B61B55EBEEB576A3D1';policyBytes=@(2588756,1256591,642309);cases=$cb7Cases},
  @{tag='consolidation';commit='3238c63e087aff10bd82eca1471740d48478976c';mode='original-consolidation-3238';coreId='mutation-build-8f22b2d6d6fb487fa19c4207006c8d9d';coreHash='905DAA01BB3ADBBB479E3F498D0B42E416B918F58B63401808271121F87D4A4E';coreBytes=2589178;rddId='mutation-build-01d8b35cca62496fa1a1f2d13d25fe3a';rddHash='6D3E38E5A12BD9A54F9C3F6A6CAB3C2320DE8376567E02DD1A5274326C3C23D2';rddBytes=1220172;policyBytes=@(2589178,1220172);cases=$consolidationCases},
  @{tag='ui';commit='ddd42b8005a9cab35710dc6652adba0bdb8fd5e5';mode='original-ui-ddd42';coreId='mutation-build-81c298370ef5495d8af734bd2290953c';coreHash='C58E1F73D097A20CDCFF1F413C6D9C21F4EF76CD76872B6AE031BE2E493A3DCA';coreBytes=2581905;policyBytes=@(2581905);cases=$uiCases},
  @{tag='hp';commit='e4edcb356ff50516e3e145c06b718bdfbf5dce1b';mode='original-hp-e4ed';coreId='mutation-build-2cde0f776f7045b5ac6ce050a3479243';coreHash='FEA637B008E50E0DA5D8C55264300AA127F61355E07B3284C9E310FBEEC5C862';coreBytes=2568857;policyBytes=@(2568857);cases=$hpCases},
@@ -796,7 +800,7 @@ foreach($coreRelease in $coreReleases){
   $policy=$policy.Replace('D:/rdd/mc/The Best of Twilight Forest',$root.Replace([char]92,[char]47))
   $deploy=$deploy.Replace($fixedHash,$sha);$policy=$policy.Replace($fixedHash,$sha)
   $fixedSize=if($kind -eq 'fixed-size'){$length+1}else{$length}
-  foreach($b in $coreRelease.policyBytes){$policy=$policy.Replace(','+$b+')',','+$fixedSize+')')}
+  foreach($b in $coreRelease.policyBytes){$policy=$policy.Replace(','+$b+',',','+$fixedSize+',');$policy=$policy.Replace(','+$b+')',','+$fixedSize+')')}
   if($kind -eq 'wrong-root'){$policy=$policy.Replace($root.Replace([char]92,[char]47),(Join-Path $d 'other-live').Replace([char]92,[char]47))}
   $copyFail=$kind -in @('copy-failure','core-copy-failure','rdd-copy-failure','learner-copy-failure')
   if($copyFail){$policy=$policy.Replace('[IO.File]::Copy($Source.artifact,$dest,$true)',"throw 'fixture $tag copy failure'")}
@@ -804,7 +808,7 @@ foreach($coreRelease in $coreReleases){
   Copy-Item (Join-Path $src 'mc-identity.ps1') (Join-Path $scripts 'mc-identity.ps1')
   $poison=Join-Path $d 'poison.txt'
   foreach($n in @('config.ps1','launch-mc.ps1','new-mutation.ps1','mcp-drive.ps1','verify.ps1')){Put (Join-Path $scripts $n) ('Add-Content "'+$poison+'" POISON;throw "poison"')}
-  $commit=$coreRelease.commit
+  $commit=if($coreRelease.ContainsKey('commits') -and $coreRelease.commits.ContainsKey($module)){$coreRelease.commits[$module]}else{$coreRelease.commit}
   $r=@{artifact=$artifact;status='passed';success=$true;gradleExit=0;deployed=$false;stage='build-only';module=$module;instance='test';mutationId=$id;sourceHead=$commit;sourceHeadAfter=$commit;expectedCommit=$commit;sourceDirtyCount=0;sourceDirtyCountAfter=0;sourceProof='pre-post-checks-consistent';sha256=$sha;bytes=$length}
   if($kind -eq 'bad-source'){$r.sourceHeadAfter='0'*40}
   if($kind -eq 'bad-proof'){$r.sourceProof='fixture-invalid-source-proof'}
