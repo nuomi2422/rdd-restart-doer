@@ -1033,3 +1033,28 @@ foreach($invalid in @('com.dwinovo.numen.client.agent.SystemPromptWake*',($syste
     MustReject {Get-RddTestOnlyPlan -Module '' -Tests @($invalid)}; $systemWakeNegative+=2
 }
 Write-Output ('SystemPromptWake consumer exact registration '+$systemWakePositive+' positive, '+$systemWakeNegative+' negative PASS (policy only; not Java execution)')
+
+# 2026-11-18: exact API context and task acceptance consumers; no package or class wildcards.
+$apiRequestAcceptanceClasses = @(
+    'com.dwinovo.numen.client.agent.AgentRequestContextTest',
+    'com.dwinovo.numen.task.TaskAcceptanceConsumerTest'
+)
+foreach ($selector in $apiRequestAcceptanceClasses) {
+    foreach ($module in @('api:common', '')) {
+        $plan = Get-RddTestOnlyPlan -Module $module -Tests @($selector)
+        Assert ($plan.Module -ceq 'api:common' -and $plan.Task -ceq ':api:common:test' -and
+            $plan.Tests.Count -eq 1 -and $plan.Tests[0] -ceq $selector) "API consumer must retain its exact selector: $selector"
+    }
+    MustReject { Get-RddTestOnlyPlan -Module 'api:neoforge' -Tests @($selector) }
+    $package = $selector.Substring(0, $selector.LastIndexOf('.'))
+    foreach ($invalid in @(($package + '.*'), ($selector + '*'), ($selector + 'Helper'), $selector.ToLowerInvariant())) {
+        MustReject { Get-RddTestOnlyPlan -Module 'api:common' -Tests @($invalid) }
+        MustReject { Get-RddTestOnlyPlan -Module '' -Tests @($invalid) }
+    }
+}
+$apiRequestAcceptancePlan = Get-RddTestOnlyPlan -Module 'api:common' -Tests $apiRequestAcceptanceClasses
+Assert ($apiRequestAcceptancePlan.Task -ceq ':api:common:test' -and
+    $apiRequestAcceptancePlan.Tests.Count -eq 2 -and
+    $apiRequestAcceptancePlan.Tests[0] -ceq $apiRequestAcceptanceClasses[0] -and
+    $apiRequestAcceptancePlan.Tests[1] -ceq $apiRequestAcceptanceClasses[1]) 'both exact API consumer selectors may be requested together'
+Write-Output 'API request context / task acceptance exact registration 5 positive, 18 negative PASS (policy only; not Java execution)'
