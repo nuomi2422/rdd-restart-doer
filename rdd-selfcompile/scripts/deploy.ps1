@@ -104,6 +104,19 @@ if ($Mode -ceq 'original-runtime-followups' -and $PSBoundParameters.ContainsKey(
  } catch { Write-Error ('DEPLOY_RUNTIME_FOLLOWUPS_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-19: managed rollback to the five released packages that preceded the 053 combo.
+# Per-item commit/SHA/bytes only; JarPath/JarName and every other mode still refuse.
+if ($Mode -ceq 'original-053-rollback' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-4fb0a7913e284b12b42e76c48aa5f96c','mutation-build-6146ec9034f44279b611117c9fefa437','mutation-build-367b48b425d54ae5a48845153342fd4f','mutation-build-c991005bded949bfa2ff7f4cc06c9e24','mutation-build-98aec306de93417e8d563efc62c96cbf') -and $ExpectedCommit -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_053_ROLLBACK_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # 2026-11-19: frozen combo 3f3be4e1 five same-source build-only artifacts; per-item exact ID/SHA/bytes only.
 if ($Mode -ceq 'original-overnight-frozen' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-67d39fc91753488e9475cc577bd7665e','mutation-build-66e83074983b4bca9b6bba9816d7ee0b','mutation-build-bcbf2154bfa84a0b90ee87b9e5f1cef3','mutation-build-00c23bbe3d334bd99c2028f7e8b12caa','mutation-build-6c91f476298f4f46a941ec656a4983e1') -and $ExpectedCommit -ceq '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' -and $ExpectedSha256) {
  $ErrorActionPreference='Stop'
