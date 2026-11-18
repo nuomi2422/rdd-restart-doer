@@ -31,6 +31,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.plugins.rdd.RddDecomposerAssetBoundsTest',
             'com.dwinovo.numen.plugins.rdd.RddDecomposerPromptDelegationTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanGuardTest',
+            'com.dwinovo.numen.plugins.rdd.RddMiningCapabilityCheckTest',
             'com.dwinovo.numen.plugins.rdd.RddPersonalRespawnPolicyTest',
             'com.dwinovo.numen.plugins.rdd.RddHomeReserveFreshnessTest',
             'com.dwinovo.numen.plugins.rdd.RddExternalResetWiringTest',

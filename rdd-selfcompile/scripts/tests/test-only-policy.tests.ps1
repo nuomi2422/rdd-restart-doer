@@ -143,6 +143,18 @@ MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseReserveTest.
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseReserveTest+'Helper')}
 MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($baseReserveTest+'*')}
 Write-Output 'base reserve exact registration 7 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: exact mining capability consumer; plan-level admission only.
+$miningCapabilityTest='com.dwinovo.numen.plugins.rdd.RddMiningCapabilityCheckTest'
+foreach ($miningModule in @('plugins:rdd', '')) {
+    $miningPlan=Get-RddTestOnlyPlan -Module $miningModule -Tests @($miningCapabilityTest)
+    Assert ($miningPlan.Module -ceq 'plugins:rdd' -and $miningPlan.Task -ceq ':plugins:rdd:test' -and
+        $miningPlan.Tests.Count -eq 1 -and $miningPlan.Tests[0] -ceq $miningCapabilityTest) 'mining capability keeps exact module/task/class'
+    foreach ($invalid in @($miningCapabilityTest.ToLowerInvariant(), ($miningCapabilityTest+'Helper'), ($miningCapabilityTest+'*'), 'com.dwinovo.numen.plugins.rdd.*')) {
+        MustReject {Get-RddTestOnlyPlan -Module $miningModule -Tests @($invalid)}
+    }
+}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($miningCapabilityTest)}
+Write-Output 'mining capability exact registration 2 positive, 9 negative PASS (policy only; not Java execution)'
 # LH2 preparation: one existing farm consumer, never a package-prefix release.
 $farmTest='com.dwinovo.numen.acx.test.AcxFarmContinueOfflineTest'
 $farmPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($farmTest)
