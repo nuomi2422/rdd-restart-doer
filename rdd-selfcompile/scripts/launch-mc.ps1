@@ -96,7 +96,23 @@ if ($state -eq 'RUNNING') {
     exit 2
 }
 
-if (-not (Test-Path $global:RDD_SC.MC_BAT)) { throw "launcher bat not found: $($global:RDD_SC.MC_BAT)" }
+# Pin this bounded launch to the approved 174 attempt08 deployment. The inventory
+# digest is from 174-04bfe-post-install-verification.json (10 enabled JARs).
+$approvedCommit = '04bfe4b245201683ae87165d67db70dac3423e56'
+try {
+    . "$PSScriptRoot\deploy-test-policy.ps1"  # Assert-RddOrdinaryPath; no deployment
+    . "$PSScriptRoot\bounded-live-launch-policy.ps1"
+    Assert-RddBoundedLiveLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
+        -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
+        -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' `
+        -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
+        -ModsSha '8d7761d94e3ec03dd9516c80a57a8d8537c6c4b3eadd46169856ebbe36ae774a'
+} catch {
+    Write-Output ('LAUNCH_REFUSED: ' + $_.Exception.Message)
+    exit 6
+}
+$env:RDD_LEVEL = $global:RDD_SC.MC_SAVE
+Write-Output "LAUNCH_INPUTS_OK commit=$approvedCommit instance=$($global:RDD_SC.SC_INSTANCE) save=$env:RDD_LEVEL"
 
 # 启动器 bat 以 `pause` 结尾（等人按键看"游戏已退出"），自动化下它会永远挂在
 # cmd.exe 上不退出；若不重定向输出，它还会继承调用方的 stdout 管道 → 上层
