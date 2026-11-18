@@ -1,4 +1,4 @@
-﻿# 2026-11-11: narrow fixed-artifact test assembly. No live config or launch access.
+# 2026-11-11: narrow fixed-artifact test assembly. No live config or launch access.
 function Assert-RddOrdinaryPath {
  param([string]$Path)
  $p=[IO.Path]::GetFullPath($Path)
@@ -103,6 +103,17 @@ function Get-RddTestDeploySource {
    'mutation-build-367b48b425d54ae5a48845153342fd4f'=@('plugins:acx','numen-plugin-acx-1.21.1-0.1.3-dev.jar','F91DB3B6342CF90F96C4D62471DB5BA2E4C8FDECB4D52DF9323C0D7976A7AF6C')
   }
   $commit='842d7ee0123a8ead96a04ef673e0c29a2ff4534c'
+ }
+ # 2026-11-19: frozen combo 3f3be4e1 five same-source build-only artifacts; exact bytes per item.
+ if($MutationId -cin @('mutation-build-67d39fc91753488e9475cc577bd7665e','mutation-build-66e83074983b4bca9b6bba9816d7ee0b','mutation-build-bcbf2154bfa84a0b90ee87b9e5f1cef3','mutation-build-00c23bbe3d334bd99c2028f7e8b12caa','mutation-build-6c91f476298f4f46a941ec656a4983e1')){
+  $fixed=@{
+   'mutation-build-67d39fc91753488e9475cc577bd7665e'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','F65B775B6E1DD2F5D8AA67C524CD5312DF00981A85E904C586DE41C17AAD708E',2613563,'3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc')
+   'mutation-build-66e83074983b4bca9b6bba9816d7ee0b'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','3EF328E25F6E3314B16861D7D6B2148D8DC99939C4D904F488320CD88AF25740',1307211,'3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc')
+   'mutation-build-bcbf2154bfa84a0b90ee87b9e5f1cef3'=@('plugins:acx','numen-plugin-acx-1.21.1-0.1.3-dev.jar','308215FAE9FD7038FB52D2AEA15EEA33794DE89C7B966AECD5E1AA4F24CCEE58',293542,'3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc')
+   'mutation-build-00c23bbe3d334bd99c2028f7e8b12caa'=@('plugins:learner','numen-plugin-learner-1.21.1-0.1.3-dev.jar','CE76DB2C99CC418E9C85794EFB57A51E0CA6BE7CF9B861E4DDFB5A3D84EFA2E8',648961,'3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc')
+   'mutation-build-6c91f476298f4f46a941ec656a4983e1'=@('plugins:worldstate','numen-plugin-worldstate-1.21.1-0.1.3-dev.jar','6C605D652A70C7A61779FE20021842763AC937D2379B49EC771418F67C1F79FB',230879,'3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc')
+  }
+  $commit='3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc'
  }
  # 2026-11-12: 32 exact consumers and MCP namespace re-review passed; this core only.
  if($MutationId -ceq 'mutation-build-4f56fc55b7be483cab7f8e24579d9749'){
@@ -560,7 +571,13 @@ function Invoke-RddTestAssembly {
   $fixedSurvival04bfe=$Source.commit -ceq '04bfe4b245201683ae87165d67db70dac3423e56' -and (
    ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '644977E1F8E487719EBC660EA050037CEA52971BCAF6B6BE9C26194B091CCFB1') -or
    ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F43E78E10A9B86BE67C94D883E7F110EED3E9DBA308B27BBF5CE10948BFF837D'))
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedSurvival174 -and -not $fixedSurvivalD217 -and -not $fixedSurvival04bfe -and -not $fixedCb7Trio -and -not $fixedUnified -and -not $fixedProjection -and -not $fixedD20e -and -not $fixedV02Plan -and -not $fixedTrio -and -not $fixedConsolidation -and -not $fixedRecovering -and -not $fixedPendingDeath -and -not $fixedClassSplit -and -not $fixedLh1Prep -and -not $fixedUi -and -not $fixedQuota -and -not $fixedHp -and -not $fixedManual -and -not $fixedV25 -and -not $fixedV26 -and -not $fixedB2C1 -and -not $fixedConvo -and -not $fixedKbQuota -and -not $fixedOwnLearnerLate -and -not $fixedDailyFaede -and -not $fixedWhy8853 -and -not $fixedParallel -and -not $fixedNudgeRdd -and -not $fixedA1Food -and -not $fixedSuccessor -and -not $fixedResultReview -and -not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  $fixedOvernight3f3e=$Source.commit -ceq '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' -and (
+   ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F65B775B6E1DD2F5D8AA67C524CD5312DF00981A85E904C586DE41C17AAD708E') -or
+   ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '3EF328E25F6E3314B16861D7D6B2148D8DC99939C4D904F488320CD88AF25740') -or
+   ($Source.module -ceq 'plugins:acx' -and $Source.name -ceq 'numen-plugin-acx-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '308215FAE9FD7038FB52D2AEA15EEA33794DE89C7B966AECD5E1AA4F24CCEE58') -or
+   ($Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'CE76DB2C99CC418E9C85794EFB57A51E0CA6BE7CF9B861E4DDFB5A3D84EFA2E8') -or
+   ($Source.module -ceq 'plugins:worldstate' -and $Source.name -ceq 'numen-plugin-worldstate-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '6C605D652A70C7A61779FE20021842763AC937D2379B49EC771418F67C1F79FB'))
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedSurvival174 -and -not $fixedSurvivalD217 -and -not $fixedSurvival04bfe -and -not $fixedOvernight3f3e -and -not $fixedCb7Trio -and -not $fixedUnified -and -not $fixedProjection -and -not $fixedD20e -and -not $fixedV02Plan -and -not $fixedTrio -and -not $fixedConsolidation -and -not $fixedRecovering -and -not $fixedPendingDeath -and -not $fixedClassSplit -and -not $fixedLh1Prep -and -not $fixedUi -and -not $fixedQuota -and -not $fixedHp -and -not $fixedManual -and -not $fixedV25 -and -not $fixedV26 -and -not $fixedB2C1 -and -not $fixedConvo -and -not $fixedKbQuota -and -not $fixedOwnLearnerLate -and -not $fixedDailyFaede -and -not $fixedWhy8853 -and -not $fixedParallel -and -not $fixedNudgeRdd -and -not $fixedA1Food -and -not $fixedSuccessor -and -not $fixedResultReview -and -not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
  $mods=Join-Path $Root 'mods';Assert-RddOrdinaryPath $mods
  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw 'test instance not proven stopped'}

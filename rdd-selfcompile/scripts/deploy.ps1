@@ -1,4 +1,4 @@
-﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 # H1-min 收敛：mods 只由本入口写；写入前用 mc-instance 的三态拒绝运行中/未知部署。
 # 回滚不再自己 copy，改为调用本入口 -JarPath（同一落点）。
 param(
@@ -102,6 +102,18 @@ if ($Mode -ceq 'original-runtime-followups' -and $PSBoundParameters.ContainsKey(
   Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
   exit 0
  } catch { Write-Error ('DEPLOY_RUNTIME_FOLLOWUPS_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
+# 2026-11-19: frozen combo 3f3be4e1 five same-source build-only artifacts; per-item exact ID/SHA/bytes only.
+if ($Mode -ceq 'original-overnight-frozen' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -cin @('mutation-build-67d39fc91753488e9475cc577bd7665e','mutation-build-66e83074983b4bca9b6bba9816d7ee0b','mutation-build-bcbf2154bfa84a0b90ee87b9e5f1cef3','mutation-build-00c23bbe3d334bd99c2028f7e8b12caa','mutation-build-6c91f476298f4f46a941ec656a4983e1') -and $ExpectedCommit -ceq '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' -and $ExpectedSha256) {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations'
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_OVERNIGHT_FROZEN_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
 # 2026-11-12: unique replies preserve MCP ownership; exact 32-test core tuple only.
