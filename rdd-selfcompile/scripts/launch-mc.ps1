@@ -52,9 +52,9 @@ if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'o
     }catch{Write-Error ('TITLE_LAUNCH_FAILED: '+$_.Exception.Message);exit 2}
 }
 # All default/gpt/world launches remain frozen.
-# 2026-11-11: one explicit, auditable bounded-live verification path (quick play into live).
-# Default and every other mode still refuse; this is not a general launch release.
-if ($Mode -cne 'bounded-live' -or $Instance -cne 'gpt') {
+# 2026-11-19: second explicit path for the frozen 3f3be4e1 five-artifact candidate.
+# Both modes are fixed; default and every other mode still refuse.
+if (($Mode -cne 'bounded-live' -and $Mode -cne '053-overnight-launch') -or $Instance -cne 'gpt') {
     Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
     exit 2
 }
@@ -96,17 +96,25 @@ if ($state -eq 'RUNNING') {
     exit 2
 }
 
-# Pin this bounded launch to the approved 174 attempt08 deployment. The inventory
-# digest is from 174-04bfe-post-install-verification.json (10 enabled JARs).
-$approvedCommit = '04bfe4b245201683ae87165d67db70dac3423e56'
+# Pin bounded-live to the approved 174 attempt08 deployment; pin the 053 candidate to
+# frozen combo 3f3be4e1 (five installed artifacts plus the unchanged kept set).
+$approvedCommit = if ($Mode -ceq '053-overnight-launch') { '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' } else { '04bfe4b245201683ae87165d67db70dac3423e56' }
 try {
     . "$PSScriptRoot\deploy-test-policy.ps1"  # Assert-RddOrdinaryPath; no deployment
     . "$PSScriptRoot\bounded-live-launch-policy.ps1"
-    Assert-RddBoundedLiveLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
-        -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
-        -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' `
-        -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
-        -ModsSha '8d7761d94e3ec03dd9516c80a57a8d8537c6c4b3eadd46169856ebbe36ae774a'
+    if ($Mode -ceq '053-overnight-launch') {
+        Assert-RddOvernightLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
+            -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
+            -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' -State $state `
+            -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
+            -ModsSha 'd11a9a5870dd6cf7a0bb6782c761e2b5aba018e0e563b60acc62650a37c1016a'
+    } else {
+        Assert-RddBoundedLiveLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
+            -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
+            -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' `
+            -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
+            -ModsSha '8d7761d94e3ec03dd9516c80a57a8d8537c6c4b3eadd46169856ebbe36ae774a'
+    }
 } catch {
     Write-Output ('LAUNCH_REFUSED: ' + $_.Exception.Message)
     exit 6
