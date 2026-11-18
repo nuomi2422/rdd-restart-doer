@@ -119,6 +119,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.client.agent.ServerToolTransportBindingTest',
             'com.dwinovo.numen.client.agent.ServerToolTransportExternalNamespaceTest',
             'com.dwinovo.numen.api.SleepHandoffConsumerTest',
+            'com.dwinovo.numen.task.TaskProgressTest',
             'com.dwinovo.numen.api.EnqueueReceiptTest',
             'com.dwinovo.numen.api.EnqueueReceiptCompatTest',
             'com.dwinovo.numen.api.EnqueueTransactionMatrixTest',
