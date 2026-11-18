@@ -1,0 +1,13 @@
+// Fixed test-worker settings for run-mutation.ps1 -TestOnly -TestLowMemory.
+// This init script is passed only by the managed opt-in TestOnly invocation.
+// Configure late so ordinary project defaults don't replace these settings.
+import org.gradle.api.tasks.testing.Test
+
+gradle.projectsEvaluated {
+    gradle.rootProject.allprojects { project ->
+        project.tasks.withType(Test).configureEach { testTask ->
+            testTask.maxParallelForks = 1
+            testTask.maxHeapSize = '256m'
+        }
+    }
+}

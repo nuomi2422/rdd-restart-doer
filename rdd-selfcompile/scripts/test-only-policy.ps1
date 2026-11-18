@@ -1,4 +1,15 @@
 # Pure test-only command plan and JUnit receipt policy; never invokes Gradle or deployment.
+function New-RddTestOnlyGradleArgs {
+    param([string]$Root, $Plan, [switch]$TestLowMemory)
+    $argv = @('-p', $Root, $Plan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
+    if ($TestLowMemory) {
+        $init = Join-Path $PSScriptRoot 'test-only-low-memory.init.gradle'
+        if (-not (Test-Path -LiteralPath $init -PathType Leaf)) { throw 'TestLowMemory init script missing' }
+        $argv += @('--max-workers=1', '--no-parallel', '-Dorg.gradle.jvmargs=-Xmx1024m', '--init-script', $init)
+    }
+    foreach ($test in $Plan.Tests) { $argv += @('--tests', $test) }
+    $argv
+}
 function Get-RddTestOnlyPlan {
     param([string]$Module, [string[]]$Tests)
     # Module -> exact test classes. Unknown module or class is refused; never build

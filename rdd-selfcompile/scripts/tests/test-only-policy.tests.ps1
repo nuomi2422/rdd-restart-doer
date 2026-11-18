@@ -5,6 +5,18 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot '..\test-only-policy.ps1')
 function Assert([bool]$condition, [string]$message) { if (-not $condition) { throw $message } }
 function MustReject([scriptblock]$block) { $rejected=$false; try { & $block } catch { $rejected=$true }; Assert $rejected 'expected rejection' }
+# Compare the actual Gradle argv for a pinned TestOnly run; no JVM is launched.
+$profileRoot = 'D:\stock tests\frozen'
+$profileTest = 'com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest'
+$profilePlan = Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($profileTest)
+$defaultArgs = @(New-RddTestOnlyGradleArgs -Root $profileRoot -Plan $profilePlan)
+$commonArgs = @('-p', $profileRoot, ':plugins:rdd:test', '--no-build-cache', '--no-daemon', '--rerun-tasks')
+Assert (($defaultArgs -join '|') -ceq (($commonArgs + @('--tests', $profileTest)) -join '|')) 'default TestOnly argv stays unchanged'
+$init = Join-Path (Split-Path $PSScriptRoot -Parent) 'test-only-low-memory.init.gradle'
+$boundedArgs = @(New-RddTestOnlyGradleArgs -Root $profileRoot -Plan $profilePlan -TestLowMemory)
+$expected = $commonArgs + @('--max-workers=1', '--no-parallel', '-Dorg.gradle.jvmargs=-Xmx1024m', '--init-script', $init, '--tests', $profileTest)
+Assert (($boundedArgs -join '|') -ceq ($expected -join '|')) 'low memory adds only fixed resource flags; source path and exact selector remain separate arguments'
+Write-Output 'TestOnly resource profile argv PASS (no Java)'
 # 2026-11-14: exact rationale/reflection consumers; no cross-module or adjacent-name admission.
 $rationaleTests=@(
     @{Module='plugins:rdd';WrongModule='plugins:learner';Class='com.dwinovo.numen.plugins.rdd.RddStageBRationaleRequestTest'},

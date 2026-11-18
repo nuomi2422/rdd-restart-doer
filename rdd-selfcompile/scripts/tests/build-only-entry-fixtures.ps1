@@ -12,6 +12,7 @@ $cases=@(
  @{name='gpt';extra=@('-Mode','build-only','-Instance','gpt');fail=$true},
  @{name='missing-instance';extra=@('-Mode','build-only');fail=$true},
  @{name='conflict';extra=@('-Mode','build-only','-Instance','test','-TestOnly');fail=$true},
+ @{name='test-low-memory-conflict';extra=@('-Mode','build-only','-Instance','test','-TestLowMemory');fail=$true},
  @{name='bad-hash';extra=@('-Mode','build-only','-Instance','test');badHash=$true;fail=$true},
  @{name='gradle-nonzero';extra=@('-Mode','build-only','-Instance','test');gradleExit=9;fail=$true},
  @{name='missing-jar';extra=@('-Mode','build-only','-Instance','test');noJar=$true;fail=$true},

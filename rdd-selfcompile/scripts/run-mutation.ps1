@@ -29,7 +29,9 @@ param(
     # 并把审核请求落盘到 report\review-requests\。不自动起子 agent（会绕开 goal/预算/权限），
     # 只做提示与记录，起不起由主 AI 决定。
     [int]$Round = 1,
-    [int]$Rounds = 0
+    [int]$Rounds = 0,
+    # Opt in to the bounded TestOnly profile with an explicit SourceRoot/ExpectedCommit.
+    [switch]$TestLowMemory
 )
 
 # Incident freeze: load the guard into an isolated module; functions must come from this file.
@@ -58,6 +60,7 @@ try { $modeInfo = & $resolveFn -Mode $Mode -TestOnly:$TestOnly } catch { Write-E
 if ($null -eq $modeInfo -or $null -eq $modeInfo.ok -or $modeInfo.ok -isnot [bool]) { Write-Error 'RUN_REFUSED: guard-invalid-result'; exit 2 }
 if ($modeInfo.ok -ne $true) { Write-Error ("RUN_REFUSED: " + $modeInfo.reason); exit 2 }
 $effectiveMode = [string]$modeInfo.mode
+if ($TestLowMemory -and $effectiveMode -ne 'test-only') { Write-Error 'RUN_REFUSED: TestLowMemory requires TestOnly'; exit 2 }
 if ($effectiveMode -eq 'build-only') {
     try {
         if ($Tests.Count -or $SettleRegression -or $IdentityRegression -or $CollectEvidence -or $SkipLaunch -or $SkipMcp -or $Rounds -ne 0 -or $Round -ne 1 -or $BatchId -or $EvidenceTool -or $PSBoundParameters.ContainsKey('AutoStopMinutes')) { throw 'build-only conflicting options' }
@@ -124,7 +127,7 @@ Write-Output "[1/6] mutation-id: $id"
 
 # 2. 安全编译 + 打包
 if ($TestOnly) {
-    $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module -TestOnly -Tests $Tests -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+    $buildOut = & "$PSScriptRoot\build-jar.ps1" -MutationId $id -ModuleOverride $Module -TestOnly -Tests $Tests -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit -TestLowMemory:$TestLowMemory
     $testExit = $LASTEXITCODE
     Write-Output "[test-only] $buildOut"
     if ($testExit -ne 0) { exit $testExit }

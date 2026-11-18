@@ -7,8 +7,13 @@ param(
     [string]$SourceRoot,
     [string]$ExpectedCommit,
     [string]$Mode,
-    [string]$Instance
+    [string]$Instance,
+    [switch]$TestLowMemory
 )
+
+if ($TestLowMemory -and (-not $TestOnly -or $Mode -eq 'build-only')) {
+    Write-Error 'TestLowMemory requires TestOnly'; exit 2
+}
 
 # 2026-11-11: build-only does not load instance config or enter the legacy closure.
 if ($Mode -eq 'build-only') {
@@ -89,6 +94,7 @@ if ($TestOnly) {
     $previousReportDir = $env:RDD_TEST_REPORT_DIR
     try {
         $explicitSource = Test-RddSourcePair -SourceRoot $SourceRoot -ExpectedCommit $ExpectedCommit
+        if ($TestLowMemory -and -not $explicitSource) { throw 'TestLowMemory requires -SourceRoot and -ExpectedCommit' }
         $requested = if (-not [string]::IsNullOrWhiteSpace($ModuleOverride)) { $ModuleOverride } else { $env:RDD_SELF_COMPILE_MODULE }
         $testPlan = Get-RddTestOnlyPlan -Module $requested -Tests $Tests
         $details.module = $testPlan.Module
@@ -103,9 +109,8 @@ if ($TestOnly) {
             $details.sourceDirtyCount = $source.dirtyCount
             $details.sourceProof = 'pre-check-only'
         }
-        $gradleRoot = $details.sourceRoot
-        $gradleArgs = @('-p', $gradleRoot, $testPlan.Task, '--no-build-cache', '--no-daemon', '--rerun-tasks')
-        foreach ($testName in $testPlan.Tests) { $gradleArgs += @('--tests', $testName) }
+        if ($TestLowMemory) { $details.testResourceProfile = 'low-memory' }
+        $gradleArgs = @(New-RddTestOnlyGradleArgs -Root $details.sourceRoot -Plan $testPlan -TestLowMemory:$TestLowMemory)
         $env:RDD_TEST_REPORT_DIR = $attempt.record.reportDir
         $env:JAVA_HOME = $global:RDD_SC.JAVA_HOME
         $env:GRADLE_OPTS = $global:RDD_SC.GRADLE_OPTS
