@@ -75,7 +75,8 @@ function Get-RddTestOnlyPlan {
             # 2026-11-17: exact SideTaskFoodDecline host consumer; plan-level admission only.
             'com.dwinovo.numen.plugins.rdd.SideTaskFoodDeclineConsumerTest',
             'com.dwinovo.numen.plugins.rdd.RddPlanningStockFactTest',
-            'com.dwinovo.numen.plugins.rdd.RddPlanningHpFactTest'
+            'com.dwinovo.numen.plugins.rdd.RddPlanningHpFactTest',
+            'com.dwinovo.numen.plugins.rdd.RddPlanningStockRequestTest'
         )
         'ai' = @(
             'com.dwinovo.numen.agent.llm.LlmObservationTest',

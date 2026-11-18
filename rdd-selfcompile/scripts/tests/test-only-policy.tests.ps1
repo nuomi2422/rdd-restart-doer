@@ -89,6 +89,16 @@ foreach($neighbor in $ownerStockNeighbors){
     MustReject {Get-RddTestOnlyPlan -Module $neighbor.Module -Tests @($neighbor.Class+'*')}
 }
 Write-Output 'owner and stock neighbors exact registration 28 assertions PASS (policy only; not Java execution)'
+# 2026-11-18: exact three-entry planning final-content consumer for the stock residual.
+$planRequestTest='com.dwinovo.numen.plugins.rdd.RddPlanningStockRequestTest'
+$planRequestPlan=Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planRequestTest)
+Assert ($planRequestPlan.Module -ceq 'plugins:rdd' -and $planRequestPlan.Task -ceq ':plugins:rdd:test' -and $planRequestPlan.Tests.Count -eq 1 -and $planRequestPlan.Tests[0] -ceq $planRequestTest) 'planning stock request keeps exact module/task/class'
+Assert ((Get-RddTestOnlyPlan -Module '' -Tests @($planRequestTest)).Module -ceq 'plugins:rdd') 'planning stock request has one inferred owner'
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:learner' -Tests @($planRequestTest)}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planRequestTest.ToLowerInvariant())}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planRequestTest+'Helper')}
+MustReject {Get-RddTestOnlyPlan -Module 'plugins:rdd' -Tests @($planRequestTest+'*')}
+Write-Output 'planning stock request exact registration 7 assertions PASS (policy only; not Java execution)'
 # 2026-11-18: exact B host consumer lives in plugins.acx, not the test package.
 $boundHostTest='com.dwinovo.numen.plugins.acx.AcxBoundHostConsumerTest'
 $boundHostPlan=Get-RddTestOnlyPlan -Module 'plugins:acx' -Tests @($boundHostTest)
