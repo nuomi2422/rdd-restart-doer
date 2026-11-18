@@ -227,6 +227,7 @@ function Get-RddTestOnlyPlan {
             'com.dwinovo.numen.rdd.core.TaskChainRestartRoundTripTest',
             'com.dwinovo.numen.rdd.side.SleepRiskPreemptionTest',
             'com.dwinovo.numen.rdd.side.SleepSideTaskSpawnBindTest',
+            'com.dwinovo.numen.rdd.side.SleepHandoffRetryTest',
             'com.dwinovo.numen.rdd.side.SideTaskDeclineTest',
             'com.dwinovo.numen.rdd.core.CompletedFactStoreTest',
             'com.dwinovo.numen.rdd.side.FoodSupplyAdmissionPriorityTest'
