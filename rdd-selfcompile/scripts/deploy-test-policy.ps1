@@ -249,6 +249,15 @@ function Get-RddTestDeploySource {
   $commit='8853c569e6e51d0bc23a39b4b5dcdea7f685f69a'
  }
 
+ # 054: exact two filming builds only; never a generic rollback or publish lane.
+ if($MutationId -cin @('mutation-build-7445649d40fb4f4ba129a374211a434f','mutation-build-bf4217e03aa24b009bf90331d3996b64')){
+  if(-not $Original){throw '054 filming artifacts require stopped original deployment'}
+  $fixed=@{
+   'mutation-build-7445649d40fb4f4ba129a374211a434f'=@('core:neoforge','numen-neoforge-1.21.1-0.1.3-dev.jar','A640310743A1CA19BF4694779DC80DF3021809B83B9E57DE102A7B5BA7A30DCC',3085373)
+   'mutation-build-bf4217e03aa24b009bf90331d3996b64'=@('plugins:rdd','numen-plugin-rdd-1.21.1-0.1.3-dev.jar','31A2049B65E234D44805A8F439CF9DF291B02097A77527BF1083F3C27BBBABD7',1191148)
+  }
+  $commit='0985e554d87acac18a2714aa08a33b5886e9a532'
+ }
  # 2026-11-14: V25 inspected two-plugin successor; retain every earlier rollback tuple.
  if($MutationId -cin @('mutation-build-4ee45e827c1e439eb95638a175a68177','mutation-build-f59304e827ee473bb10022854c2aaf2f')){
   if(-not $Original){throw 'V25 artifacts require original deployment'}
@@ -601,8 +610,17 @@ function Invoke-RddTestAssembly {
    ($Source.commit -ceq '842d7ee0123a8ead96a04ef673e0c29a2ff4534c' -and $Source.module -ceq 'plugins:acx' -and $Source.name -ceq 'numen-plugin-acx-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'F91DB3B6342CF90F96C4D62471DB5BA2E4C8FDECB4D52DF9323C0D7976A7AF6C') -or
    ($Source.commit -ceq 'cb7f8fa7f798ae19e54ac7e22e05a5a53c131e55' -and $Source.module -ceq 'plugins:learner' -and $Source.name -ceq 'numen-plugin-learner-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '110742902A1E00113D2604F3A93481EE9C679FFE4BFA13B61B55EBEEB576A3D1') -or
    ($Source.commit -ceq 'e4edcb356ff50516e3e145c06b718bdfbf5dce1b' -and $Source.module -ceq 'plugins:worldstate' -and $Source.name -ceq 'numen-plugin-worldstate-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '7702327FFBF94E53F12CC403FAA2439AE94C268CE68599CDF2A7C3118C49183B'))
-  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedSurvival174 -and -not $fixedSurvivalD217 -and -not $fixedSurvival04bfe -and -not $fixedOvernight3f3e -and -not $fixedSleepRetry -and -not $fixedRollback053 -and -not $fixedCb7Trio -and -not $fixedUnified -and -not $fixedProjection -and -not $fixedD20e -and -not $fixedV02Plan -and -not $fixedTrio -and -not $fixedConsolidation -and -not $fixedRecovering -and -not $fixedPendingDeath -and -not $fixedClassSplit -and -not $fixedLh1Prep -and -not $fixedUi -and -not $fixedQuota -and -not $fixedHp -and -not $fixedManual -and -not $fixedV25 -and -not $fixedV26 -and -not $fixedB2C1 -and -not $fixedConvo -and -not $fixedKbQuota -and -not $fixedOwnLearnerLate -and -not $fixedDailyFaede -and -not $fixedWhy8853 -and -not $fixedParallel -and -not $fixedNudgeRdd -and -not $fixedA1Food -and -not $fixedSuccessor -and -not $fixedResultReview -and -not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
+  $fixedFilming054=$Source.commit -ceq '0985e554d87acac18a2714aa08a33b5886e9a532' -and (
+   ($Source.module -ceq 'core:neoforge' -and $Source.name -ceq 'numen-neoforge-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq 'A640310743A1CA19BF4694779DC80DF3021809B83B9E57DE102A7B5BA7A30DCC') -or
+   ($Source.module -ceq 'plugins:rdd' -and $Source.name -ceq 'numen-plugin-rdd-1.21.1-0.1.3-dev.jar' -and $Source.sha -ieq '31A2049B65E234D44805A8F439CF9DF291B02097A77527BF1083F3C27BBBABD7'))
+  if($Root -cne 'D:/rdd/mc/The Best of Twilight Forest' -or (-not $fixedSurvival174 -and -not $fixedSurvivalD217 -and -not $fixedSurvival04bfe -and -not $fixedOvernight3f3e -and -not $fixedFilming054 -and -not $fixedSleepRetry -and -not $fixedRollback053 -and -not $fixedCb7Trio -and -not $fixedUnified -and -not $fixedProjection -and -not $fixedD20e -and -not $fixedV02Plan -and -not $fixedTrio -and -not $fixedConsolidation -and -not $fixedRecovering -and -not $fixedPendingDeath -and -not $fixedClassSplit -and -not $fixedLh1Prep -and -not $fixedUi -and -not $fixedQuota -and -not $fixedHp -and -not $fixedManual -and -not $fixedV25 -and -not $fixedV26 -and -not $fixedB2C1 -and -not $fixedConvo -and -not $fixedKbQuota -and -not $fixedOwnLearnerLate -and -not $fixedDailyFaede -and -not $fixedWhy8853 -and -not $fixedParallel -and -not $fixedNudgeRdd -and -not $fixedA1Food -and -not $fixedSuccessor -and -not $fixedResultReview -and -not $fixedReviewFood -and -not $fixedEc1b -and -not $fixedSurvivalIntent -and -not $fixedSurvivalReplan -and -not $fixedLearnerRestore -and -not $fixedAttackContractCore -and -not $fixedRecoveryRdd -and -not $fixedMineRecovery -and -not $fixedTransportExternal -and -not $fixedRuntimeFollowups -and -not $fixedOwnerFindings -and -not $fixedLearner -and -not $fixedIntegration -and -not $fixedNext -and -not $fixedE826 -and $Source.commit -cnotin @('6b87976f9726936497544703fa596088a5ad6f5f','cbe8ad44c0b18f3ab5ec0d2c19ccc7e91e677fe2','a5c47538f38ece2b65c0ef863bde865627eb4310','e1ad23d0fbb4679e3af749d377b39b6b2da45fbe','d06618143655f7608890c86ea48a8dcb43dc1341','7cf784df48d0362e60fa70e300b7711feaaa9452','7cc063c55b86a1bff83d90237c61a3cd12928abb','6d848bdae594859c24e2d3d5e3d0ac48d931f439'))){throw 'unapproved original deployment'}
  }elseif([IO.Path]::GetFullPath($Root) -ieq [IO.Path]::GetFullPath($Live)){throw 'test root is live'}
+ if($fixedFilming054){
+  if((Get-RddTestDeployState $Root) -cne 'STOPPED'){throw '054 original instance not proven stopped'}
+  . "$PSScriptRoot\bounded-live-launch-policy.ps1"
+  $preimage=if($Source.module -ceq 'core:neoforge'){'8d42dae30cc218e2bb381b4073290cf5c584eeb67b0ef9214c0aa8a81d0a66f3'}else{'fa3ea1d11761774e6d88b3c2abccd446eff5bec4d3fca8eb783d8ab842094271'}
+  Assert-RddBoundedLiveLaunch -Instance gpt -GameDir $Root -Save live -LevelOverride $env:RDD_LEVEL -Batch (Join-Path $Root 'shaderpacks/launch-live.bat') -ExpectedRoot $Live -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' -ModsSha $preimage
+ }
  if($fixedSleepRetry){
   # Check the whole preimage before the existing STOPPED, backup and copy path.
   . "$PSScriptRoot\bounded-live-launch-policy.ps1"

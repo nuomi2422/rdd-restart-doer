@@ -54,9 +54,9 @@ if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'o
 # All default/gpt/world launches remain frozen.
 # 2026-11-19: second explicit path for the frozen 3f3be4e1 five-artifact candidate.
 # Sleep retry adds one explicit mixed-source set: only the RDD package differs.
-if ($Mode -cnotin @('bounded-live','053-overnight-launch','053-sleep-retry-launch','054-saturday-filming') -or $Instance -cne 'gpt' -or
-    ($Mode -cin @('053-sleep-retry-launch','054-saturday-filming') -and (-not $PSBoundParameters.ContainsKey('Instance') -or $args.Count -ne 0)) -or
-    ($Mode -ceq '054-saturday-filming' -and ($MutationId -or -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -or $AutoStopMinutes -ne 0))) {
+if ($Mode -cnotin @('bounded-live','053-overnight-launch','053-sleep-retry-launch','054-saturday-filming','054-small-fixes-filming') -or $Instance -cne 'gpt' -or
+    ($Mode -cin @('053-sleep-retry-launch','054-saturday-filming','054-small-fixes-filming') -and (-not $PSBoundParameters.ContainsKey('Instance') -or $args.Count -ne 0)) -or
+    ($Mode -cin @('054-saturday-filming','054-small-fixes-filming') -and ($MutationId -or -not $PSBoundParameters.ContainsKey('AutoStopMinutes') -or $AutoStopMinutes -ne 0))) {
     Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
     exit 2
 }
@@ -100,7 +100,7 @@ if ($state -eq 'RUNNING') {
 
 # Pin bounded-live to the approved 174 attempt08 deployment; pin the 053 candidate to
 # frozen combo 3f3be4e1 (five installed artifacts plus the unchanged kept set).
-$approvedCommit = if ($Mode -ceq '054-saturday-filming') { '144ac9570932de65b80ae61d0ffffcb317934922' } elseif ($Mode -ceq '053-sleep-retry-launch') { '3ed4f016e01e79d106fb97054a8931204b7a8f58' } elseif ($Mode -ceq '053-overnight-launch') { '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' } else { '04bfe4b245201683ae87165d67db70dac3423e56' }
+$approvedCommit = if ($Mode -ceq '054-small-fixes-filming') { '0985e554d87acac18a2714aa08a33b5886e9a532' } elseif ($Mode -ceq '054-saturday-filming') { '144ac9570932de65b80ae61d0ffffcb317934922' } elseif ($Mode -ceq '053-sleep-retry-launch') { '3ed4f016e01e79d106fb97054a8931204b7a8f58' } elseif ($Mode -ceq '053-overnight-launch') { '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' } else { '04bfe4b245201683ae87165d67db70dac3423e56' }
 try {
     . "$PSScriptRoot\deploy-test-policy.ps1"  # Assert-RddOrdinaryPath; no deployment
     . "$PSScriptRoot\bounded-live-launch-policy.ps1"
@@ -116,12 +116,12 @@ try {
             -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' -State $state `
             -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
             -ModsSha 'd11a9a5870dd6cf7a0bb6782c761e2b5aba018e0e563b60acc62650a37c1016a'
-    } elseif ($Mode -ceq '054-saturday-filming') {
+    } elseif ($Mode -cin @('054-saturday-filming','054-small-fixes-filming')) {
         Assert-RddBoundedLiveLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
             -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
             -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' `
             -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
-            -ModsSha '8d42dae30cc218e2bb381b4073290cf5c584eeb67b0ef9214c0aa8a81d0a66f3'
+            -ModsSha $(if($Mode -ceq '054-small-fixes-filming'){'9618bbd5e390a1072beb38280af9e338f7a6ccbbfc00ddf180deee9658a8a706'}else{'8d42dae30cc218e2bb381b4073290cf5c584eeb67b0ef9214c0aa8a81d0a66f3'})
     } else {
         Assert-RddBoundedLiveLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
             -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
