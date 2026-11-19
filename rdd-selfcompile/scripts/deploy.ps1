@@ -129,6 +129,18 @@ if ($Mode -ceq 'original-overnight-frozen' -and $PSBoundParameters.ContainsKey('
  } catch { Write-Error ('DEPLOY_OVERNIGHT_FROZEN_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
 }
 
+# 2026-11-19: one sleep-retry RDD package on top of the exact installed 053 set.
+if ($Mode -ceq 'original-053-sleep-retry' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $PSBoundParameters.ContainsKey('JarPath') -and -not $PSBoundParameters.ContainsKey('JarName') -and $args.Count -eq 0 -and $MutationId -ceq 'mutation-build-61bb38e06c114253b74aeff0b247013c' -and $ExpectedCommit -ceq '3ed4f016e01e79d106fb97054a8931204b7a8f58' -and $ExpectedSha256 -ieq '80B66639FF83E7FB289136E6B8F5A088CC0558DABADF2720490D0590AF4769A6') {
+ $ErrorActionPreference='Stop'
+ try {
+  . "$PSScriptRoot\deploy-test-policy.ps1"
+  . "$PSScriptRoot\mc-identity.ps1"
+  $source=Get-RddTestDeploySource -MutationId $MutationId -ExpectedCommit $ExpectedCommit -ExpectedSha256 $ExpectedSha256 -Mutations 'D:/rdd/workspace/rdd-selfcompile/mutations' -Original
+  Invoke-RddTestAssembly -Source $source -Root 'D:/rdd/mc/The Best of Twilight Forest' -Live 'D:/rdd/mc/The Best of Twilight Forest' -Original | ConvertTo-Json -Depth 6
+  exit 0
+ } catch { Write-Error ('DEPLOY_053_SLEEP_RETRY_REFUSED_OR_FAILED: '+$_.Exception.Message);exit 2 }
+}
+
 # 2026-11-12: unique replies preserve MCP ownership; exact 32-test core tuple only.
 if ($Mode -ceq 'original-transport-external' -and $PSBoundParameters.ContainsKey('Instance') -and $Instance -ceq 'gpt' -and -not $JarPath -and -not $JarName -and $MutationId -ceq 'mutation-build-4f56fc55b7be483cab7f8e24579d9749' -and $ExpectedCommit -ceq 'f7b7c48a1ebbf93dd79e04bc6e596872c187273e' -and $ExpectedSha256 -ieq 'AF772A3F55B206F13E464807F7897FB1F85759A22D92F2D21F0F328336E8CD19') {
  $ErrorActionPreference='Stop'

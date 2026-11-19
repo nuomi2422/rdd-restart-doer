@@ -53,8 +53,9 @@ if ((($Mode -ceq 'isolated-title' -and $Instance -ceq 'test') -or ($Mode -ceq 'o
 }
 # All default/gpt/world launches remain frozen.
 # 2026-11-19: second explicit path for the frozen 3f3be4e1 five-artifact candidate.
-# Both modes are fixed; default and every other mode still refuse.
-if (($Mode -cne 'bounded-live' -and $Mode -cne '053-overnight-launch') -or $Instance -cne 'gpt') {
+# Sleep retry adds one explicit mixed-source set: only the RDD package differs.
+if ($Mode -cnotin @('bounded-live','053-overnight-launch','053-sleep-retry-launch') -or $Instance -cne 'gpt' -or
+    ($Mode -ceq '053-sleep-retry-launch' -and (-not $PSBoundParameters.ContainsKey('Instance') -or $args.Count -ne 0))) {
     Write-Output ("LAUNCH_REFUSED: incident-freeze: launch disabled pending commander batch")
     exit 2
 }
@@ -98,11 +99,17 @@ if ($state -eq 'RUNNING') {
 
 # Pin bounded-live to the approved 174 attempt08 deployment; pin the 053 candidate to
 # frozen combo 3f3be4e1 (five installed artifacts plus the unchanged kept set).
-$approvedCommit = if ($Mode -ceq '053-overnight-launch') { '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' } else { '04bfe4b245201683ae87165d67db70dac3423e56' }
+$approvedCommit = if ($Mode -ceq '053-sleep-retry-launch') { '3ed4f016e01e79d106fb97054a8931204b7a8f58' } elseif ($Mode -ceq '053-overnight-launch') { '3f3be4e1e84e378e5ce0d5e20f8ba84ac95a17bc' } else { '04bfe4b245201683ae87165d67db70dac3423e56' }
 try {
     . "$PSScriptRoot\deploy-test-policy.ps1"  # Assert-RddOrdinaryPath; no deployment
     . "$PSScriptRoot\bounded-live-launch-policy.ps1"
-    if ($Mode -ceq '053-overnight-launch') {
+    if ($Mode -ceq '053-sleep-retry-launch') {
+        Assert-RddOvernightLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
+            -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
+            -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' -State $state `
+            -BatchSha 'eb1f4a378cd78a76ff9a356db5eaeca3ebad7894a12b0bc017e1bd2a171a8494' `
+            -ModsSha '6874a747c34392e39b0a80279fe9ec2caf3876006369b315bcf7ab9aa591dd2c' -SleepRetry
+    } elseif ($Mode -ceq '053-overnight-launch') {
         Assert-RddOvernightLaunch -Instance $global:RDD_SC.SC_INSTANCE -GameDir $instanceDir `
             -Save $global:RDD_SC.MC_SAVE -LevelOverride $env:RDD_LEVEL -Batch $global:RDD_SC.MC_BAT `
             -ExpectedRoot 'D:/rdd/mc/The Best of Twilight Forest' -State $state `

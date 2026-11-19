@@ -53,8 +53,9 @@ function Assert-RddOvernightLaunch {
     param(
         [string]$Instance, [string]$GameDir, [string]$Save, [string]$LevelOverride, [string]$Batch,
         [string]$ExpectedRoot, [string]$BatchSha, [string]$ModsSha, [string]$State,
-        [hashtable]$ExpectedPackages = $null
+        [hashtable]$ExpectedPackages = $null, [switch]$SleepRetry
     )
+    if ($SleepRetry -and $null -ne $ExpectedPackages) { throw 'sleep retry package override refused' }
     if (-not $ExpectedPackages) {
         $ExpectedPackages = @{
             'numen-neoforge-1.21.1-0.1.3-dev.jar' = 'F65B775B6E1DD2F5D8AA67C524CD5312DF00981A85E904C586DE41C17AAD708E'
@@ -68,6 +69,9 @@ function Assert-RddOvernightLaunch {
             'numen-plugin-settlement-1.21.1-0.1.3-dev.jar' = '08A428EE3CBF838AD619A52AD0EB617B65C2EC27E1DC03F66CBDD8114F60A998'
             'minecraft-client-controller-neoforge-1.0.0.jar' = 'D5F1857206AC75678B1E2C3A95AE4DC518F4C1B1B48D7D4A9A8022E1EF70A260'
         }
+    }
+    if ($SleepRetry) {
+        $ExpectedPackages['numen-plugin-rdd-1.21.1-0.1.3-dev.jar'] = '80B66639FF83E7FB289136E6B8F5A088CC0558DABADF2720490D0590AF4769A6'
     }
     if ($State -cne 'STOPPED') { throw "instance state is $State; launch requires STOPPED" }
     if ($Instance -cne 'gpt' -or [IO.Path]::GetFullPath($GameDir) -ine [IO.Path]::GetFullPath($ExpectedRoot)) {
