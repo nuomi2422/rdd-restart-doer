@@ -1,4 +1,4 @@
-# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
+﻿# 部署 jar 到实验 mods（当前生产实例 mods 目录，阶段1同实例双存档）
 # H1-min 收敛：mods 只由本入口写；写入前用 mc-instance 的三态拒绝运行中/未知部署。
 # 回滚不再自己 copy，改为调用本入口 -JarPath（同一落点）。
 param(

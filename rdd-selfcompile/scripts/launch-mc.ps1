@@ -1,4 +1,4 @@
-# 启动 Minecraft 并进入 gpt 存档
+﻿# 启动 Minecraft 并进入 gpt 存档
 param(
     [string]$MutationId,
     [ValidateSet('test','gpt')][string]$Instance = $env:RDD_SELF_COMPILE_INSTANCE,
