@@ -43,6 +43,14 @@ export class Architecture {
   constructor(file, root) { this.file = file; this.root = fs.realpathSync(root); }
   load() {
     const text = read(this.file); this.revision = hash(text); this.graph = JSON.parse(text);
+    // 小地图仍是本仓文档；项目只登记入口，不合并真源。2026-11-21 主人要求多项目并存。
+    for (const project of this.graph.projects || []) {
+      if (!project.id || !project.file || !project.root || project.id === 'rdd') throw Error('项目地图身份无效');
+      const file = path.resolve(path.dirname(this.file), project.file);
+      const rel = path.relative(path.dirname(this.file), file);
+      if (rel.startsWith('..') || path.isAbsolute(rel)) throw Error('项目地图路径越界');
+      project._file = file; project._root = fs.realpathSync(path.resolve(path.dirname(this.file), project.root));
+    }
     if (!Array.isArray(this.graph.nodes) || !Array.isArray(this.graph.edges) || !Array.isArray(this.graph.sources)) throw Error('图谱缺少nodes/edges/sources数组');
     const ids = this.graph.nodes.map(n => n.id);
     if (new Set(ids).size !== ids.length || !ids.includes(this.graph.root)) throw Error('图谱节点身份重复或根缺失');
@@ -59,9 +67,10 @@ export class Architecture {
     }
   }
   sourceFile(source) {
-    const file = path.resolve(this.root, source.path);
+    // 项目地图的文件相对于地图，正文根可独立指回知识库；绝对路径只用于明确登记的项目入口。
+    const file = path.isAbsolute(source.path) ? path.normalize(source.path) : path.resolve(this.root, source.path);
     const rel = path.relative(this.root, file);
-    if (rel.startsWith('..') || path.isAbsolute(rel)) throw Error('来源越界');
+    if (!path.isAbsolute(source.path) && (rel.startsWith('..') || path.isAbsolute(rel))) throw Error('来源越界');
     const real = fs.realpathSync(file);
     const actual = path.relative(this.root, real);
     if (actual.startsWith('..') || path.isAbsolute(actual)) throw Error('来源链接越界');
@@ -105,6 +114,13 @@ export class Architecture {
   }
   decisionsFor(id) {
     return (this.graph.decisionHistory || []).filter(d => d.affects?.includes(id) || this.nodes.get(id)?.decisionId === d.id);
+  }
+  overview() {
+    // 首页只放总目标和全部一级分支，不混入关系的超大原证。第一屏的主线不能受limit截断。
+    const root=this.card(this.graph.root);
+    return {focus:{id:root.id,title:root.title,purpose:root.purpose},
+      lines:this.graph.nodes.filter(n=>n.parent===this.graph.root).map(n=>({id:n.id,title:n.title,purpose:n.purpose,lifecycle:this.lifecycle(n)})),
+      next:'按任意line.id调用arch_focus；按主题调用arch_search；开工和授权回知识库“当前总施工与方向”'};
   }
   navigate(a) {
     const id=a.focus || this.graph.root;
@@ -158,7 +174,7 @@ export class Architecture {
   }
   detail(a) {
     const id=a.focus; const level=integer(a.level,2,1,4), node=this.card(id);
-    const result={focus:{id:node.id,title:node.title,purpose:node.purpose,parent:node.parent,level},lifecycle:node.lifecycle,status:node.status,assessment:node.assessment,
+    const result={focus:{id:node.id,title:node.title,purpose:node.purpose,parent:node.parent,level},fingerprint:node.fingerprint||null,lifecycle:node.lifecycle,status:node.status,assessment:node.assessment,
       children:this.graph.nodes.filter(n=>n.parent===id).map(n=>({id:n.id,title:n.title,lifecycle:this.lifecycle(n)})),
       continuation:'提高level继续展开；sourceId/startLine/lineCount传给arch_source读取正文。'};
     if(level>=2) Object.assign(result,{aliases:node.aliases||[],keywords:node.keywords||[],contracts:node.contracts||[],gaps:node.gaps||[],conflicts:node.conflicts||[],auditSummary:node.auditSummary||null,
@@ -230,15 +246,26 @@ export class Architecture {
   _call(name,a={}) {
     if (!a || typeof a !== 'object' || Array.isArray(a)) throw Error('参数必须为对象');
     this.load();
+    const projectId = a.project === undefined ? 'rdd' : a.project;
+    const project = (this.graph.projects || []).find(p => p.id === projectId);
+    if (projectId !== 'rdd') {
+      if (!project) throw Error('未知项目: ' + projectId + '；先用arch_projects');
+      const child = new Architecture(project._file, project._root);
+      const { project: _selected, ...childArgs } = a;
+      const result = child.call(name, childArgs);
+      result.project = {id:project.id, title:project.title, entry:project.entry};
+      return result;
+    }
     const budget=integer(a.maxChars,14000,2000,40000);
     let result;
-    if(name==='arch_overview') result=this.navigate({focus:this.graph.root,depth:1,limit:5});
+    if(name==='arch_projects') result={projects:[{id:'rdd',title:'RDD / Minecraft',entry:'D:/rdd/workspace/AGENTS.md',purpose:'真实Minecraft长程运行、学习与改进'},...(this.graph.projects||[]).map(({_file,_root,...p})=>p)],note:'每项目一张小地图；选择project继续，不合并项目正文、权限或施工授权。'};
+    else if(name==='arch_overview') result=this.overview();
     else if(name==='arch_focus') result=this.navigate(a);
     else if(name==='arch_search') {
       if(typeof a.query!=='string'||!a.query.trim()||a.query.length>500) throw Error('query需为1-500字符');
       const terms=unique(a.query.trim().toLowerCase().split(/[\s,，、;；]+/).filter(Boolean));
       const matches=this.graph.nodes.map(n=>{
-        const haystack=JSON.stringify({id:n.id,title:n.title,purpose:n.purpose,aliases:n.aliases,keywords:n.keywords,contracts:n.contracts,gaps:n.gaps}).toLowerCase();
+        const haystack=JSON.stringify({id:n.id,title:n.title,purpose:n.purpose,fingerprint:n.fingerprint,aliases:n.aliases,keywords:n.keywords,contracts:n.contracts,gaps:n.gaps}).toLowerCase();
         const hits=terms.filter(t=>haystack.includes(t)); return {n,score:hits.length,matchedTerms:hits};
       }).filter(x=>x.score).sort((a,b)=>b.score-a.score||a.n.id.localeCompare(b.n.id));
       result={matches:matches.slice(0,integer(a.limit,5,1,20)).map(x=>({id:x.n.id,title:x.n.title,purpose:x.n.purpose,score:x.score,matchedTerms:x.matchedTerms,lifecycle:this.lifecycle(x.n)})),
@@ -277,6 +304,15 @@ export class Architecture {
       result.nextLine=result.startLine+result.lines.length<=result.totalLines?result.startLine+result.lines.length:null;
       if(!result.lines.length) result.next='单行超预算：提高maxChars，或外部阅读source.path该行';
       if(JSON.stringify(envelope).length<=budget) return envelope;
+    }
+    if(name==='arch_overview') {
+      // 低预算只压缩分支描述，不丢主线。再小的预算也要让总目标和六条入口可枚举。
+      envelope.truncated=true;
+      const original=result.lines;
+      envelope.result={focus:result.focus,lines:original.map(n=>({id:n.id,title:n.title})),next:result.next};
+      if(JSON.stringify(envelope).length<=budget) return envelope;
+      envelope.result.lines.forEach(n=>{n.title=n.title.split(/[：:]/)[0];});
+      return envelope;
     }
     envelope.truncated=true;
     envelope.result={message:'结果超过预算，请指定focus/sourceId缩小范围或提高maxChars',focus:a.focus||this.graph.root,availableNodes:[],next:'arch_focus / arch_detail / arch_status 指定focus；arch_source每次最多100行'};
